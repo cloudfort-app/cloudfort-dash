@@ -1,0 +1,47 @@
+{
+	"tracked": [
+		{
+			"name": "/",
+			"title": "index",
+			"template": "templates/template.html"
+		},
+		{
+			"name": "assets/css/style",
+			"title": "style",
+			"template": "templates/template.css",
+			"content-ext": ".css",
+			"output-ext": ".css"
+		},
+		{
+			"name": "assets/js/menu",
+			"title": "menu",
+			"template": "templates/template.js",
+			"content-ext": ".js",
+			"output-ext": ".js"
+		},
+		{
+			"name": "assets/js/pocketbase/auth",
+			"title": "auth",
+			"template": "templates/template.js",
+			"content-ext": ".js",
+			"output-ext": ".js"
+		},
+		{
+			"name": "assets/js/script",
+			"title": "script",
+			"template": "templates/template.js",
+			"content-ext": ".js",
+			"output-ext": ".js"
+		},
+		{
+			"name": "auth/details/",
+			"title": "auth/details",
+			"template": "templates/template.html"
+		},
+		{
+			"name": "auth/sign-in/",
+			"title": "auth/sign-in",
+			"template": "templates/sign-in.html"
+		}
+	]
+}

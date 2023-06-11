@@ -1,0 +1,167 @@
+<div class="card">
+	<i title="open" class='bs-ico bootstrap-folder-open width-1em ico-link-color' onclick="show_input_path_create()"></i> &nbsp;&nbsp;
+	<i title="save" class='bs-ico bootstrap-save width-1em ico-link-color' onclick="save_file()"></i> &nbsp;&nbsp;
+	<i title="close" class='bs-ico bootstrap-x-square width-1em ico-link-color' onclick="close_file()"></i>
+</div><br>
+
+<div id="card-input-path" class="card" style="display: none">
+	<input id="input-path" placeholder="path">
+	<button id="open_button" class="btn" onclick="open_file()" style="display: none">open</button>
+</div>
+
+<select id="select-open-file" onchange="select_open_file_event()">
+	<option value="none" disabled hidden selected>open files</option>
+</select><br>
+
+<textarea id="textarea-editor" readonly spellcheck="false"></textarea>
+
+<script>
+	var open_path = "";
+	const file_select = document.getElementById("select-open-file");
+	const editor = document.getElementById("textarea-editor");
+	var file_content = {};
+
+	async function select_open_file_event() {
+		file_content[open_path] = editor.value;
+		open_path = file_select.value;
+		editor.value = file_content[open_path];
+	}
+
+	async function show_input_path_create() {
+		if(document.getElementById("card-input-path").style.display == "none") {
+			var pwd = await get_pwd();
+
+			if(pwd.substring(0, home.length) == home)
+			    pwd = "~" + pwd.substring(home.length, pwd.length);
+
+			document.getElementById("card-input-path").style.display = "flex";
+			document.getElementById("open_button").style.display = "inline-flex";
+			document.getElementById("input-path").value = pwd + "/";
+			document.getElementById("input-path").focus();
+		}
+		else {
+			document.getElementById("card-input-path").style.display = "none";
+			document.getElementById("open_button").style.display = "none";
+		}
+	}
+
+	async function open_file() {
+		var path = document.getElementById("input-path").value;
+
+		if(path[0] == '~' && home.length)
+			path = home + path.substring(1, path.length);
+
+		edit_file(path);
+		document.getElementById("card-input-path").style.display = "none";
+		document.getElementById("open_button").style.display = "none";
+		editor.readOnly = false;
+	}
+
+	async function close_file() {
+		for(var i=0; i<file_select.length; ++i) {
+			if(file_select.options[i].value == open_path) {
+				file_select.remove(i);
+
+				if(i == 1 && file_select.length == 1) {
+					editor.value = "";
+					editor.readOnly = true;
+					file_select.value = "none";
+				}
+				else {
+					if(i == file_select.length)
+						--i;
+					
+					file_select.value = open_path = file_select.options[i].value;
+					editor.value = file_content[open_path];
+				}
+			}
+		}
+		delete file_content[open_path];
+	}
+
+	async function edit_file(path) {
+		show("editor");
+		editor.readOnly = false;
+
+		file_content[open_path] = document.getElementById("textarea-editor").value;
+		open_path = path;
+
+		if(file_content.hasOwnProperty(open_path) && file_content[open_path] != "") {
+			file_select.value = open_path;
+			document.getElementById("textarea-editor").value = file_content[open_path];
+		}
+		else {
+			const formData = new FormData();
+			formData.append("path", open_path);
+
+			let response = await fetch("/filestr", {
+				method: "POST",
+				headers: {
+					//"content-type": "application/json"
+			    	//"content-type": "application/x-www-form-urlencoded"
+			    },
+		        body: formData
+			});
+			let result = await response.json();
+
+			document.getElementById("textarea-editor").value = result["content"];
+
+			var opt = document.createElement('option');
+		    opt.value = open_path;
+		    if(open_path.substring(0, home.length) == home)
+			    opt.innerHTML = "~" + open_path.substring(home.length, open_path.length);
+			else
+			    opt.innerHTML = open_path;
+		    file_select.appendChild(opt);
+		    file_select.value = open_path;
+		}
+	}
+
+	async function save_file() {
+		if(open_path == "") {
+			alert("no file open");
+			return;
+		}
+
+		const formData = new FormData();
+
+		formData.append("path", open_path);
+		formData.append("content", editor.value);
+
+		let response = await fetch("/writefile", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+		    	//"content-type": "application/x-www-form-urlencoded"
+		    },
+	        body: formData
+		});
+		let result = await response.json();
+	}
+</script>
+
+<style>
+	#textarea-editor {
+		resize: none;
+		border: 1px solid var(--light-black);
+		height: calc(100vh - 16em); 
+		width: 100%;
+		white-space: pre-wrap;
+	}
+
+	#select-open-file {
+		background: var(--secondary-dark);
+		border: 1px solid var(--light-black);
+		color: var(--white);
+		min-width: 200px;
+		max-width: 90%;
+
+		margin: 0.5em 0;
+		padding-left: 0;
+	}
+
+	#input-path {
+		width: 400px;
+		max-width: 90%;
+	}
+</style>

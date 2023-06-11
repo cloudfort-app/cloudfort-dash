@@ -1,0 +1,11 @@
+{
+	"last-built": "17:02:05 Sunday June 11 2023",
+	"name": "auth/sign-in/",
+	"title": "auth/sign-in",
+	"template": "templates/sign-in.html",
+	"dependencies": [
+		"content/auth/sign-in/index.html",
+		"templates/head.html",
+		"templates/sign-in.html"
+	]
+}

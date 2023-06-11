@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<title>Cloudfort - auth/sign-in</title>
+		
+		<meta name="description" content="">
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		
+		<link rel="stylesheet" href="../../assets/css/style.css">
+	</head>
+
+	<body>
+		<div align="center">
+			<div id="sign-in-page">
+				<div class="card" style="margin-top: 25vh">
+					<h3>Cloudfort Dashboard</h3>
+			
+					<table class="centered">
+						<tr>
+							<td>
+								<input 
+									id="input-email"
+									type="email"
+									placeholder="email" 
+								>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<input 
+									id="input-password"
+									type="password"
+									placeholder="password" 
+								>
+							</td>
+						</tr>
+					</table>
+			
+					<div id="div-wrong-password" style="margin-top: 0.5em; display: none">
+						wrong password
+					</div>
+			
+					<button onclick="sign_in()" style="margin-top: 0.5em">sign in</button>
+				</div>
+			</div>
+			
+			<script type="text/javascript" src="../../assets/js/pocketbase.umd.js"></script>
+			<script>
+				const pb = new PocketBase('http://127.0.0.1:8090');
+			
+				async function sign_in() {
+					const authData = await pb.admins.authWithPassword(
+				        document.getElementById("input-email").value,
+				        document.getElementById("input-password").value,
+				    ).then((response) => {
+						if(response.error) {
+							document.getElementById("div-wrong-password").innerHTML = "sign in failed"
+							document.getElementById("div-wrong-password").style.display = "block";
+							console.log(response.error.message)
+						}
+						else
+							window.location.href = "../../";
+					}).catch((err) => {
+						document.getElementById("div-wrong-password").innerHTML = "wrong password"
+						document.getElementById("div-wrong-password").style.display = "block";
+						console.log(err);
+					});
+			
+				    /*console.log(" isValid: " + pb.authStore.isValid);
+				    console.log("   token: " + pb.authStore.token);
+				    console.log("model.id: " + pb.authStore.model.id);*/
+			
+				    
+				}
+			
+				if(pb.authStore.isValid) {
+				    location.href = "../../"
+				}
+			
+				document.addEventListener('keypress', (event) => {
+				  var name = event.key;
+				  var code = event.code;
+			
+				  if(name == 'Enter' || code == 'Enter')
+				  	sign_in();
+				}, false);
+			</script>
+		</div>
+
+		<script type="text/javascript" src="../../assets/js/script.js"></script>
+	</body>
+</html>

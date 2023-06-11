@@ -1,0 +1,49 @@
+<div id="menu-page">
+  <div class="menu-cross" >
+    <i id="close-menu-icon" class="fa fa-xmark ico-link-color" onclick="close_menu()"></i>
+  </div>
+
+  <nav id="nav" class="noselect">
+    <ul>
+      <li class="item li-menu li-dark has-submenu">
+        <button class="submenu-link" onclick="toggle_submenu(0)">dashboard</button>
+        <ul class="submenu" align="center">
+          <li class="subitem"><a href="#" onclick="show('index'); close_menu()">home</a></li>
+          <li class="subitem"><a href="#" onclick="show('monitor'); close_menu()">monitor</a></li>
+          <li class="subitem"><a href="#" onclick="show('terminal'); close_menu()">terminal</a></li>
+          <li class="subitem"><a href="#" onclick="show('browser'); close_menu()">browser</a></li>
+          <li class="subitem"><a href="#" onclick="show('editor'); close_menu()">editor</a></li>
+        </ul>
+      </li>
+
+      <li class="item li-menu li-dark has-submenu">
+        <button class="submenu-link" onclick="toggle_submenu(1)">company</button>
+        <ul class="submenu" align="center">
+          <li class="subitem"><a href="#" onclick="show('tos'); close_menu()">tos</a></li>
+          <li class="subitem"><a href="#" onclick="show('privacy-policy'); close_menu()">privacy policy</a></li>
+        </ul>
+      </li>
+
+      @/*<li class="item li-menu li-dark has-submenu">
+        <button class="submenu-link" onclick="toggle_submenu(0)">submenu</button>
+        <ul class="submenu" align="center">
+          <li class="subitem"><a href="#">example</a></li>
+          <li class="subitem"><a href="#">example</a></li>
+          <li class="subitem"><a href="#">example</a></li>
+          <li class="subitem"><a href="#">example</a></li>
+        </ul>
+      </li>
+      <li class="item li-menu li-dark has-submenu">
+        <button class="submenu-link" onclick="toggle_submenu(1)">submenu</button>
+        <ul class="submenu" align="center">
+          <li class="subitem"><a href="#">example</a></li>
+          <li class="subitem"><a href="#">example</a></li>
+          <li class="subitem"><a href="#">example</a></li>
+          <li class="subitem"><a href="#">example</a></li>
+        </ul>
+      </li>*/
+    </ul>
+  </nav>
+
+  <button id="sign-out-button" class="btn" onclick="sign_out()">sign out</button>
+</div>

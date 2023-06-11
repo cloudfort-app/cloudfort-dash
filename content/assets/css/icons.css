@@ -1,0 +1,117 @@
+/**
+ *  icon
+ */
+.fa {
+  cursor: pointer;
+  display: inline-block;
+  width: 2em;
+  vertical-align: middle;
+}
+
+.bs-ico {
+  cursor: pointer;
+  display: inline-block;
+  margin-top: 0.25em;
+  width: 1.5em;
+  vertical-align: middle;
+}
+
+.default-cursor {
+  cursor: default;
+}
+
+/**
+ * sizes
+ */
+.width-1em {
+  width: 1em;
+}
+.width-1-5em {
+  width: 1.5em;
+}
+.width-2em {
+  width: 2em;
+}
+.width-5em {
+  width: 5em;
+}
+
+/**
+ * colors
+ */
+.ico-link-color, .ico-link-color-no-hover {
+  filter: var(--filter-link-color);
+}
+.ico-link-color:hover {
+  filter: var(--filter-hover-color);
+}
+
+.ico-white {
+  filter: var(--filter-white);
+}
+
+
+/**
+ * solid
+ */
+.fa-angle-down:before {
+  content: url("@pathtofile(public/assets/icons/fa-angle-down-solid.svg)"); 
+}
+.fa-angle-up:before {
+  content: url("@pathtofile(public/assets/icons/fa-angle-up-solid.svg)"); 
+}
+.fa-bars:before {
+  content: url("@pathtofile(public/assets/icons/fa-bars-solid.svg)"); 
+}
+.fa-square-poll-vertical:before {
+  content: url("@pathtofile(public/assets/icons/fa-square-poll-vertical-solid.svg)"); 
+}
+.fa-terminal:before {
+  content: url("@pathtofile(public/assets/icons/fa-terminal-solid.svg)"); 
+}
+.fa-xmark:before {
+  content: url("@pathtofile(public/assets/icons/fa-xmark-solid.svg)"); 
+}
+
+.bootstrap-activity:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-activity.svg)"); 
+}
+.bootstrap-code-square:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-code-square.svg)"); 
+}
+.bootstrap-file-earmark:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-file-earmark.svg)"); 
+}
+.bootstrap-file-earmark-plus:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-file-earmark-plus.svg)"); 
+}
+.bootstrap-folder:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-folder.svg)"); 
+}
+.bootstrap-folder-open:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-folder-open.svg)"); 
+}
+.bootstrap-folder-plus:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-folder-plus.svg)"); 
+}
+.bootstrap-gear:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-gear.svg)"); 
+}
+.bootstrap-house:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-house.svg)"); 
+}
+.bootstrap-input-cursor-text:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-input-cursor-text.svg)"); 
+}
+.bootstrap-save:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-save.svg)"); 
+}
+.bootstrap-terminal:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-terminal.svg)"); 
+}
+.bootstrap-trash:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-trash.svg)"); 
+}
+.bootstrap-x-square:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-x-square.svg)"); 
+}

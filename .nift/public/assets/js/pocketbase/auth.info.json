@@ -1,0 +1,10 @@
+{
+	"last-built": "00:19:23 Thursday June 08 2023",
+	"name": "assets/js/pocketbase/auth",
+	"title": "auth",
+	"template": "templates/template.js",
+	"dependencies": [
+		"content/assets/js/pocketbase/auth.js",
+		"templates/template.js"
+	]
+}

@@ -1,0 +1,31 @@
+<textarea id="textarea-monitor" readonly spellcheck="false"></textarea>
+
+<script>
+	const monitor = document.getElementById("textarea-monitor");
+
+	async function fetch_top() {
+		let response = await fetch("/top", {
+			method: "GET"
+		});
+		let result = await response.json();
+
+		monitor.value = result["output"];
+
+		setTimeout(function(){fetch_top()}, 2000);
+	}
+
+	function monitor_init() {
+		fetch_top();
+	}
+	monitor_init();
+</script>
+
+<style>
+	#textarea-monitor {
+		resize: none;
+		border: 1px solid var(--light-black);
+		height: calc(100vh - 9.25em); 
+		width: 100%;
+		white-space: pre-wrap;
+	}
+</style>

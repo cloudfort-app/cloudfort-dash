@@ -1,0 +1,133 @@
+<textarea id="textarea-terminal" readonly></textarea><br>
+<input id="input-terminal" placeholder="cmd" onkeypress="terminal_keypress(event)"><br>
+<select id="select-hist" onchange="hist_event()">
+	<option value="none" disabled hidden selected>history</option>
+</select>
+
+<script>
+	const hist_select = document.getElementById("select-hist");
+	var prev_cmd, cmd;
+
+	async function hist_event() {
+		document.getElementById("input-terminal").value = hist_select.value;
+		document.getElementById("input-terminal").focus();
+		hist_select.value = "none";
+	}
+
+	async function run_cmd() {
+		const formData = new FormData();
+
+		prev_cmd = cmd;
+		cmd = document.getElementById("input-terminal").value;
+
+		if(cmd.length && cmd[0] == ' ')
+			cmd = cmd.slice(1);
+		else if(cmd != prev_cmd) {
+			var opt = document.createElement('option');
+		    opt.value = cmd;
+		    opt.innerHTML = cmd;
+		    hist_select.appendChild(opt);
+		}
+
+		document.getElementById("textarea-terminal").innerHTML += document.getElementById("input-terminal").value + "\n";
+		document.getElementById("input-terminal").value = "";
+
+		if(cmd.split(" ")[0] == "edit") {
+			document.getElementById("textarea-terminal").innerHTML += "\n";
+			edit_file(cmd.split(" ")[1]);
+		}
+		else if(cmd.split(" ")[0] == "cd") {
+			var dir = cmd.split(" ")[1];
+
+			if(dir[0] == '~' && home.length)
+				dir = home + dir.substring(1, dir.length);
+
+			formData.append("dir", dir);
+
+			let response = await fetch("/cd", {
+				method: "POST",
+				headers: {
+					//"content-type": "application/json"
+			    },
+		        body: formData
+			});
+			let result = await response.json();
+
+			document.getElementById("textarea-terminal").innerHTML += result["output"] + "\n";
+			document.getElementById("textarea-terminal").scrollTop = document.getElementById("textarea-terminal").scrollHeight;
+		}
+		else {
+			try {
+				formData.append("command", cmd);
+
+
+				let response = await fetch("/run", {
+					method: "POST",
+					headers: {
+						//"content-type": "application/json"
+				    	//"content-type": "application/x-www-form-urlencoded"
+				    },
+			        body: formData
+				});
+				let result = await response.json();
+
+				document.getElementById("textarea-terminal").innerHTML += result["output"] + "\n";
+				document.getElementById("textarea-terminal").scrollTop = document.getElementById("textarea-terminal").scrollHeight;
+			}
+			catch(error) {
+				alert("error: " + error);
+			}
+		}
+
+		var pwd = await get_pwd();
+
+		if(pwd.substring(0, home.length) == home)
+			pwd = "~" + pwd.substring(home.length, pwd.length);
+
+		document.getElementById("textarea-terminal").innerHTML += pwd + "$ ";
+	}
+
+	async function terminal_init() {
+		var pwd = await get_pwd();
+
+		if(pwd.substring(0, 6) == "/home/") {
+			home = pwd.substring(0, pwd.indexOf('/', 6));
+			pwd = "~" + pwd.substring(home.length, pwd.length);
+		}
+
+		document.getElementById("textarea-terminal").innerHTML += pwd + "$ ";
+	}
+	terminal_init();
+
+	function terminal_keypress(e) {
+		var name = e.key;
+		var code = e.code;
+
+		//alert(name)
+
+		if(name == 'Enter' || code == 'Enter')
+	  		run_cmd();
+	}
+</script>
+
+<style>
+	#textarea-terminal, #input-terminal, #select-hist {
+		background: var(--secondary-dark);
+		border: 1px solid var(--light-black);
+		color: var(--white);
+		max-width: 700px; 
+		width: 90%; 
+	}
+
+	#select-hist {
+		margin-top: 0.5em;
+		margin-left: 0;
+		padding-left: 0;
+	}
+
+	#textarea-terminal {
+		resize: none;
+		height: calc(100vh - 14em); 
+		white-space: pre-wrap;
+	}
+</style>

@@ -1,0 +1,327 @@
+:root {
+  --white: white;
+  --grey:  #3d3b36;
+  --primary-black: #181a1b;
+  --secondary-black: #1f1f1f;
+  --light-black: #2b2b2b;
+
+  --neon-red:    #ff3131;
+  --neon-orange: #ff9914;
+  --neon-yellow: #fbff14;
+  --neon-green:  #74db00;
+  --neon-blue:   #2b97fa;
+  --neon-purple: #c922c9;
+  --neon-pink:   #ff1493;
+
+  --sherb-red:    #e36868;
+  --sherb-orange: #e3ba68;
+  --sherb-yellow: #e3dd68;
+  --sherb-green:  #8be368;
+  --sherb-blue:   #68b8e3;
+  --sherb-purple: #9d68e3;
+  --sherb-pink:   #e368db;
+
+  --filter-white:  invert(1.0);
+
+  --filter-neon-green:  invert(56%) sepia(64%) saturate(631%)  hue-rotate(45deg)  brightness(112%) contrast(102%);
+
+  --filter-sherb-green:  invert(96%) sepia(94%) saturate(735%)  hue-rotate(39deg)  brightness(92%) contrast(93%);
+  --filter-sherb-blue:   invert(70%) sepia(18%) saturate(1152%) hue-rotate(160deg) brightness(97%) contrast(83%);
+  --filter-sherb-pink:   invert(63%) sepia(55%) saturate(1993%) hue-rotate(273deg) brightness(94%) contrast(89%);
+  --filter-sherb-purple: invert(43%) sepia(86%) saturate(463%)  hue-rotate(223deg) brightness(95%) contrast(87%);;
+
+  --primary-dark:   var(--primary-black);
+  --secondary-dark: var(--secondary-black);
+
+  --primary-color:   var(--sherb-green);
+  --secondary-color: var(--sherb-blue);
+
+  --link-color:  var(--sherb-purple);
+  --hover-color: var(--sherb-pink);
+
+  --filter-primary-color: var(--filter-sherb-green);
+  --filter-secondary-color: var(--filter-sherb-blue);
+
+  --filter-link-color: var(--filter-sherb-purple);
+  --filter-hover-color: var(--filter-sherb-pink);
+}
+
+@font-face 
+{
+  font-family: "figtree";
+  src: url("@pathtofile(public/assets/fonts/Figtree.ttf)") format("truetype");
+  font-display: fallback;
+}
+
+@font-face 
+{
+  font-family: "open sans";
+  src: url("@pathtofile(public/assets/fonts/OpenSans.ttf)") format("truetype");
+  font-display: fallback;
+}
+
+@font-face 
+{
+  font-family: "sans pro";
+  src: url("@pathtofile(public/assets/fonts/SansPro.ttf)") format("truetype");
+  font-display: fallback;
+}
+
+html, body, div, applet, object,
+iframe, h1, h2, h3, h4, h5, h6, blockquote,
+pre, a, abbr, acronym, address, big, cite,
+code, del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var, b,
+u, i, center, dl, dt, dd, fieldset,
+form, label, legend, table, caption, tbody,
+tfoot, thead, tr, th, td, article, aside,
+canvas, details, embed, figure, figcaption,
+header, hgroup, output, ruby,
+section, summary, time, mark, audio, video {
+  margin:  0 0 0 0;
+  line-height: 1.25em;
+  box-sizing: border-box;
+  max-width: 100%;
+
+  scrollbar-color: var(--link-color) transparent !important;
+}
+
+body {
+  background: var(--primary-dark); 
+  background-size: 100vw 100vh;
+  background-repeat: no-repeat;
+  color: var(--white);
+  font-family: "figtree";
+  max-width: 100%;
+  min-height: 100%;
+}
+
+.card {
+  background: var(--light-black);
+  display: inline-block;
+  margin: 0.25em;
+  padding: 0.5em;
+  width:fit-content;
+  height:fit-content;
+  border-radius: 5px;
+}
+
+.centered {
+  margin: 0 auto;
+}
+
+#menu-div, #menu-open-div {
+  padding: 1em 0;
+  background: var(--secondary-dark);
+  text-align: center;
+  width: 3.5em;
+  display: inline-flex;
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  overflow-y: auto;
+
+  z-index: 5;
+
+  box-shadow: 0 0.1rem 0.7rem rgb(0 0 0 / 20%) !important;
+}
+
+#menu-div {
+  height: 100vh;
+}
+
+#menu-open-div {
+  height: 3.5em;
+
+  box-shadow: 0 0.1rem 0 rgb(0 0 0 / 20%) !important;
+}
+
+#banner-div {
+  padding: 1em;
+  margin-left: 3.5em;
+  background: var(--secondary-dark);
+  width: calc(100% - 3.5em);
+  height: 3.5em;
+  display: inline-flex;
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  box-shadow: 0 0.1rem 0 rgb(0 0 0 / 20%) !important;
+}
+
+.main-div {
+  padding-top: 3.75em;
+  margin-left: 3.5em;
+  width: calc(100vw - 4em);
+  min-height: calc(100vh - 2.5em);
+}
+
+#footer-div {
+  background: var(--primary-dark);
+  padding: 0.7em;
+  margin-left: 3.5em;
+  width: calc(100% - 3.5em);
+  height: 2.5em;
+  display: inline-flex;
+
+  border-top: 1px solid var(--light-black);
+  box-shadow: 0 0.1rem 0.5em rgb(0 0 0 / 20%) !important;
+}
+
+.main-page {
+  max-width: calc(100% - 3.5em);
+  /*text-align: left;*/
+}
+
+@media screen and (max-width: 600px) {
+  #menu-div {
+    display: none;
+  }
+
+  #footer-div {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .main-div {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .main-page {
+    max-width: 90%;
+  }
+}
+
+table { 
+   /*border-collapse: separate;*/
+   border-spacing: 1em 0;
+}
+
+.main-page ul {
+  text-align: left;
+  max-width: 90%;
+}
+
+ul li {
+  list-style: none;
+  list-style-position: outside !important;
+}
+
+#main-page ul li::before {
+  content: "\2022"; 
+  color: var(--primary-color);
+  font-weight: bold;
+  font-size: 11pt;
+  display: inline-block; 
+  width: 1em; 
+  margin-left: -1em;
+}
+
+::-moz-selection {
+  color: var(--primary-dark);
+  background-color: var(--primary-color);
+}
+
+::selection {
+  color: var(--primary-dark);
+  background-color: var(--primary-color);
+}
+
+.noselect, br, button, .fa
+{
+  -webkit-user-select: none; /* Chrome/Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+ */
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--primary-color);
+  text-align: center;
+}
+
+hr {
+  max-width: 100%;
+  border: 1px solid var(--grey);
+}
+
+a {
+  color: var(--link-color);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--hover-color);
+}
+
+.btn {
+  font-size: 1em;
+  color: var(--primary-dark);
+  cursor: pointer;
+  padding: 0.25em 0.5em;
+  margin: 0.25em 0.5em;
+  background: var(--link-color);
+  border: 0px;
+  border-radius: 0.25em;
+}
+.btn:hover {
+  background: var(--hover-color);
+}
+
+textarea {
+  background: var(--secondary-dark);
+  color: var(--white);
+  font-size: 1em;
+  width: 500px;
+  height: 400px;
+  max-width: 90%;
+  max-height: 70%;
+  white-space: pre;
+  overflow-x:auto;
+  resize: none;
+  padding: 0.25em 0.25em;
+  margin: 0.25em 0.5em;
+}
+
+code
+{
+  color: var(--secondary-color); 
+}
+
+
+/* width */
+::-webkit-scrollbar 
+{
+  width: 8px;
+  height: 8px;
+}
+
+#menu-div::-webkit-scrollbar 
+{
+  width: 5px;
+  height: 5px;
+}
+
+/* track */
+::-webkit-scrollbar-track 
+{
+  background: transparent; 
+}
+ 
+/* handle */
+::-webkit-scrollbar-thumb 
+{
+  background: var(--link-color);
+  border-radius: 3px;
+}
+
+/* handle on hover */
+::-webkit-scrollbar-thumb:hover 
+{
+  background: var(--hover-color); 
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
