@@ -1,0 +1,166 @@
+pre.scroll
+{
+	max-height: 400px;
+	overflow-y: auto;
+}
+
+pre.inline
+{
+	display: inline-block !important;
+}
+
+pre.wrap, .pre-wrap {
+	white-space:      pre-wrap !important;  /* css-3 */
+	white-space: -moz-pre-wrap !important;  /* ff */
+	white-space:     -pre-wrap !important;  /* opera 4-6 */
+	white-space:   -o-pre-wrap !important;  /* opera 7 */
+	word-wrap:      break-word !important;  /* ie 5.5+ */
+}
+
+pre.resize
+{
+	resize: both;
+}
+
+pre{
+	color: white;
+	background: var(--secondary-dark);
+
+	text-align:left;
+	tab-size: 4;
+	min-height: 200px;
+	max-height: 350px;
+	max-width: calc(90% - 30px);
+
+	overflow-y: auto;
+	overflow-x: scroll;
+
+	margin: 0 auto 15px;
+	padding: 15px;
+
+	font-family: "ubuntu mono";
+	font-size: 90%;
+
+	white-space:      pre;  /* css-3 */
+	white-space: -moz-pre;  /* ff */
+	white-space:     -pre;  /* opera 4-6 */
+	white-space:   -o-pre;  /* opera 7 */
+	word-wrap:     normal;  /* ie 5.5+ */
+
+	border: solid 1px var(--primary-grey);
+	border-radius: 4px;
+
+	-ms-box-sizing:border-box;
+  -moz-box-sizing:border-box;
+  -webkit-box-sizing:border-box; 
+  box-sizing:border-box;
+}
+
+#editor-container {
+	max-width: 100%;
+	margin: 0 15px;
+
+	font-family: "ubuntu mono";
+	font-size: 90%;
+
+	border: solid 1px transparent;
+	border-radius: 4px;
+
+  position: relative;
+
+  	-ms-box-sizing:border-box;
+  -moz-box-sizing:border-box;
+  -webkit-box-sizing:border-box; 
+  box-sizing:border-box;
+}
+
+#editor-content, #editor {
+	text-align:left;
+	tab-size: 4;
+	min-height: 200px;
+	height: calc(100vh - 14em); 
+
+	font-size: 1em;
+  line-height: 1em;
+  font-family: "ubuntu mono";
+
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+
+	-ms-box-sizing:border-box;
+  -moz-box-sizing:border-box;
+  -webkit-box-sizing:border-box; 
+  box-sizing:border-box;
+
+	overflow-y: visible;
+	overflow-x: auto;
+
+	margin: 0 0;
+	padding: 0.5em;
+
+	white-space:      pre;  /* css-3 */
+	white-space: -moz-pre;  /* ff */
+	white-space:     -pre;  /* opera 4-6 */
+	white-space:   -o-pre;  /* opera 7 */
+	word-wrap:     normal;  /* ie 5.5+ */
+}
+
+#editor-content {
+	background: var(--secondary-dark);
+	border: 1px solid var(--primary-grey);
+	color: white !important;
+
+	z-index: 1;
+}
+
+#editor {
+	background: transparent;
+	border:1px solid var(--primary-grey);
+	color: transparent;
+
+  white-space: pre;
+  resize: none;
+
+	z-index: 2;
+
+	caret-color: var(--neon-purple);
+}
+
+#editor:focus {
+	outline: none;
+}
+
+/*caret types*/
+.caret-bar > span {
+  animation: blink 1s step-end infinite;
+  border-left: 2px solid white;
+}
+
+.caret-block > span {
+  animation: blink 1s step-end infinite;
+  background-color: hsla(1, 1%, 100%, 1);
+  color: #000;
+}
+
+.caret-underscore > span {
+  animation: blink 1s step-end infinite;
+  border-bottom: 2px solid white;
+}
+
+@keyframes blink {
+  from,
+  to {
+  	color: white;
+    border-color: transparent;
+    background-color: transparent;
+  }
+  50% {
+  	color: transparent;
+    border-color: var(--rnbw-color);
+    background-color: var(--rnbw-color);
+  }
+}
+

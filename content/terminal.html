@@ -1,4 +1,4 @@
-<textarea id="textarea-terminal" readonly></textarea><br>
+<div id="textarea-terminal" style="text-align: left; margin: 0.5em 0;"></div>
 <input id="input-terminal" placeholder="cmd" onkeypress="terminal_keypress(event)"><br>
 <select id="select-hist" onchange="hist_event()">
 	<option value="none" disabled hidden selected>history</option>
@@ -54,7 +54,6 @@
 			let result = await response.json();
 
 			document.getElementById("textarea-terminal").innerHTML += result["output"] + "\n";
-			document.getElementById("textarea-terminal").scrollTop = document.getElementById("textarea-terminal").scrollHeight;
 		}
 		else {
 			try {
@@ -72,7 +71,6 @@
 				let result = await response.json();
 
 				document.getElementById("textarea-terminal").innerHTML += result["output"] + "\n";
-				document.getElementById("textarea-terminal").scrollTop = document.getElementById("textarea-terminal").scrollHeight;
 			}
 			catch(error) {
 				alert("error: " + error);
@@ -84,7 +82,8 @@
 		if(pwd.substring(0, home.length) == home)
 			pwd = "~" + pwd.substring(home.length, pwd.length);
 
-		document.getElementById("textarea-terminal").innerHTML += pwd + "$ ";
+		document.getElementById("textarea-terminal").innerHTML += "<span style='color: var(--hover-color)'>" + pwd + "</span>$ ";
+		document.getElementById("textarea-terminal").scrollTop = document.getElementById("textarea-terminal").scrollHeight;
 	}
 
 	async function terminal_init() {
@@ -95,7 +94,7 @@
 			pwd = "~" + pwd.substring(home.length, pwd.length);
 		}
 
-		document.getElementById("textarea-terminal").innerHTML += pwd + "$ ";
+		document.getElementById("textarea-terminal").innerHTML += "<span style='color: var(--hover-color)'>" + pwd + "</span>$ ";
 	}
 	terminal_init();
 
@@ -117,6 +116,12 @@
 		color: var(--white);
 		max-width: 700px; 
 		width: 90%; 
+		overflow-y: scroll;
+
+		-ms-box-sizing:border-box;
+		-moz-box-sizing:border-box;
+		-webkit-box-sizing:border-box; 
+		box-sizing:border-box;
 	}
 
 	#select-hist {
@@ -127,7 +132,7 @@
 
 	#textarea-terminal {
 		resize: none;
-		height: calc(100vh - 14em); 
+		height: calc(100vh - 11em); 
 		white-space: pre-wrap;
 	}
 </style>

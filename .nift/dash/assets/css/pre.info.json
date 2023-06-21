@@ -1,0 +1,10 @@
+{
+	"last-built": "05:14:36 Wednesday June 21 2023",
+	"name": "assets/css/pre",
+	"title": "pre",
+	"template": "templates/template.css",
+	"dependencies": [
+		"content/assets/css/pre.css",
+		"templates/template.css"
+	]
+}

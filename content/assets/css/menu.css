@@ -1,4 +1,4 @@
-.menu-bars, .menu-cross {
+#menu-bars, #menu-cross {
   position: absolute;
   top: 1em;
   left: 1em;
@@ -10,6 +10,11 @@
   width: 1.5em;
   height: 1.5em;
   padding-top: 0em;
+  filter: var(--filter-primary-red);
+}
+
+#close-menu-icon:hover, #open-menu-icon:hover {
+  filter: var(--filter-neon-orange);
 }
 
 #menu-page, #sign-in-page {
@@ -56,7 +61,7 @@ nav a {
   font-size: 15pt;
 }
 .submenu-link::after {
-  content: url("@pathtofile(public/assets/icons/fa-angle-down-solid.svg)");
+  content: url("@pathtofile(dash/assets/icons/fa-angle-down-solid.svg)");
   display: inline-block;
   filter: invert(100%);
   width: 1em;
@@ -65,7 +70,7 @@ nav a {
   vertical-align: middle;
 }
 .submenu-link-active::after {
-  content: url("@pathtofile(public/assets/icons/fa-angle-up-solid.svg)"); 
+  content: url("@pathtofile(dash/assets/icons/fa-angle-up-solid.svg)"); 
 }
 .submenu-link:hover::after {
   filter: var(--filter-hover-color); 

@@ -1,0 +1,1026 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<title>Cloudfort Dash</title>
+		
+		<meta name="description" content="">
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		
+		<link rel="stylesheet" href="assets/css/style.css">
+		
+		<link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+	</head>
+
+	<body>
+		<div align="center">
+			<div id="menu-bars">
+			  <i id="open-menu-icon" class="fa fa-bars" onclick="show_menu()"></i>
+			</div>
+			
+			<div id="menu-page">
+			  <div id="menu-cross" >
+			    <i id="close-menu-icon" class="fa fa-xmark" onclick="close_menu()"></i>
+			  </div>
+			
+			  <h2><i class='bs-ico bootstrap-cloud-haze ico-primary-red' style="cursor: default"></i> Cloudfort</h2>
+			
+			  <nav id="nav" class="noselect">
+			    <ul>
+			      <li class="item li-menu li-dark has-submenu">
+			        <button class="submenu-link" onclick="toggle_submenu(0)">dashboard</button>
+			        <ul class="submenu" align="center">
+			          <li class="subitem"><a href="#" onclick="show('index'); close_menu()">home</a></li>
+			          <li class="subitem"><a href="#" onclick="show('monitor'); close_menu()">monitor</a></li>
+			          <li class="subitem"><a href="#" onclick="show('terminal'); close_menu()">terminal</a></li>
+			          <li class="subitem"><a href="#" onclick="show('browser'); close_menu()">browser</a></li>
+			          <li class="subitem"><a href="#" onclick="show('editor'); close_menu()">editor</a></li>
+			        </ul>
+			      </li>
+			
+			      <li class="item li-menu li-dark has-submenu">
+			        <button class="submenu-link" onclick="toggle_submenu(1)">company</button>
+			        <ul class="submenu" align="center">
+			          <li class="subitem"><a href="#" onclick="show('tos'); close_menu()">tos</a></li>
+			          <li class="subitem"><a href="#" onclick="show('privacy-policy'); close_menu()">privacy policy</a></li>
+			        </ul>
+			      </li>
+			
+			      </ul>
+			  </nav>
+			
+			  <button id="sign-out-button" class="btn" onclick="sign_out()">sign out</button>
+			</div>
+
+			<div id="content">
+				<div id="menu-div">
+					<div style="margin: 0 auto">
+						<i id="open-menu-icon" class="fa fa-bars ico-link-color" onclick="show_menu()"></i><br><br>
+						<i title="home" class="bs-ico bootstrap-house ico-link-color" onclick="show('index')"></i><br>
+						<hr>
+						<i title="server monitor" class="bs-ico bootstrap-activity ico-link-color" onclick="show('monitor')"></i><br>
+						<a title="terminal" href="#"><i class="bs-ico bootstrap-terminal ico-link-color" onclick="show('terminal')"></i></a><br>
+						<a title="file explorer" href="#"><i class="bs-ico bootstrap-folder ico-link-color" onclick="show('explorer')"></i></a><br>
+						<a title="editor" href="#"><i class="bs-ico bootstrap-code-square ico-link-color" onclick="show('editor')"></i></a><br>
+					</div>
+				</div>
+
+				<div id="banner-div">
+					<h2 style="color: white; margin-top: -0.125em; margin-left: 2.5em">Cloudfort</h2>
+				</div>
+
+				<div id="index-div" class="main-div">
+					<div class="main-page">
+						<h1 style="margin: 0.5em 0">Dashboard</h1>
+						
+						<div class="card border-hover" onclick="show('monitor')" style="cursor: pointer; width: 9em">
+							<i class="bs-ico bootstrap-activity width-5em ico-link-color-card"></i><br>
+							<hr>
+							<h2>monitor</h2>
+						</div>
+						
+						<div class="card border-hover" onclick="show('terminal')" style="cursor: pointer; width: 9em">
+							<i class="bs-ico bootstrap-terminal width-5em ico-link-color-card"></i><br>
+							<hr>
+							<h2>terminal</h2>
+						</div>
+						
+						<div class="card border-hover" onclick="show('explorer')" style="cursor: pointer; width: 9em">
+							<i class="bs-ico bootstrap-folder width-5em ico-link-color-card"></i><br>
+							<hr>
+							<h2>explorer</h2>
+						</div>
+						
+						<div class="card border-hover" onclick="show('editor')" style="cursor: pointer; width: 9em">
+							<i class="bs-ico bootstrap-code-square width-5em ico-link-color-card"></i><br>
+							<hr>
+							<h2>editor</h2>
+						</div>
+					</div>
+				</div>
+
+				<script type="text/javascript" src="assets/js/pocketbase.umd.js"></script>
+				<script>
+					var home = "nil";
+
+					var pb;
+					//var pb = new PocketBase('http://yarrr.net:8080');
+
+					async function sign_out() {
+					    pb.authStore.clear();
+					    location.href = "auth/sign-in/"
+					}
+
+					if(localStorage.getItem("pb-url")) {
+						pb = new PocketBase(localStorage.getItem("pb-url"));
+
+						if(!pb.authStore.isValid) {
+						    location.href = "auth/sign-in/"
+						}
+					}
+					else 
+						location.href = "auth/sign-in/"
+
+					async function get_pwd() {
+						let response = await fetch("/pwd", {
+							method: "GET"
+						});
+						let result = await response.json();
+
+						return result["pwd"];
+					}
+				</script>
+
+				<div id="monitor-div" class="main-div" style="display: none">
+					<div class="main-page">
+						<div id="textarea-monitor" class="microlight" spellcheck="false"></div>
+						
+						<script>
+							const monitor = document.getElementById("textarea-monitor");
+						
+							async function fetch_top() {
+								let response = await fetch("/top", {
+									method: "GET"
+								});
+								let result = await response.json();
+						
+								monitor.innerHTML = result["output"];
+								//microlight.reset([monitor]);
+						
+								setTimeout(function(){fetch_top()}, 2000);
+							}
+						
+							function monitor_init() {
+								fetch_top();
+							}
+							monitor_init();
+						</script>
+						
+						<style>
+							#textarea-monitor {
+								background: var(--secondary-dark);
+								border: 1px solid var(--light-black);
+								color: var(--white);
+								height: calc(100vh - 8em); 
+								width: 100%;
+								font-family: Ubuntu Mono;
+								font-size: 0.9em;
+								overflow-x:auto;
+								padding: 0.25em 0.25em;
+								margin: 0.25em 0.5em;
+								resize: none;
+								text-align: left;
+								white-space: pre-wrap;
+							
+						</style>
+					</div>
+				</div>
+
+				<div id="terminal-div" class="main-div" style="display: none">
+					<div class="main-page">
+						<div id="textarea-terminal" style="text-align: left; margin: 0.5em 0;"></div>
+						<input id="input-terminal" placeholder="cmd" onkeypress="terminal_keypress(event)"><br>
+						<select id="select-hist" onchange="hist_event()">
+							<option value="none" disabled hidden selected>history</option>
+						</select>
+						
+						<script>
+							const hist_select = document.getElementById("select-hist");
+							var prev_cmd, cmd;
+						
+							async function hist_event() {
+								document.getElementById("input-terminal").value = hist_select.value;
+								document.getElementById("input-terminal").focus();
+								hist_select.value = "none";
+							}
+						
+							async function run_cmd() {
+								const formData = new FormData();
+						
+								prev_cmd = cmd;
+								cmd = document.getElementById("input-terminal").value;
+						
+								if(cmd.length && cmd[0] == ' ')
+									cmd = cmd.slice(1);
+								else if(cmd != prev_cmd) {
+									var opt = document.createElement('option');
+								    opt.value = cmd;
+								    opt.innerHTML = cmd;
+								    hist_select.appendChild(opt);
+								}
+						
+								document.getElementById("textarea-terminal").innerHTML += document.getElementById("input-terminal").value + "\n";
+								document.getElementById("input-terminal").value = "";
+						
+								if(cmd.split(" ")[0] == "edit") {
+									document.getElementById("textarea-terminal").innerHTML += "\n";
+									edit_file(cmd.split(" ")[1]);
+								}
+								else if(cmd.split(" ")[0] == "cd") {
+									var dir = cmd.split(" ")[1];
+						
+									if(dir[0] == '~' && home.length)
+										dir = home + dir.substring(1, dir.length);
+						
+									formData.append("dir", dir);
+						
+									let response = await fetch("/cd", {
+										method: "POST",
+										headers: {
+											//"content-type": "application/json"
+									    },
+								        body: formData
+									});
+									let result = await response.json();
+						
+									document.getElementById("textarea-terminal").innerHTML += result["output"] + "\n";
+								}
+								else {
+									try {
+										formData.append("command", cmd);
+						
+						
+										let response = await fetch("/run", {
+											method: "POST",
+											headers: {
+												//"content-type": "application/json"
+										    	//"content-type": "application/x-www-form-urlencoded"
+										    },
+									        body: formData
+										});
+										let result = await response.json();
+						
+										document.getElementById("textarea-terminal").innerHTML += result["output"] + "\n";
+									}
+									catch(error) {
+										alert("error: " + error);
+									}
+								}
+						
+								var pwd = await get_pwd();
+						
+								if(pwd.substring(0, home.length) == home)
+									pwd = "~" + pwd.substring(home.length, pwd.length);
+						
+								document.getElementById("textarea-terminal").innerHTML += "<span style='color: var(--hover-color)'>" + pwd + "</span>$ ";
+								document.getElementById("textarea-terminal").scrollTop = document.getElementById("textarea-terminal").scrollHeight;
+							}
+						
+							async function terminal_init() {
+								var pwd = await get_pwd();
+						
+								if(pwd.substring(0, 6) == "/home/") {
+									home = pwd.substring(0, pwd.indexOf('/', 6));
+									pwd = "~" + pwd.substring(home.length, pwd.length);
+								}
+						
+								document.getElementById("textarea-terminal").innerHTML += "<span style='color: var(--hover-color)'>" + pwd + "</span>$ ";
+							}
+							terminal_init();
+						
+							function terminal_keypress(e) {
+								var name = e.key;
+								var code = e.code;
+						
+								//alert(name)
+						
+								if(name == 'Enter' || code == 'Enter')
+							  		run_cmd();
+							}
+						</script>
+						
+						<style>
+							#textarea-terminal, #input-terminal, #select-hist {
+								background: var(--secondary-dark);
+								border: 1px solid var(--light-black);
+								color: var(--white);
+								max-width: 700px; 
+								width: 90%; 
+								overflow-y: scroll;
+						
+								-ms-box-sizing:border-box;
+								-moz-box-sizing:border-box;
+								-webkit-box-sizing:border-box; 
+								box-sizing:border-box;
+							}
+						
+							#select-hist {
+								margin-top: 0.5em;
+								margin-left: 0;
+								padding-left: 0;
+							}
+						
+							#textarea-terminal {
+								resize: none;
+								height: calc(100vh - 11em); 
+								white-space: pre-wrap;
+							}
+						</style>
+					</div>
+				</div>
+
+				<div id="explorer-div" class="main-div" style="display: none">
+					<div class="main-page">
+						<div class="card">
+							<span id="span-pwd"></span>
+						</div><br>
+						
+						<div class="card">
+							<i title="new dir" class='bs-ico bootstrap-folder-plus width-1em ico-link-color' onclick="show_create_dir()"></i> &nbsp;&nbsp;
+							<i title="new file" class='bs-ico bootstrap-file-earmark-plus width-1em ico-link-color' onclick="show_create_file()"></i> &nbsp;&nbsp;
+							<i title="del path" class='bs-ico bootstrap-trash width-1em ico-link-color' onclick="show_rm_path()"></i> &nbsp;&nbsp;
+							<i title="rename" class='bs-ico bootstrap-input-cursor-text width-1em ico-link-color' onclick="show_mv_path()"></i>
+						</div><br>
+						
+						<div id="card-input-name" class="card" style="display: none">
+							<input id="input-name" placeholder="name">
+							<button id="create_dir_button"  class="btn" onclick="create_dir()" style="display: none">create</button>
+							<button id="create_file_button" class="btn" onclick="create_file()" style="display: none">create</button>
+							<button id="rm_path_button"  class="btn" onclick="rm_path()" style="display: none">delete</button>
+						</div>
+						
+						<div id="card-input-rename" class="card" style="display: none">
+							<input id="input-name-old" placeholder="path old"> &nbsp;&nbsp;
+							<input id="input-name-new" placeholder="path new">
+							<button id="mv_path_button"  class="btn" onclick="mv_path()">rename</button>
+						</div>
+						
+						<div class="card" id="card-browser">
+							<table id="table-files">
+								<tr>
+									<th></th>
+									<th style="margin-right:100px">name</th>
+									<th>size</th>
+									<th>modified</th>
+								</tr>
+							</table>
+						</div>
+						
+						<style>
+							#table-files {
+								margin: 0 auto; 
+								text-align: left;
+						
+								display: block;
+								/*height: calc(100vh - 16em);
+								overflow-y: scroll;*/
+							}
+						
+							#card-browser {
+								/*height: calc(100vh - 15em);*/
+							}
+						</style>
+						
+						<script>
+							const table = document.getElementById("table-files");
+							var bwd = "nil"; //browser working directory
+						
+							async function hide_input_cards() {
+								document.getElementById("card-input-rename").style.display = "none";
+								document.getElementById("card-input-name").style.display = "none";
+								document.getElementById("create_dir_button").style.display = "none";
+								document.getElementById("create_file_button").style.display = "none";
+								document.getElementById("rm_path_button").style.display = "none";
+							}
+						
+							async function show_create_dir() {
+								if(document.getElementById("create_dir_button").style.display == "none") {
+									hide_input_cards();
+									document.getElementById("card-input-name").style.display = "flex";
+									document.getElementById("create_dir_button").style.display = "inline-flex";
+									document.getElementById("input-name").focus();
+								}
+								else {
+									hide_input_cards();
+								}
+							}
+						
+							async function show_create_file() {
+								if(document.getElementById("create_file_button").style.display == "none") {
+									hide_input_cards();
+									document.getElementById("card-input-name").style.display = "flex";
+									document.getElementById("create_file_button").style.display = "inline-flex";
+									document.getElementById("input-name").focus();
+								}
+								else {
+									hide_input_cards();
+								}
+							}
+						
+							async function show_rm_path() {
+								if(document.getElementById("rm_path_button").style.display == "none") {
+									hide_input_cards();
+									document.getElementById("card-input-name").style.display = "flex";
+									document.getElementById("rm_path_button").style.display = "inline-flex";
+									document.getElementById("input-name").focus();
+								}
+								else {
+									hide_input_cards();
+								}
+							}
+						
+							async function show_mv_path() {
+								if(document.getElementById("card-input-rename").style.display == "none") {
+									hide_input_cards();
+									document.getElementById("card-input-rename").style.display = "flex";
+									document.getElementById("input-name-old").focus();
+								}
+								else {
+									hide_input_cards();
+								}
+							}
+						
+							async function create_dir() {
+								var dirname = document.getElementById("input-name").value;
+						
+								const formData = new FormData();
+								formData.append("path", bwd + "/" + dirname);
+						
+								response = await fetch("/createdir", {
+									method: "POST",
+									body: formData
+								});
+								result = await response.json();
+						
+								get_dir(bwd);
+						
+								document.getElementById("input-name").value = "";
+								document.getElementById("card-input-name").style.display = "none";
+								document.getElementById("create_dir_button").style.display = "none";
+							}
+						
+							async function create_file() {
+								var filename = document.getElementById("input-name").value;
+						
+								const formData = new FormData();
+								formData.append("path", bwd + "/" + filename);
+						
+								response = await fetch("/createfile", {
+									method: "POST",
+									body: formData
+								});
+								result = await response.json();
+						
+								get_dir(bwd);
+						
+								document.getElementById("input-name").value = "";
+								document.getElementById("card-input-name").style.display = "none";
+								document.getElementById("create_file_button").style.display = "none";
+							}
+						
+							async function mv_path() {
+								const formData = new FormData();
+								formData.append("path-old", bwd + "/" + document.getElementById("input-name-old").value);
+								formData.append("path-new", bwd + "/" + document.getElementById("input-name-new").value);
+						
+								response = await fetch("/mv", {
+									method: "POST",
+									body: formData
+								});
+								result = await response.json();
+						
+								get_dir(bwd);
+						
+								document.getElementById("input-name-old").value = "";
+								document.getElementById("input-name-new").value = "";
+								document.getElementById("card-input-rename").style.display = "none";
+							}
+						
+							async function rm_path() {
+								var filename = document.getElementById("input-name").value;
+						
+								const formData = new FormData();
+								formData.append("path", bwd + "/" + filename);
+						
+								response = await fetch("/rm", {
+									method: "POST",
+									body: formData
+								});
+								result = await response.json();
+						
+								get_dir(bwd);
+						
+								document.getElementById("input-name").value = "";
+								document.getElementById("card-input-name").style.display = "none";
+								document.getElementById("rm_path_button").style.display = "none";
+							}
+						
+							async function clear_table() {
+								while(table.rows.length > 1)
+									table.deleteRow(1);
+							}
+						
+							async function get_dir(dir) {
+								clear_table();
+						
+								const formData = new FormData();
+						
+								bwd = dir;
+								document.getElementById("span-pwd").innerHTML = "";
+								var dirs = [], files = [];
+						
+								var cwd = bwd;
+								if(cwd.substring(0, home.length) == home)
+									    cwd = "~" + cwd.substring(home.length, cwd.length);
+						
+								while(cwd.lastIndexOf("/") >= 0) {
+									dirs.push(cwd);
+									files.push(cwd.substring(cwd.lastIndexOf('/')+1, cwd.length+1))
+									//alert(cwd);
+									//alert(cwd.substring(cwd.lastIndexOf('/')+1, cwd.length+1))
+									cwd = cwd.substring(0, cwd.lastIndexOf('/'))
+								}
+						
+								if(cwd == '~')
+									document.getElementById("span-pwd").innerHTML += "<a href='#' onclick='get_dir(\"" + home + "\")'>~</a>/"
+								else
+									document.getElementById("span-pwd").innerHTML += "/"
+						
+								for(var i=dirs.length-1; i>=0; --i) {
+									document.getElementById("span-pwd").innerHTML += "<a href='#' onclick='get_dir(\"" + dirs[i] + "\")'>" + files[i] + "</a>/"
+								}
+						
+								if(dir[0] == '~' && home.length)
+									dir = home + dir.substring(1, dir.length);
+								else if(dir == "")
+									dir = "/";
+						
+								formData.append("dir", dir);
+								response = await fetch("/ls", {
+									method: "POST",
+									body: formData
+								});
+								result = await response.json();
+						
+								for(var f=result["files"].length-1; f>=0; --f) {
+									var row = table.insertRow(1);
+						
+									if(result["files"][f][0])
+										row.insertCell(0).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-folder' style='padding-top: 3px'></i>";
+									else 
+										row.insertCell(0).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-file-earmark' style='padding-top: 3px'></i>";
+						
+									if(result["files"][f][0]) {
+										row.insertCell(1).innerHTML = "<a href='#' onclick='get_dir(\"" + bwd + "/" + result["files"][f][1] +  "\")'>" + result["files"][f][1] + "/</a>";
+									}
+									else {
+										row.insertCell(1).innerHTML = "<a href='#' onclick='edit_file(\"" + bwd + "/" + result["files"][f][1] +  "\")'>" + result["files"][f][1] + "</a>";
+										//row.insertCell(1).innerHTML = result["files"][f][1];
+									}
+						
+									if(result["files"][f][0]) {
+										row.insertCell(2);
+										row.insertCell(3);
+									}
+									else {
+										if(result["files"][f][2] < 1000)
+											row.insertCell(2).innerHTML = result["files"][f][2] + "b";
+										else if(result["files"][f][2] < 1000000)
+											row.insertCell(2).innerHTML = result["files"][f][2]/1000 + "kb";
+										else
+											row.insertCell(2).innerHTML = result["files"][f][2]/1000000 + "mb";
+						
+										row.insertCell(3).innerHTML = result["files"][f][3];
+									}
+								}
+						
+								if(dir != "/") 
+								{
+									var row = table.insertRow(1);
+									var par = bwd.substring(0, bwd.lastIndexOf("/"));
+									row.insertCell(0).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-folder'></i>";
+									row.insertCell(1).innerHTML = "<a href='#' onclick='get_dir(\"" + par + "\")'>../</a>";
+									row.insertCell(2);
+									row.insertCell(3);
+								}
+							}
+						
+							async function browser_init() {
+								bwd = await get_pwd();
+								get_dir(bwd);
+							}
+							browser_init();
+						</script>
+					</div>
+				</div>
+
+				<div id="editor-div" class="main-div" style="display: none">
+					<div class="main-page">
+						<div class="card">
+							<i title="open" class='bs-ico bootstrap-folder-open width-1em ico-link-color' onclick="show_input_path_create()"></i> &nbsp;&nbsp;
+							<i title="save" class='bs-ico bootstrap-save width-1em ico-link-color' onclick="save_file()"></i> &nbsp;&nbsp;
+							<i title="close" class='bs-ico bootstrap-x-square width-1em ico-link-color' onclick="close_file()"></i>
+						</div><br>
+						
+						<div id="card-input-path" class="card" style="display: none">
+							<input id="input-path" placeholder="path">
+							<button id="open_button" class="btn" onclick="open_file()" style="display: none">open</button>
+						</div>
+						
+						<select id="select-open-file" onchange="select_open_file_event()">
+							<option value="none" disabled hidden selected>open files</option>
+						</select><br>
+						
+						<div id="editor-container" align="center">
+						<div id="editor-content" class="microlight pre-wrap" spellcheck="false" aria-hidden="true"></div><textarea id="editor" class="pre-wrap" spellcheck="false" readonly oninput="redraw_editor()" onscroll="scroll_editor_content()"></textarea></div><br>
+						
+						<script>
+							var open_path = "";
+							const file_select = document.getElementById("select-open-file");
+							const editor = document.getElementById("editor");
+							var file_content = {};
+						
+							async function select_open_file_event() {
+								file_content[open_path] = editor.innerHTML;
+								open_path = file_select.value;
+								editor.innerHTML = file_content[open_path];
+								redraw_editor();
+							}
+						
+							async function show_input_path_create() {
+								if(document.getElementById("card-input-path").style.display == "none") {
+									var pwd = await get_pwd();
+						
+									if(pwd.substring(0, home.length) == home)
+									    pwd = "~" + pwd.substring(home.length, pwd.length);
+						
+									document.getElementById("card-input-path").style.display = "flex";
+									document.getElementById("open_button").style.display = "inline-flex";
+									document.getElementById("input-path").value = pwd + "/";
+									document.getElementById("input-path").focus();
+								}
+								else {
+									document.getElementById("card-input-path").style.display = "none";
+									document.getElementById("open_button").style.display = "none";
+								}
+							}
+						
+							async function open_file() {
+								var path = document.getElementById("input-path").value;
+						
+								if(path[0] == '~' && home.length)
+									path = home + path.substring(1, path.length);
+						
+								edit_file(path);
+								document.getElementById("card-input-path").style.display = "none";
+								document.getElementById("open_button").style.display = "none";
+								editor.readOnly = false;
+							}
+						
+							async function close_file() {
+								for(var i=0; i<file_select.length; ++i) {
+									if(file_select.options[i].value == open_path) {
+										file_select.remove(i);
+						
+										if(i == 1 && file_select.length == 1) {
+											editor.value = "";
+											editor.readOnly = true;
+											file_select.value = "none";
+										}
+										else {
+											if(i == file_select.length)
+												--i;
+											
+											file_select.value = open_path = file_select.options[i].value;
+											editor.value = file_content[open_path];
+										}
+									}
+								}
+								delete file_content[open_path];
+							}
+						
+							async function edit_file(path) {
+								show("editor");
+								editor.readOnly = false;
+						
+								file_content[open_path] = document.getElementById("editor").innerText;
+								open_path = path;
+						
+								if(file_content.hasOwnProperty(open_path) && file_content[open_path] != "") {
+									file_select.value = open_path;
+									document.getElementById("editor").innerHTML = file_content[open_path];
+									redraw_editor();
+								}
+								else {
+									const formData = new FormData();
+									formData.append("path", open_path);
+						
+									let response = await fetch("/filestr", {
+										method: "POST",
+										headers: {
+											//"content-type": "application/json"
+									    	//"content-type": "application/x-www-form-urlencoded"
+									    },
+								        body: formData
+									});
+									let result = await response.json();
+						
+									document.getElementById("editor").innerHTML = result["content"];
+									redraw_editor();
+						
+									var opt = document.createElement('option');
+								    opt.value = open_path;
+								    if(open_path.substring(0, home.length) == home)
+									    opt.innerHTML = "~" + open_path.substring(home.length, open_path.length);
+									else
+									    opt.innerHTML = open_path;
+								    file_select.appendChild(opt);
+								    file_select.value = open_path;
+								}
+							}
+						
+							async function save_file() {
+								if(open_path == "") {
+									alert("no file open");
+									return;
+								}
+						
+								const formData = new FormData();
+						
+								formData.append("path", open_path);
+								formData.append("content", editor.value);
+						
+								let response = await fetch("/writefile", {
+									method: "POST",
+									headers: {
+										//"content-type": "application/json"
+								    	//"content-type": "application/x-www-form-urlencoded"
+								    },
+							        body: formData
+								});
+								let result = await response.json();
+							}
+						</script>
+						
+						<style>
+							#select-open-file {
+								background: var(--secondary-dark);
+								border: 1px solid var(--light-black);
+								color: var(--white);
+								min-width: 200px;
+								max-width: 100%;
+								width: 95%;
+						
+								margin: 0.5em 0;
+								padding-left: 0;
+						
+								-ms-box-sizing:border-box;
+								-moz-box-sizing:border-box;
+								-webkit-box-sizing:border-box; 
+								box-sizing:border-box;
+							}
+						
+							#input-path {
+								width: 400px;
+								max-width: 90%;
+							}
+						</style>
+					</div>
+				</div>
+
+				<div id="tos-div" class="main-div" style="display: none">
+					<div class="main-page">
+						<h2>Terms of Service</h2>
+						
+						<p><span class="website_name">Cloudfort</span> ("Us" or "We") provides the <span class="website_url">https://cloudfort.app</span> website and various related services (collectively, the "Website") to you, the User, subject to your compliance with all the terms, conditions, and notices contained or referenced herein (the "Terms of Service"), as well as any other written agreement between us and you.</p>
+						
+						<p>In addition, when using particular services or materials on this Website, Users shall be subject to any posted rules applicable to such services or materials that may contain terms and conditions in addition to those in these Terms of Service. All such guidelines or rules are hereby incorporated by reference into these Terms of Service.</p>
+						
+						<p>These Terms of Service are effective as of <span class="date">[DATE]</span>. We expressly reserve the right to change these Terms of Service from time to time without notice to you. You acknowledge and agree that it is your responsibility to review this Website and these Terms of Service from time to time and to familiarize yourself with any modifications.</p>
+						
+						<p>Your continued use of this Website after such modifications will constitute acknowledgement of the modified Terms of Service and agreement to abide and be bound by the modified Terms of Service.</p>
+						
+						<p>We reserve the sole right to either modify or discontinue the Website, including any of the Website’s features, at any time with or without notice to you. We will not be liable to you or any third party should we exercise such right. Any new features that augment or enhance the then-current services on this Website shall also be subject to these Terms of Service.</p>
+						
+						<h3>Conduct on Website</h3>
+						
+						<p>Your use of the Website is subject to all applicable laws and regulations, and you are solely responsible for the substance of your communications through the Website. By posting information in or otherwise using any communications service, chat room, message board, newsgroup, software library, or other interactive service that may be available to you on or through this Website, you agree that you will not upload, share, post, or otherwise distribute or facilitate distribution of any content — including text, communications, software, images, sounds, data, or other information — that:</p>
+						
+						<ul>
+						<li>Is unlawful, threatening, abusive, harassing, defamatory, libelous, deceptive, fraudulent, invasive of another's privacy, tortious, contains explicit or graphic descriptions or accounts of sexual acts (including but not limited to sexual language of a violent or threatening nature directed at another individual or group of individuals), or otherwise violates our rules or policies</li>
+						<li>Victimizes, harasses, degrades, or intimidates an individual or group of individuals on the basis of religion, gender, sexual orientation, race, ethnicity, age, or disability</li>
+						<li>Infringes on any patent, trademark, trade secret, copyright, right of publicity, or other proprietary right of any party</li>
+						<li>Constitutes unauthorized or unsolicited advertising, junk or bulk email (also known as "spamming"), chain letters, any other form of unauthorized solicitation, or any form of lottery or gambling</li>
+						<li>Contains software viruses or any other computer code, files, or programs that are designed or intended to disrupt, damage, or limit the functioning of any software, hardware, or telecommunications equipment or to damage or obtain unauthorized access to any data or other information of any third party</li>
+						<li>Impersonates any person or entity, including any of our employees or representatives</li>
+						</ul>
+						
+						<p>We neither endorse nor assume any liability for the contents of any material uploaded or submitted by third party users of the Website. We generally do not pre-screen, monitor, or edit the content posted by users of communications services, chat rooms, message boards, newsgroups, software libraries, or other interactive services that may be available on or through this Website. However, we and our agents have the right at their sole discretion to remove any content that, in our judgment, does not comply with these Terms of Service and any other rules of user conduct for our site, or is otherwise harmful, objectionable, or inaccurate. We are not responsible for any failure or delay in removing such content. You hereby consent to such removal and waive any claim against us arising out of such removal of content.</p>
+						
+						<p>You agree that we may at any time, and at our sole discretion, terminate your membership, account, or other affiliation with our site without prior notice to you for violating any of the above provisions. In addition, you acknowledge that we will cooperate fully with investigations of violations of systems or network security at other sites, including cooperating with law enforcement authorities in investigating suspected criminal violations.</p>
+						
+						<h3>Third Party Websites</h3>
+						
+						<p>This site may link you to other sites on the Internet or otherwise include references to information, documents, software, materials and/or services provided by other parties. These sites may contain information or material that some people may find inappropriate or offensive.</p>
+						
+						<p>These other sites and parties are not under our control, and you acknowledge that we are not responsible for the accuracy, copyright compliance, legality, decency, or any other aspect of the content of such sites, nor are we responsible for errors or omissions in any references to other parties or their products and services. The inclusion of such a link or reference is provided merely as a convenience and does not imply endorsement of, or association with, the Website or party by us, or any warranty of any kind, either express or implied.</p>
+						
+						<h3>Intellectual Property</h3>
+						
+						<p>All custom graphics, icons, logos, and service names used on the Website are registered trademarks, service marks, and/or artwork held under copyright of <span class="website_name">Cloudfort</span> or its Affiliates. All other marks are property of their respective owners. Nothing in these Terms of Service grants you any right to use any trademark, service mark, logo, and/or the name or trade names of <span class="website_name">Cloudfort</span> or its Affiliates.</p>
+						
+						<h3>Disclaimer of Warranties</h3>
+						
+						<p>Content available through this Website often represents the opinions and judgments of an information provider, site user, or other person or entity not connected with us. We do not endorse, nor are we responsible for the accuracy or reliability of, any opinion, advice, or statement made by anyone other than an authorized <span class="website_name">Cloudfort</span> spokesperson speaking in his/her official capacity. Please refer to the specific editorial policies posted on various sections of this Website for further information, which policies are incorporated by reference into these Terms of Service.</p>
+						
+						<p>You understand and agree that temporary interruptions of the services available through this Website may occur as normal events. You further understand and agree that we have no control over third party networks you may access in the course of the use of this Website, and therefore, delays and disruption of other network transmissions are completely beyond our control.</p>
+						
+						<p>You understand and agree that the services available on this Website are provided "AS IS" and that we assume no responsibility for the timeliness, deletion, mis-delivery or failure to store any user communications or personalization settings.</p>
+						
+						<h3>International Use</h3>
+						
+						<p>Although this Website may be accessible worldwide, we make no representation that materials on this Website are appropriate or available for use in locations outside the United States, and accessing them from territories where their contents are illegal is prohibited. Those who choose to access this Website from other locations do so on their own initiative and are responsible for compliance with local laws. Any offer for any product, service, and/or information made in connection with this Website is void where prohibited.</p>
+						
+						<h3>Termination</h3>
+						
+						<p>You agree that we may, in our sole discretion, terminate or suspend your access to all or part of the Website with or without notice and for any reason, including, without limitation, breach of these Terms of Service. Any suspected fraudulent, abusive or illegal activity may be grounds for terminating your relationship and may be referred to appropriate law enforcement authorities.</p>
+						
+						<p>Upon termination or suspension, regardless of the reasons therefore, your right to use the services available on this Website immediately ceases, and you acknowledge and agree that we may immediately deactivate or delete your account and all related information and files in your account and/or bar any further access to such files or this Website. We shall not be liable to you or any third party for any claims or damages arising out of any termination or suspension or any other actions taken by us in connection with such termination or suspension.</p>
+						    
+						<h3>Governing Law</h3>
+						
+						<p>These Terms of Service and any dispute or claim arising out of, or related to them, shall be governed by and construed in accordance with the internal laws of the <span class="country">au</span> without giving effect to any choice or conflict of law provision or rule.</p>
+						
+						<p>Any legal suit, action or proceeding arising out of, or related to, these Terms of Service or the Website shall be instituted exclusively in the federal courts of <span class="country">au</span>.</p>
+					</div>
+				</div>
+
+				<div id="privacy-policy-div" class="main-div" style="display: none">
+					<div class="main-page">
+						<h2>Privacy Policy</h2>
+						
+						<p>At <span class="website_name">Cloudfort</span>, we collect and manage user data according to the following Privacy Policy.</p>
+						
+						<h3>Data Collected</h3>
+						
+						<p>We collect information you provide directly to us. For example, we collect information when you create an account, subscribe, participate in any interactive features of our services, fill out a form, request customer support or otherwise communicate with us. The types of information we may collect include your name, email address, postal address, credit card information and other contact or identifying information you choose to provide.</p>
+						
+						<p>We collect anonymous data from every visitor of the Website to monitor traffic and fix bugs. For example, we collect information like web requests, the data sent in response to such requests, the Internet Protocol address, the browser type, the browser language, and a timestamp for the request.</p>
+						
+						<p>We also use various technologies to collect information, and this may include sending cookies to your computer. Cookies are small data files stored on your hard drive or in your device memory that helps us to improve our services and your experience, see which areas and features of our services are popular and count visits. We may also collect information using web beacons (also known as "tracking pixels"). Web beacons are electronic images that may be used in our services or emails and to track count visits or understand usage and campaign effectiveness.</p>
+						
+						<h3>Use of the Data</h3>
+						
+						<p>We only use your personal information to provide you the <span class="website_name">Cloudfort</span> services or to communicate with you about the Website or the services.</p>
+						
+						<p>We employ industry standard techniques to protect against unauthorized access of data about you that we store, including personal information.</p>
+						
+						<p>We do not share personal information you have provided to us without your consent, unless:</p>
+						
+						<ul>
+						<li>Doing so is appropriate to carry out your own request</li>
+						<li>We believe it's needed to enforce our legal agreements or that is legally required</li>
+						<li>We believe it's needed to detect, prevent or address fraud, security or technical issues</li>
+						</ul>
+						
+						<h3>Sharing of Data</h3>
+						
+						<p>We don't share your personal information with third parties. Aggregated, anonymized data is periodically transmitted to external services to help us improve the Website and service.</p>
+						
+						<p>We may allow third parties to provide analytics services. These third parties may use cookies, web beacons and other technologies to collect information about your use of the services and other websites, including your IP address, web browser, pages viewed, time spent on pages, links clicked and conversion information.</p>
+						
+						<p>We also use social buttons provided by services like Twitter, Google+, LinkedIn and Facebook. Your use of these third party services is entirely optional. We are not responsible for the privacy policies and/or practices of these third party services, and you are responsible for reading and understanding those third party services' privacy policies.</p>
+						
+						<h3>Cookies</h3>
+						
+						<p>We may use cookies on our site to remember your preferences.</p>
+						
+						<h3>Opt-Out, Communication Preferences</h3>
+						
+						<p>You may modify your communication preferences and/or opt-out from specific communications at any time. Please specify and adjust your preferences.</p>
+						
+						<h3>Security</h3>
+						
+						<p>We take reasonable steps to protect personally identifiable information from loss, misuse, and unauthorized access, disclosure, alteration, or destruction. But, you should keep in mind that no Internet transmission is ever completely secure or error-free. In particular, email sent to or from the Sites may not be secure.</p>
+						
+						<h3>About Children</h3>
+						
+						<p>The Website is not intended for children under the age of 13. We do not knowingly collect personally identifiable information via the Website from visitors in this age group.</p>
+						
+						<h3>Changes to the Privacy Policy</h3>
+						
+						<p>We may amend this Privacy Policy from time to time. Use of information we collect now is subject to the Privacy Policy in effect at the time such information is used.</p>
+						
+						<p>If we make major changes in the way we collect or use information, we will notify you by posting an announcement on the Website or sending you an email.</p><h1>Dashboard</h1>
+					</div>
+				</div>
+
+				<div id="footer-div">
+					<div style="margin: 0 auto">
+						Cloudfort &copy;<span name="cyear"></span>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<style>
+			#menu-bars {
+			  	display: none;
+			}
+
+			#menu-div {
+			  padding: 1em 0;
+			  background: var(--secondary-dark);
+			  text-align: center;
+			  width: 3.5em;
+			  height: 100vh;
+			  display: inline-flex;
+			  position: fixed;
+			  top: 0;
+			  left: 0;
+
+			  overflow-y: auto;
+
+			  z-index: 5;
+
+			  box-shadow: 0 0.1rem 0.7rem rgb(0 0 0 / 20%) !important;
+			}
+
+			#banner-div {
+			  padding: 1em;
+			  background: var(--secondary-dark);
+			  width: 100%;
+			  height: 3.5em;
+			  display: inline-flex;
+			  position: absolute;
+			  top: 0;
+			  left: 0;
+
+			  box-shadow: 0 0.1rem 0 rgb(0 0 0 / 20%) !important;
+			}
+
+			.main-div {
+			  padding-top: 3.75em;
+			  margin-left: 3.5em;
+			  width: calc(100vw - 4em);
+			  min-height: calc(100vh - 2.5em);
+			}
+
+			.main-page {
+			  max-width: calc(100% - 3.5em);
+			  /*text-align: left;*/
+			}
+
+			#footer-div {
+			  background: var(--primary-dark);
+			  padding: 0.7em;
+			  margin-left: 3.5em;
+			  width: calc(100% - 3.5em);
+			  height: 2.5em;
+			  display: inline-flex;
+
+			  border-top: 1px solid var(--light-black);
+			  box-shadow: 0 0.1rem 0.5em rgb(0 0 0 / 20%) !important;
+			}
+
+			@media screen and (max-width: 600px) {
+			  #menu-bars {
+			  	display: block;
+			  }
+
+			  #menu-div {
+			    display: none;
+			  }
+
+			  #footer-div {
+			    margin-left: 0;
+			    width: 100%;
+			  }
+
+			  .main-div {
+			    margin-left: 0;
+			    width: 100%;
+			  }
+
+			  .main-page {
+			    max-width: 90%;
+			  }
+			}
+		</style>
+
+		<script type="text/javascript" src="assets/js/script.js"></script>
+		<script type="text/javascript" src="assets/js/menu.js"></script>
+
+		<script type="text/javascript" src="assets/js/microlight.js"></script>
+		<script type="text/javascript" src="assets/js/mantis-editor.js"></script>
+
+		<script>
+			var x = document.getElementsByName("cyear");
+			for(var i=0; i<x.length; i++)
+				x[i].innerHTML = new Date().getFullYear();
+
+			function show(name) {
+				document.getElementById("index-div").style.display = "none";
+				document.getElementById("monitor-div").style.display = "none";
+				document.getElementById("terminal-div").style.display = "none";
+				document.getElementById("explorer-div").style.display = "none";
+				document.getElementById("editor-div").style.display = "none";
+
+				document.getElementById(name + "-div").style.display = "block";
+
+				if(name == "terminal")
+					document.getElementById("input-terminal").focus();
+			}
+		</script>
+	</body>
+</html>

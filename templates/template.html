@@ -8,117 +8,212 @@
 		<div align="center">
 			@input("templates/menu.html")
 
-			<div id="menu-open-div">
-				<div style="margin: 0 auto">
-					<i id="open-menu-icon" class="fa fa-bars ico-link-color" onclick="show_menu()"></i>
+			<div id="content">
+				<div id="menu-div">
+					<div style="margin: 0 auto">
+						<i id="open-menu-icon" class="fa fa-bars ico-link-color" onclick="show_menu()"></i><br><br>
+						<i title="home" class="bs-ico bootstrap-house ico-link-color" onclick="show('index')"></i><br>
+						<hr>
+						<i title="server monitor" class="bs-ico bootstrap-activity ico-link-color" onclick="show('monitor')"></i><br>
+						<a title="terminal" href="#"><i class="bs-ico bootstrap-terminal ico-link-color" onclick="show('terminal')"></i></a><br>
+						<a title="file explorer" href="#"><i class="bs-ico bootstrap-folder ico-link-color" onclick="show('explorer')"></i></a><br>
+						<a title="editor" href="#"><i class="bs-ico bootstrap-code-square ico-link-color" onclick="show('editor')"></i></a><br>
+					</div>
 				</div>
-			</div>
 
-			<div id="menu-div">
-				<div style="margin: 0 auto">
-					<i id="open-menu-icon" class="fa fa-bars ico-link-color" onclick="show_menu()"></i><br><br>
-					<i title="home" class="bs-ico bootstrap-house ico-link-color" onclick="show('index')"></i><br>
-					<hr>
-					<i title="server monitor" class="bs-ico bootstrap-activity ico-link-color" onclick="show('monitor')"></i><br>
-					<a title="terminal" href="#"><i class="bs-ico bootstrap-terminal ico-link-color" onclick="show('terminal')"></i></a><br>
-					<a title="file browser" href="#"><i class="bs-ico bootstrap-folder ico-link-color" onclick="show('browser')"></i></a><br>
-					<a title="editor" href="#"><i class="bs-ico bootstrap-code-square ico-link-color" onclick="show('editor')"></i></a><br>
+				<div id="banner-div">
+					<h2 style="color: white; margin-top: -0.125em; margin-left: 2.5em">Cloudfort</h2>
 				</div>
-			</div>
 
-			<div id="banner-div">
-				<h2 style="margin-top: -0.25em">Cloudfort</h2>
-			</div>
-
-			<div id="index-div" class="main-div">
-				<div class="main-page">
-					@content
+				<div id="index-div" class="main-div">
+					<div class="main-page">
+						@content
+					</div>
 				</div>
-			</div>
 
-			<script>
-				var home = "nil";
+				<script type="text/javascript" src="@pathtofile(dash/assets/js/pocketbase.umd.js)"></script>
+				<script>
+					var home = "nil";
 
-				async function get_pwd() {
-					let response = await fetch("/pwd", {
-						method: "GET"
-					});
-					let result = await response.json();
+					var pb;
+					//var pb = new PocketBase('http://yarrr.net:8080');
 
-					return result["pwd"];
-				}
-			</script>
+					async function sign_out() {
+					    pb.authStore.clear();
+					    location.href = "@pathto(auth/sign-in/)"
+					}
 
-			<div id="monitor-div" class="main-div" style="display: none">
-				<div class="main-page">
-					@input("content/monitor.html")
+					if(localStorage.getItem("pb-url")) {
+						pb = new PocketBase(localStorage.getItem("pb-url"));
+
+						if(!pb.authStore.isValid) {
+						    location.href = "@pathto(auth/sign-in/)"
+						}
+					}
+					else 
+						location.href = "@pathto(auth/sign-in/)"
+
+					async function get_pwd() {
+						let response = await fetch("/pwd", {
+							method: "GET"
+						});
+						let result = await response.json();
+
+						return result["pwd"];
+					}
+				</script>
+
+				<div id="monitor-div" class="main-div" style="display: none">
+					<div class="main-page">
+						@input("content/monitor.html")
+					</div>
 				</div>
-			</div>
 
-			<div id="terminal-div" class="main-div" style="display: none">
-				<div class="main-page">
-					@input("content/terminal.html")
+				<div id="terminal-div" class="main-div" style="display: none">
+					<div class="main-page">
+						@input("content/terminal.html")
+					</div>
 				</div>
-			</div>
 
-			<div id="browser-div" class="main-div" style="display: none">
-				<div class="main-page">
-					@input("content/browser.html")
+				<div id="explorer-div" class="main-div" style="display: none">
+					<div class="main-page">
+						@input("content/explorer.html")
+					</div>
 				</div>
-			</div>
 
-			<div id="editor-div" class="main-div" style="display: none">
-				<div class="main-page">
-					@input("content/editor.html")
+				<div id="editor-div" class="main-div" style="display: none">
+					<div class="main-page">
+						@input("content/editor.html")
+					</div>
 				</div>
-			</div>
 
-			<div id="tos-div" class="main-div" style="display: none">
-				<div class="main-page">
-					@input("content/tos.html")
+				<div id="tos-div" class="main-div" style="display: none">
+					<div class="main-page">
+						@input("content/tos.html")
+					</div>
 				</div>
-			</div>
 
-			<div id="privacy-policy-div" class="main-div" style="display: none">
-				<div class="main-page">
-					@input("content/privacy-policy.html")
+				<div id="privacy-policy-div" class="main-div" style="display: none">
+					<div class="main-page">
+						@input("content/privacy-policy.html")
+					</div>
 				</div>
-			</div>
 
-			<div id="footer-div">
-				<div style="margin: 0 auto">
-					Cloudfort 
+				<div id="footer-div">
+					<div style="margin: 0 auto">
+						Cloudfort &copy;<span name="cyear"></span>
+					</div>
 				</div>
 			</div>
 		</div>
 
+		<style>
+			#menu-bars {
+			  	display: none;
+			}
+
+			#menu-div {
+			  padding: 1em 0;
+			  background: var(--secondary-dark);
+			  text-align: center;
+			  width: 3.5em;
+			  height: 100vh;
+			  display: inline-flex;
+			  position: fixed;
+			  top: 0;
+			  left: 0;
+
+			  overflow-y: auto;
+
+			  z-index: 5;
+
+			  box-shadow: 0 0.1rem 0.7rem rgb(0 0 0 / 20%) !important;
+			}
+
+			#banner-div {
+			  padding: 1em;
+			  background: var(--secondary-dark);
+			  width: 100%;
+			  height: 3.5em;
+			  display: inline-flex;
+			  position: absolute;
+			  top: 0;
+			  left: 0;
+
+			  box-shadow: 0 0.1rem 0 rgb(0 0 0 / 20%) !important;
+			}
+
+			.main-div {
+			  padding-top: 3.75em;
+			  margin-left: 3.5em;
+			  width: calc(100vw - 4em);
+			  min-height: calc(100vh - 2.5em);
+			}
+
+			.main-page {
+			  max-width: calc(100% - 3.5em);
+			  /*text-align: left;*/
+			}
+
+			#footer-div {
+			  background: var(--primary-dark);
+			  padding: 0.7em;
+			  margin-left: 3.5em;
+			  width: calc(100% - 3.5em);
+			  height: 2.5em;
+			  display: inline-flex;
+
+			  border-top: 1px solid var(--light-black);
+			  box-shadow: 0 0.1rem 0.5em rgb(0 0 0 / 20%) !important;
+			}
+
+			@media screen and (max-width: 600px) {
+			  #menu-bars {
+			  	display: block;
+			  }
+
+			  #menu-div {
+			    display: none;
+			  }
+
+			  #footer-div {
+			    margin-left: 0;
+			    width: 100%;
+			  }
+
+			  .main-div {
+			    margin-left: 0;
+			    width: 100%;
+			  }
+
+			  .main-page {
+			    max-width: 90%;
+			  }
+			}
+		</style>
+
 		<script type="text/javascript" src="@pathto(assets/js/script)"></script>
 		<script type="text/javascript" src="@pathto(assets/js/menu)"></script>
-		<script type="text/javascript" src="@pathtofile(public/assets/js/pocketbase.umd.js)"></script>
+
+		<script type="text/javascript" src="@pathto(assets/js/microlight)"></script>
+		<script type="text/javascript" src="@pathto(assets/js/mantis-editor)"></script>
 
 		<script>
+			var x = document.getElementsByName("cyear");
+			for(var i=0; i<x.length; i++)
+				x[i].innerHTML = new Date().getFullYear();
+
 			function show(name) {
 				document.getElementById("index-div").style.display = "none";
 				document.getElementById("monitor-div").style.display = "none";
 				document.getElementById("terminal-div").style.display = "none";
-				document.getElementById("browser-div").style.display = "none";
+				document.getElementById("explorer-div").style.display = "none";
 				document.getElementById("editor-div").style.display = "none";
 
 				document.getElementById(name + "-div").style.display = "block";
 
 				if(name == "terminal")
 					document.getElementById("input-terminal").focus();
-			}
-
-			const pb = new PocketBase('http://127.0.0.1:8090');
-
-			async function sign_out() {
-			    pb.authStore.clear();
-			    location.href = "@pathto(auth/sign-in/)"
-			}
-
-			if(!pb.authStore.isValid) {
-			    location.href = "@pathto(auth/sign-in/)"
 			}
 		</script>
 	</body>

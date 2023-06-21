@@ -1,0 +1,43 @@
+:root {
+	--neon-red        : hsl(var(--hue-red)       , 100%, 50%);
+	--neon-orange     : hsl(var(--hue-orange)    , 100%, 50%);
+	--neon-yellow     : hsl(var(--hue-yellow)    , 100%, 50%);
+	--neon-lime       : hsl(var(--hue-lime)      , 100%, 50%);
+	--neon-green      : hsl(var(--hue-green)     , 100%, 50%);
+	--neon-cyan       : hsl(var(--hue-cyan)      , 100%, 50%);
+	--neon-light-blue : hsl(var(--hue-light-blue), 100%, 50%);
+	--neon-blue       : hsl(var(--hue-blue)      , 100%, 50%);
+	--neon-purple     : hsl(var(--hue-purple)    , 100%, 50%);
+	--neon-indigo     : hsl(var(--hue-indigo)    , 100%, 50%);
+	--neon-magenta    : hsl(var(--hue-magenta)   , 100%, 50%);
+	--neon-violet     : hsl(var(--hue-violet)    , 100%, 50%);
+	--neon-pink       : hsl(var(--hue-pink)      , 100%, 50%);
+}
+
+.neon-red        {color: var(--neon-red)}
+.neon-orange     {color: var(--neon-orange)}
+.neon-yellow     {color: var(--neon-yellow)}
+.neon-lime       {color: var(--neon-yellow)}
+.neon-green      {color: var(--neon-green)}
+.neon-cyan       {color: var(--neon-blue)}
+.neon-light-blue {color: var(--neon-blue)}
+.neon-blue       {color: var(--neon-blue)}
+.neon-purple     {color: var(--neon-purple)}
+.neon-indigo     {color: var(--neon-purple)}
+.neon-magenta    {color: var(--neon-purple)}
+.neon-violet     {color: var(--neon-violet)}
+.neon-pink       {color: var(--neon-pink)}
+
+.neon-red-bg        {background-color: var(--neon-red)}
+.neon-orange-bg     {background-color: var(--neon-orange)}
+.neon-yellow-bg     {background-color: var(--neon-yellow)}
+.neon-lime-bg       {background-color: var(--neon-yellow)}
+.neon-green-bg      {background-color: var(--neon-green)}
+.neon-cyan-bg       {background-color: var(--neon-blue)}
+.neon-light-blue-bg {background-color: var(--neon-blue)}
+.neon-blue-bg       {background-color: var(--neon-blue)}
+.neon-purple-bg     {background-color: var(--neon-purple)}
+.neon-indigo-bg     {background-color: var(--neon-purple)}
+.neon-magenta-bg    {background-color: var(--neon-purple)}
+.neon-violet-bg     {background-color: var(--neon-violet)}
+.neon-pink-bg       {background-color: var(--neon-pink)}

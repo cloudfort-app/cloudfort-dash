@@ -1,0 +1,19 @@
+:root {
+	--hue-red           :   0;
+	--hue-orange-red    :  24;
+	--hue-orange        :  30;
+	--hue-orange-yellow :  39;
+	--hue-yellow        :  60;
+	--hue-lime          :  90;
+	--hue-green         : 120;
+	--hue-xxx           : 150;
+	--hue-cyan          : 180;
+	--hue-light-blue    : 210;
+	--hue-blue          : 240;
+	--hue-purple        : 270;
+	--hue-indigo        : 280;
+	--hue-magenta       : 300;
+	--hue-fuchsia       : 309;
+	--hue-violet        : 320;
+	--hue-pink          : 330;
+}

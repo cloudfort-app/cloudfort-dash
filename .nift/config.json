@@ -2,7 +2,7 @@
 	"config": {
 		"content-dir": "content/",
 		"content-ext": ".html",
-		"output-dir": "public/",
+		"output-dir": "dash/",
 		"output-ext": ".html",
 		"script-ext": ".f",
 		"default-template": "templates/template.html",

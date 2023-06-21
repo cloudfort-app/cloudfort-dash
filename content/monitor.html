@@ -1,4 +1,4 @@
-<textarea id="textarea-monitor" readonly spellcheck="false"></textarea>
+<div id="textarea-monitor" class="microlight" spellcheck="false"></div>
 
 <script>
 	const monitor = document.getElementById("textarea-monitor");
@@ -9,7 +9,8 @@
 		});
 		let result = await response.json();
 
-		monitor.value = result["output"];
+		monitor.innerHTML = result["output"];
+		//microlight.reset([monitor]);
 
 		setTimeout(function(){fetch_top()}, 2000);
 	}
@@ -22,10 +23,18 @@
 
 <style>
 	#textarea-monitor {
-		resize: none;
+		background: var(--secondary-dark);
 		border: 1px solid var(--light-black);
-		height: calc(100vh - 9.25em); 
+		color: var(--white);
+		height: calc(100vh - 8em); 
 		width: 100%;
+		font-family: Ubuntu Mono;
+		font-size: 0.9em;
+		overflow-x:auto;
+		padding: 0.25em 0.25em;
+		margin: 0.25em 0.5em;
+		resize: none;
+		text-align: left;
 		white-space: pre-wrap;
-	}
+	
 </style>

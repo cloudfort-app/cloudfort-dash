@@ -13,20 +13,18 @@
 	<option value="none" disabled hidden selected>open files</option>
 </select><br>
 
-<div id="editor-container" align="center">
-<div id="editor-content" class="microlight pre-wrap" spellcheck="false" aria-hidden="true"></div><textarea id="editor" class="pre-wrap" spellcheck="false" readonly oninput="redraw_editor()" onscroll="scroll_editor_content()"></textarea></div><br>
+<textarea id="textarea-editor" readonly spellcheck="false"></textarea>
 
 <script>
 	var open_path = "";
 	const file_select = document.getElementById("select-open-file");
-	const editor = document.getElementById("editor");
+	const editor = document.getElementById("textarea-editor");
 	var file_content = {};
 
 	async function select_open_file_event() {
-		file_content[open_path] = editor.innerHTML;
+		file_content[open_path] = editor.value;
 		open_path = file_select.value;
-		editor.innerHTML = file_content[open_path];
-		redraw_editor();
+		editor.value = file_content[open_path];
 	}
 
 	async function show_input_path_create() {
@@ -85,13 +83,12 @@
 		show("editor");
 		editor.readOnly = false;
 
-		file_content[open_path] = document.getElementById("editor").innerText;
+		file_content[open_path] = document.getElementById("textarea-editor").value;
 		open_path = path;
 
 		if(file_content.hasOwnProperty(open_path) && file_content[open_path] != "") {
 			file_select.value = open_path;
-			document.getElementById("editor").innerHTML = file_content[open_path];
-			redraw_editor();
+			document.getElementById("textarea-editor").value = file_content[open_path];
 		}
 		else {
 			const formData = new FormData();
@@ -107,8 +104,7 @@
 			});
 			let result = await response.json();
 
-			document.getElementById("editor").innerHTML = result["content"];
-			redraw_editor();
+			document.getElementById("textarea-editor").value = result["content"];
 
 			var opt = document.createElement('option');
 		    opt.value = open_path;
@@ -145,21 +141,23 @@
 </script>
 
 <style>
+	#textarea-editor {
+		resize: none;
+		border: 1px solid var(--light-black);
+		height: calc(100vh - 16em); 
+		width: 100%;
+		white-space: pre-wrap;
+	}
+
 	#select-open-file {
 		background: var(--secondary-dark);
 		border: 1px solid var(--light-black);
 		color: var(--white);
 		min-width: 200px;
-		max-width: 100%;
-		width: 95%;
+		max-width: 90%;
 
 		margin: 0.5em 0;
 		padding-left: 0;
-
-		-ms-box-sizing:border-box;
-		-moz-box-sizing:border-box;
-		-webkit-box-sizing:border-box; 
-		box-sizing:border-box;
 	}
 
 	#input-path {

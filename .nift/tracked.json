@@ -6,6 +6,13 @@
 			"template": "templates/template.html"
 		},
 		{
+			"name": "assets/css/pre",
+			"title": "pre",
+			"template": "templates/template.css",
+			"content-ext": ".css",
+			"output-ext": ".css"
+		},
+		{
 			"name": "assets/css/style",
 			"title": "style",
 			"template": "templates/template.css",
@@ -13,8 +20,22 @@
 			"output-ext": ".css"
 		},
 		{
+			"name": "assets/js/mantis-editor",
+			"title": "mantis-editor",
+			"template": "templates/template.js",
+			"content-ext": ".js",
+			"output-ext": ".js"
+		},
+		{
 			"name": "assets/js/menu",
 			"title": "menu",
+			"template": "templates/template.js",
+			"content-ext": ".js",
+			"output-ext": ".js"
+		},
+		{
+			"name": "assets/js/microlight",
+			"title": "microlight",
 			"template": "templates/template.js",
 			"content-ext": ".js",
 			"output-ext": ".js"

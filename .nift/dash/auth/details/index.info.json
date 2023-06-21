@@ -1,0 +1,18 @@
+{
+	"last-built": "14:27:49 Wednesday June 21 2023",
+	"name": "auth/details/",
+	"title": "auth/details",
+	"template": "templates/template.html",
+	"dependencies": [
+		"content/auth/details/index.html",
+		"content/editor.html",
+		"content/explorer.html",
+		"content/monitor.html",
+		"content/privacy-policy.html",
+		"content/terminal.html",
+		"content/tos.html",
+		"templates/head.html",
+		"templates/menu.html",
+		"templates/template.html"
+	]
+}

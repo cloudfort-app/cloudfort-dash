@@ -1,0 +1,43 @@
+:root {
+	--sherbet-red        : hsl(var(--hue-red)       , 87%, 76%);
+	--sherbet-orange     : hsl(var(--hue-orange)    , 87%, 76%);
+	--sherbet-yellow     : hsl(var(--hue-yellow)    , 87%, 76%);
+	--sherbet-lime       : hsl(var(--hue-lime)      , 87%, 76%);
+	--sherbet-green      : hsl(var(--hue-green)     , 87%, 76%);
+	--sherbet-cyan       : hsl(var(--hue-cyan)      , 87%, 76%);
+	--sherbet-light-blue : hsl(var(--hue-light-blue), 87%, 76%);
+	--sherbet-blue       : hsl(var(--hue-blue)      , 87%, 76%);
+	--sherbet-purple     : hsl(var(--hue-purple)    , 87%, 76%);
+	--sherbet-indigo     : hsl(var(--hue-indigo)    , 87%, 76%);
+	--sherbet-magenta    : hsl(var(--hue-magenta)   , 87%, 76%);
+	--sherbet-violet     : hsl(var(--hue-violet)    , 87%, 76%);
+	--sherbet-pink       : hsl(var(--hue-pink)      , 87%, 76%);
+}
+
+.sherbet-red        {color: var(--sherbet-red)}
+.sherbet-orange     {color: var(--sherbet-orange)}
+.sherbet-yellow     {color: var(--sherbet-yellow)}
+.sherbet-lime       {color: var(--sherbet-yellow)}
+.sherbet-green      {color: var(--sherbet-green)}
+.sherbet-cyan       {color: var(--sherbet-blue)}
+.sherbet-light-blue {color: var(--sherbet-blue)}
+.sherbet-blue       {color: var(--sherbet-blue)}
+.sherbet-purple     {color: var(--sherbet-purple)}
+.sherbet-indigo     {color: var(--sherbet-purple)}
+.sherbet-magenta    {color: var(--sherbet-purple)}
+.sherbet-violet     {color: var(--sherbet-violet)}
+.sherbet-pink       {color: var(--sherbet-pink)}
+
+.sherbet-red-bg        {background-color: var(--sherbet-red)}
+.sherbet-orange-bg     {background-color: var(--sherbet-orange)}
+.sherbet-yellow-bg     {background-color: var(--sherbet-yellow)}
+.sherbet-lime-bg       {background-color: var(--sherbet-yellow)}
+.sherbet-green-bg      {background-color: var(--sherbet-green)}
+.sherbet-cyan-bg       {background-color: var(--sherbet-blue)}
+.sherbet-light-blue-bg {background-color: var(--sherbet-blue)}
+.sherbet-blue-bg       {background-color: var(--sherbet-blue)}
+.sherbet-purple-bg     {background-color: var(--sherbet-purple)}
+.sherbet-indigo-bg     {background-color: var(--sherbet-purple)}
+.sherbet-magenta-bg    {background-color: var(--sherbet-purple)}
+.sherbet-violet-bg     {background-color: var(--sherbet-violet)}
+.sherbet-pink-bg       {background-color: var(--sherbet-pink)}

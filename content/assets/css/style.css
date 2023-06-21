@@ -3,3 +3,9 @@
 @input("./icons.css")
 
 @input("./menu.css")
+
+@input("./palettes/hue.css")
+@input("./palettes/neon.css")
+@input("./palettes/sherbet.css")
+@input("./palettes/sorbet.css")
+@input("./pre.css")
