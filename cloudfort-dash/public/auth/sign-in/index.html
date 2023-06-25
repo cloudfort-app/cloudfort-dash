@@ -8,23 +8,25 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		
 		<link rel="stylesheet" href="../../assets/css/style.css">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/agate.min.css">
 		
 		<link rel="icon" type="image/svg+xml" href="../../assets/images/favicon.svg">
 	</head>
 
 	<body>
 		<div align="center">
-			<div id="sign-in-page">
-				<div class="card" style="margin-top: 25vh">
+			<div class="auth-page">
+				<div class="card border" style="margin-top: 15vh; width: 350px; max-width: 90%;">
 					<h3>Admin Login</h3>
 			
-					<table class="centered">
+					<table class="centered" style="width: 100%">
 						<tr>
 							<td>
 								<input 
 									id="input-admin-url"
 									type="text"
 									placeholder="admin url" 
+									spellcheck="false"
 								>
 							</td>
 						</tr>
@@ -34,6 +36,7 @@
 									id="input-email"
 									type="email"
 									placeholder="email" 
+									spellcheck="false"
 								>
 							</td>
 						</tr>
@@ -43,6 +46,7 @@
 									id="input-password"
 									type="password"
 									placeholder="password" 
+									spellcheck="false"
 								>
 							</td>
 						</tr>
@@ -52,7 +56,7 @@
 						sign in failed
 					</div>
 			
-					<button onclick="sign_in()" style="margin-top: 0.5em">sign in</button>
+					<button class="btn" onclick="sign_in()" style="margin-top: 0.5em">sign in</button>
 				</div>
 			</div>
 			
@@ -99,7 +103,7 @@
 					}
 				}
 				else {
-					document.getElementById("input-admin-url").value = window.location.protocol + "//" + window.location.hostname + ":8443";
+					document.getElementById("input-admin-url").value = window.location.protocol + "//" + window.location.hostname + ":8000";
 				}
 			
 				document.addEventListener('keypress', (event) => {

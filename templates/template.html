@@ -31,12 +31,10 @@
 					</div>
 				</div>
 
-				<script type="text/javascript" src="@pathtofile(dash/assets/js/pocketbase.umd.js)"></script>
+				<script type="text/javascript" src="@pathtofile(cloudfort-dash/public/assets/js/pocketbase.umd.js)"></script>
 				<script>
 					var home = "nil";
-
 					var pb;
-					//var pb = new PocketBase('http://yarrr.net:8080');
 
 					async function sign_out() {
 					    pb.authStore.clear();
@@ -51,7 +49,7 @@
 						}
 					}
 					else 
-						location.href = "@pathto(auth/sign-in/)"
+						window.location.href = "@pathto(auth/sign-in/)"
 
 					async function get_pwd() {
 						let response = await fetch("/pwd", {
@@ -195,7 +193,7 @@
 		<script type="text/javascript" src="@pathto(assets/js/script)"></script>
 		<script type="text/javascript" src="@pathto(assets/js/menu)"></script>
 
-		<script type="text/javascript" src="@pathto(assets/js/microlight)"></script>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
 		<script type="text/javascript" src="@pathto(assets/js/mantis-editor)"></script>
 
 		<script>

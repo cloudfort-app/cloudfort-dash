@@ -7,9 +7,10 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		
-		<link rel="stylesheet" href="../../assets/css/style.css">
+		<link rel="stylesheet" href="assets/css/style.css">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/agate.min.css">
 		
-		<link rel="icon" type="image/svg+xml" href="../../assets/images/favicon.svg">
+		<link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
 	</head>
 
 	<body>
@@ -71,35 +72,53 @@
 
 				<div id="index-div" class="main-div">
 					<div class="main-page">
-						<h3>auth details:</h3>
-						<textarea 
-							id="auth-details" 
-							readonly
-						></textarea>
+						<h1 style="margin: 0.5em 0">Dashboard</h1>
+						
+						<div class="card border-hover" onclick="show('monitor')" style="cursor: pointer; width: 9em">
+							<i class="bs-ico bootstrap-activity width-5em ico-link-color-card"></i><br>
+							<hr>
+							<h2>monitor</h2>
+						</div>
+						
+						<div class="card border-hover" onclick="show('terminal')" style="cursor: pointer; width: 9em">
+							<i class="bs-ico bootstrap-terminal width-5em ico-link-color-card"></i><br>
+							<hr>
+							<h2>terminal</h2>
+						</div>
+						
+						<div class="card border-hover" onclick="show('explorer')" style="cursor: pointer; width: 9em">
+							<i class="bs-ico bootstrap-folder width-5em ico-link-color-card"></i><br>
+							<hr>
+							<h2>explorer</h2>
+						</div>
+						
+						<div class="card border-hover" onclick="show('editor')" style="cursor: pointer; width: 9em">
+							<i class="bs-ico bootstrap-code-square width-5em ico-link-color-card"></i><br>
+							<hr>
+							<h2>editor</h2>
+						</div>
 					</div>
 				</div>
 
-				<script type="text/javascript" src="../../assets/js/pocketbase.umd.js"></script>
+				<script type="text/javascript" src="assets/js/pocketbase.umd.js"></script>
 				<script>
 					var home = "nil";
-
 					var pb;
-					//var pb = new PocketBase('http://yarrr.net:8080');
 
 					async function sign_out() {
 					    pb.authStore.clear();
-					    location.href = "../sign-in/"
+					    location.href = "auth/sign-in/"
 					}
 
 					if(localStorage.getItem("pb-url")) {
 						pb = new PocketBase(localStorage.getItem("pb-url"));
 
 						if(!pb.authStore.isValid) {
-						    location.href = "../sign-in/"
+						    location.href = "auth/sign-in/"
 						}
 					}
 					else 
-						location.href = "../sign-in/"
+						window.location.href = "auth/sign-in/"
 
 					async function get_pwd() {
 						let response = await fetch("/pwd", {
@@ -119,15 +138,17 @@
 							const monitor = document.getElementById("textarea-monitor");
 						
 							async function fetch_top() {
-								let response = await fetch("/top", {
-									method: "GET"
-								});
-								let result = await response.json();
+								if(document.getElementById("monitor-div").style.display != "none") {
+									let response = await fetch("/top", {
+										method: "GET"
+									});
+									let result = await response.json();
 						
-								monitor.innerHTML = result["output"];
-								//microlight.reset([monitor]);
+									//monitor.innerHTML = result["output"];
+									monitor.innerHTML = hljs.highlightAuto(result["output"]).value;
+								}
 						
-								setTimeout(function(){fetch_top()}, 2000);
+								setTimeout(function(){fetch_top()}, 3000);
 							}
 						
 							function monitor_init() {
@@ -151,7 +172,7 @@
 								resize: none;
 								text-align: left;
 								white-space: pre-wrap;
-							
+							}
 						</style>
 					</div>
 				</div>
@@ -242,7 +263,7 @@
 								if(pwd.substring(0, home.length) == home)
 									pwd = "~" + pwd.substring(home.length, pwd.length);
 						
-								document.getElementById("textarea-terminal").innerHTML += "<span style='color: var(--hover-color)'>" + pwd + "</span>$ ";
+								document.getElementById("textarea-terminal").innerHTML += "<span style='color: var(--sorbet-pink)'>" + pwd + "</span>$ ";
 								document.getElementById("textarea-terminal").scrollTop = document.getElementById("textarea-terminal").scrollHeight;
 							}
 						
@@ -254,7 +275,7 @@
 									pwd = "~" + pwd.substring(home.length, pwd.length);
 								}
 						
-								document.getElementById("textarea-terminal").innerHTML += "<span style='color: var(--hover-color)'>" + pwd + "</span>$ ";
+								document.getElementById("textarea-terminal").innerHTML += "<span style='color: var(--sorbet-pink)'>" + pwd + "</span>$ ";
 							}
 							terminal_init();
 						
@@ -517,7 +538,7 @@
 									document.getElementById("span-pwd").innerHTML += "/"
 						
 								for(var i=dirs.length-1; i>=0; --i) {
-									document.getElementById("span-pwd").innerHTML += "<a href='#' onclick='get_dir(\"" + dirs[i] + "\")'>" + files[i] + "</a>/"
+									document.getElementById("span-pwd").innerHTML += "<a href='#' onclick='get_dir(\"" + dirs[i].replace("~", home) + "\")'>" + files[i] + "</a>/"
 								}
 						
 								if(dir[0] == '~' && home.length)
@@ -592,6 +613,12 @@
 							<i title="close" class='bs-ico bootstrap-x-square width-1em ico-link-color' onclick="close_file()"></i>
 						</div><br>
 						
+						<select id="select-highlight" onchange="select_highlight_event()" style="display: inline-flex; width: 100px">
+							<option value="none" disabled hidden selected>highlight</option>
+							<option value="true">yes</option>
+							<option value="false">no</option>
+						</select><br>
+						
 						<div id="card-input-path" class="card" style="display: none">
 							<input id="input-path" placeholder="path">
 							<button id="open_button" class="btn" onclick="open_file()" style="display: none">open</button>
@@ -602,13 +629,19 @@
 						</select><br>
 						
 						<div id="editor-container" align="center">
-						<div id="editor-content" class="microlight pre-wrap" spellcheck="false" aria-hidden="true"></div><textarea id="editor" class="pre-wrap" spellcheck="false" readonly oninput="redraw_editor()" onscroll="scroll_editor_content()"></textarea></div><br>
+						<div id="editor-content" class="pre-wrap" spellcheck="false" aria-hidden="true"></div><textarea id="editor" class="pre-wrap" spellcheck="false" readonly oninput="redraw_editor()" onscroll="scroll_editor_content()"></textarea></div><br>
 						
 						<script>
 							var open_path = "";
 							const file_select = document.getElementById("select-open-file");
 							const editor = document.getElementById("editor");
 							var file_content = {};
+						
+							async function select_highlight_event() {
+								highlight_editor = document.getElementById("select-highlight").value;
+								document.getElementById("select-highlight").value = "none";
+								redraw_editor();
+							}
 						
 							async function select_open_file_event() {
 								file_content[open_path] = editor.innerHTML;
@@ -664,6 +697,7 @@
 											file_select.value = open_path = file_select.options[i].value;
 											editor.value = file_content[open_path];
 										}
+										redraw_editor();
 									}
 								}
 								delete file_content[open_path];
@@ -673,7 +707,7 @@
 								show("editor");
 								editor.readOnly = false;
 						
-								file_content[open_path] = document.getElementById("editor").innerText;
+								file_content[open_path] = document.getElementById("editor").innerHTML;
 								open_path = path;
 						
 								if(file_content.hasOwnProperty(open_path) && file_content[open_path] != "") {
@@ -978,11 +1012,11 @@
 			}
 		</style>
 
-		<script type="text/javascript" src="../../assets/js/script.js"></script>
-		<script type="text/javascript" src="../../assets/js/menu.js"></script>
+		<script type="text/javascript" src="assets/js/script.js"></script>
+		<script type="text/javascript" src="assets/js/menu.js"></script>
 
-		<script type="text/javascript" src="../../assets/js/microlight.js"></script>
-		<script type="text/javascript" src="../../assets/js/mantis-editor.js"></script>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+		<script type="text/javascript" src="assets/js/mantis-editor.js"></script>
 
 		<script>
 			var x = document.getElementsByName("cyear");

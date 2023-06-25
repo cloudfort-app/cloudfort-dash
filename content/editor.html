@@ -4,6 +4,12 @@
 	<i title="close" class='bs-ico bootstrap-x-square width-1em ico-link-color' onclick="close_file()"></i>
 </div><br>
 
+<select id="select-highlight" onchange="select_highlight_event()" style="display: inline-flex; width: 100px">
+	<option value="none" disabled hidden selected>highlight</option>
+	<option value="true">yes</option>
+	<option value="false">no</option>
+</select><br>
+
 <div id="card-input-path" class="card" style="display: none">
 	<input id="input-path" placeholder="path">
 	<button id="open_button" class="btn" onclick="open_file()" style="display: none">open</button>
@@ -14,13 +20,19 @@
 </select><br>
 
 <div id="editor-container" align="center">
-<div id="editor-content" class="microlight pre-wrap" spellcheck="false" aria-hidden="true"></div><textarea id="editor" class="pre-wrap" spellcheck="false" readonly oninput="redraw_editor()" onscroll="scroll_editor_content()"></textarea></div><br>
+<div id="editor-content" class="pre-wrap" spellcheck="false" aria-hidden="true"></div><textarea id="editor" class="pre-wrap" spellcheck="false" readonly oninput="redraw_editor()" onscroll="scroll_editor_content()"></textarea></div><br>
 
 <script>
 	var open_path = "";
 	const file_select = document.getElementById("select-open-file");
 	const editor = document.getElementById("editor");
 	var file_content = {};
+
+	async function select_highlight_event() {
+		highlight_editor = document.getElementById("select-highlight").value;
+		document.getElementById("select-highlight").value = "none";
+		redraw_editor();
+	}
 
 	async function select_open_file_event() {
 		file_content[open_path] = editor.innerHTML;
@@ -76,6 +88,7 @@
 					file_select.value = open_path = file_select.options[i].value;
 					editor.value = file_content[open_path];
 				}
+				redraw_editor();
 			}
 		}
 		delete file_content[open_path];
@@ -85,7 +98,7 @@
 		show("editor");
 		editor.readOnly = false;
 
-		file_content[open_path] = document.getElementById("editor").innerText;
+		file_content[open_path] = document.getElementById("editor").innerHTML;
 		open_path = path;
 
 		if(file_content.hasOwnProperty(open_path) && file_content[open_path] != "") {

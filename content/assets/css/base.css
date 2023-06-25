@@ -46,26 +46,26 @@
   --secondary-color: var(--sherb-blue);
 
   --link-color:  var(--primary-red);
-  --hover-color: var(--secondary-red);
+  --hover-color: var(--neon-orange);
 
   --filter-primary-color: var(--filter-sherb-green);
   --filter-secondary-color: var(--filter-sherb-blue);
 
   --filter-link-color: var(--filter-primary-red);
-  --filter-hover-color: var(--filter-neon-red);
+  --filter-hover-color: var(--filter-neon-orange);
 }
 
 @font-face 
 {
   font-family: "figtree";
-  src: url("@pathtofile(dash/assets/fonts/Figtree.ttf)") format("truetype");
+  src: url("@pathtofile(cloudfort-dash/public/assets/fonts/Figtree.ttf)") format("truetype");
   font-display: fallback;
 }
 
 @font-face 
 {
   font-family: "ubuntu mono";
-  src: url("@pathtofile(dash/assets/fonts/UbuntuMono.ttf)") format("truetype");
+  src: url("@pathtofile(cloudfort-dash/public/assets/fonts/UbuntuMono.ttf)") format("truetype");
   font-display: fallback;
 }
 
@@ -128,6 +128,9 @@ a:hover {
   width:fit-content;
   height:fit-content;
   border-radius: 5px;
+}
+.card:hover h2 {
+  color: var(--hover-color);
 }
 
 .border, .border-hover {

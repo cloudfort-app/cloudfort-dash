@@ -82,7 +82,7 @@
 		if(pwd.substring(0, home.length) == home)
 			pwd = "~" + pwd.substring(home.length, pwd.length);
 
-		document.getElementById("textarea-terminal").innerHTML += "<span style='color: var(--hover-color)'>" + pwd + "</span>$ ";
+		document.getElementById("textarea-terminal").innerHTML += "<span style='color: var(--sorbet-pink)'>" + pwd + "</span>$ ";
 		document.getElementById("textarea-terminal").scrollTop = document.getElementById("textarea-terminal").scrollHeight;
 	}
 
@@ -94,7 +94,7 @@
 			pwd = "~" + pwd.substring(home.length, pwd.length);
 		}
 
-		document.getElementById("textarea-terminal").innerHTML += "<span style='color: var(--hover-color)'>" + pwd + "</span>$ ";
+		document.getElementById("textarea-terminal").innerHTML += "<span style='color: var(--sorbet-pink)'>" + pwd + "</span>$ ";
 	}
 	terminal_init();
 

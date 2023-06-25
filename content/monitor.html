@@ -4,15 +4,17 @@
 	const monitor = document.getElementById("textarea-monitor");
 
 	async function fetch_top() {
-		let response = await fetch("/top", {
-			method: "GET"
-		});
-		let result = await response.json();
+		if(document.getElementById("monitor-div").style.display != "none") {
+			let response = await fetch("/top", {
+				method: "GET"
+			});
+			let result = await response.json();
 
-		monitor.innerHTML = result["output"];
-		//microlight.reset([monitor]);
+			//monitor.innerHTML = result["output"];
+			monitor.innerHTML = hljs.highlightAuto(result["output"]).value;
+		}
 
-		setTimeout(function(){fetch_top()}, 2000);
+		setTimeout(function(){fetch_top()}, 3000);
 	}
 
 	function monitor_init() {
@@ -36,5 +38,5 @@
 		resize: none;
 		text-align: left;
 		white-space: pre-wrap;
-	
+	}
 </style>

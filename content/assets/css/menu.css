@@ -17,10 +17,9 @@
   filter: var(--filter-neon-orange);
 }
 
-#menu-page, #sign-in-page {
+#menu-page, .auth-page {
   position: fixed; 
   overflow-y: auto;
-  background: var(--secondary-dark);
   padding-top: 1em;
   text-align: center;
   width: 100%;
@@ -31,7 +30,17 @@
 }
 
 #menu-page {
+  background: var(--secondary-dark);
   display: none;
+}
+
+.auth-page {
+  background: var(--primary-dark);
+}
+
+.auth-page input {
+  margin: 0.25em 0;
+  width: 100%;
 }
 
 nav ul {
@@ -61,7 +70,7 @@ nav a {
   font-size: 15pt;
 }
 .submenu-link::after {
-  content: url("@pathtofile(dash/assets/icons/fa-angle-down-solid.svg)");
+  content: url("@pathtofile(cloudfort-dash/public/assets/icons/fa-angle-down-solid.svg)");
   display: inline-block;
   filter: invert(100%);
   width: 1em;
@@ -70,7 +79,7 @@ nav a {
   vertical-align: middle;
 }
 .submenu-link-active::after {
-  content: url("@pathtofile(dash/assets/icons/fa-angle-up-solid.svg)"); 
+  content: url("@pathtofile(cloudfort-dash/public/assets/icons/fa-angle-up-solid.svg)"); 
 }
 .submenu-link:hover::after {
   filter: var(--filter-hover-color); 

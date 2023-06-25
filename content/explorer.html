@@ -214,7 +214,7 @@
 			document.getElementById("span-pwd").innerHTML += "/"
 
 		for(var i=dirs.length-1; i>=0; --i) {
-			document.getElementById("span-pwd").innerHTML += "<a href='#' onclick='get_dir(\"" + dirs[i] + "\")'>" + files[i] + "</a>/"
+			document.getElementById("span-pwd").innerHTML += "<a href='#' onclick='get_dir(\"" + dirs[i].replace("~", home) + "\")'>" + files[i] + "</a>/"
 		}
 
 		if(dir[0] == '~' && home.length)

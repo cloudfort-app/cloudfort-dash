@@ -124,6 +124,12 @@ func sanitize(in_str string) string {
     return str;
 }
 
+func sanitize_for_saving(in_str string) string {
+    str := strings.Replace(in_str, "\r\n", "\n", -1)
+
+    return str;
+}
+
 func getFileStr(w http.ResponseWriter, req *http.Request) {
     b, err := os.ReadFile(req.PostFormValue("path")) 
     if err != nil {
@@ -140,7 +146,7 @@ func getFileStr(w http.ResponseWriter, req *http.Request) {
 func postWriteFile(w http.ResponseWriter, req *http.Request) {
     output := ""
 
-    err := os.WriteFile(req.PostFormValue("path"), []byte(req.PostFormValue("content")), 0644);
+    err := os.WriteFile(req.PostFormValue("path"), []byte(sanitize_for_saving(req.PostFormValue("content"))), 0644);
     if(err != nil) {
         log.Println(err)
         output = err.Error() + "\\n"
@@ -256,17 +262,22 @@ func main() {
     mux.HandleFunc("/pwd", getPwd)
     mux.HandleFunc("/run", getRun)
     mux.HandleFunc("/top", getTop)
-    mux.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./dash"))))
-    //http.HandleFunc("/hello", getHello)
+    
+    pwd, _ := os.Getwd()
+    if(pwd == "/") {
+        os.Chdir("/root/")
+    }
+    
+    mux.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("/usr/local/lib/cloudfort-dash/public"))))
 
-    if(port == "80" || port == "8000") {
-        fmt.Println("hosting Cloudfort Dash on port " + port)
+    if(port == "80" || port == "8000" || port == "8080") {
+        fmt.Println("Hosting Cloudfort Dash (http) on port " + port)
         err := http.ListenAndServe(":" + port, mux)
         if err != nil {
             log.Println("Listen: ", err)
         }
     } else {
-        fmt.Println("hosting Cloudfort Dash on port " + port)
+        fmt.Println("Hosting Cloudfort Dash (https) on port " + port)
         err := http.ListenAndServeTLS(":" + port, 
             "/etc/letsencrypt/live/" + domain + "/fullchain.pem", 
             "/etc/letsencrypt/live/" + domain + "/privkey.pem", 
