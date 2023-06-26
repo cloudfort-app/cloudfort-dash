@@ -1,4 +1,4 @@
-module server-dash
+module cloudfort-dash-server
 
 go 1.20
 

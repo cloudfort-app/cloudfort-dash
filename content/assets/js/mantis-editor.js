@@ -11,6 +11,10 @@ function scroll_editor_content() {
 	editor_content.scrollTop = mantis_editor.scrollTop;
 }
 
+function scroll_editor() {
+	mantis_editor.scrollTop = editor_content.scrollTop;
+}
+
 var highlight_editor = "true";
 function redraw_editor() {
 	editor_content.innerHTML = 

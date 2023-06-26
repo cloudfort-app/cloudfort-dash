@@ -39,9 +39,7 @@ func getCd(w http.ResponseWriter, req *http.Request) {
     }
 
     w.Header().Set("Content-Type", "text/plain")
-    //w.Write([]byte("{\"output\": \"" + output + "\"}"))
-    fmt.Fprintf(w, "{\"output\": \"" + output + "\"}")
-    // io.WriteString(w, "hello, world!\n")
+    w.Write([]byte("{\"output\": \"" + output + "\"}"))
 }
 
 func postCreateDir(w http.ResponseWriter, req *http.Request) {
@@ -54,9 +52,7 @@ func postCreateDir(w http.ResponseWriter, req *http.Request) {
     } 
 
     w.Header().Set("Content-Type", "text/plain")
-    //w.Write([]byte("{\"output\": \"" + output + "\"}"))
-    fmt.Fprintf(w, "{\"output\": \"" + output + "\"}")
-    // io.WriteString(w, "hello, world!\n")
+    w.Write([]byte("{\"output\": \"" + output + "\"}"))
 }
 
 func postCreateFile(w http.ResponseWriter, req *http.Request) {
@@ -71,10 +67,7 @@ func postCreateFile(w http.ResponseWriter, req *http.Request) {
     }
 
     w.Header().Set("Content-Type", "text/plain")
-    //w.Write([]byte("{\"output\": \"" + output + "\"}"))
-    fmt.Fprintf(w, "{\"output\": \"" + output + "\"}")
-    //fmt.Fprintf(w, "{}")
-    // io.WriteString(w, "hello, world!\n")
+    w.Write([]byte("{\"output\": \"" + output + "\"}"))
 }
 
 func postMv(w http.ResponseWriter, req *http.Request) {
@@ -87,10 +80,7 @@ func postMv(w http.ResponseWriter, req *http.Request) {
     }
 
     w.Header().Set("Content-Type", "text/plain")
-    //w.Write([]byte("{\"output\": \"" + output + "\"}"))
-    fmt.Fprintf(w, "{\"output\": \"" + output + "\"}")
-    //fmt.Fprintf(w, "{}")
-    // io.WriteString(w, "hello, world!\n")
+    w.Write([]byte("{\"output\": \"" + output + "\"}"))
 }
 
 func postRm(w http.ResponseWriter, req *http.Request) {
@@ -103,10 +93,7 @@ func postRm(w http.ResponseWriter, req *http.Request) {
     }
 
     w.Header().Set("Content-Type", "text/plain")
-    //w.Write([]byte("{\"output\": \"" + output + "\"}"))
-    fmt.Fprintf(w, "{\"output\": \"" + output + "\"}")
-    //fmt.Fprintf(w, "{}")
-    // io.WriteString(w, "hello, world!\n")
+    w.Write([]byte("{\"output\": \"" + output + "\"}"))
 }
 
 func sanitize(in_str string) string {
@@ -139,8 +126,8 @@ func getFileStr(w http.ResponseWriter, req *http.Request) {
     str := sanitize(string(b));
 
     w.Header().Set("Content-Type", "text/plain")
-    //w.Write([]byte("{\"content\": \"" + str + "\"}"))
-    fmt.Fprintf(w, "{\"content\": \"" + str + "\"}")
+    w.Write([]byte("{\"content\": \"" + str + "\"}"))
+    //DO NOT USE fmt (causes problems with % characters)
 }
 
 func postWriteFile(w http.ResponseWriter, req *http.Request) {
@@ -153,10 +140,7 @@ func postWriteFile(w http.ResponseWriter, req *http.Request) {
     }
 
     w.Header().Set("Content-Type", "text/plain")
-    //w.Write([]byte("{\"output\": \"" + output + "\"}"))
-    fmt.Fprintf(w, "{\"output\": \"" + output + "\"}")
-    //fmt.Fprintf(w, "{}")
-    // io.WriteString(w, "hello, world!\n")
+    w.Write([]byte("{\"output\": \"" + output + "\"}"))
 }
 
 func getLs(w http.ResponseWriter, req *http.Request) {
@@ -184,8 +168,6 @@ func getLs(w http.ResponseWriter, req *http.Request) {
 
     w.Header().Set("Content-Type", "text/plain")
     w.Write([]byte(json))
-    // fmt.Fprintf(w, "hello, world!\n")
-    // io.WriteString(w, "hello, world!\n")
 }
 
 func getPwd(w http.ResponseWriter, req *http.Request) {
@@ -198,8 +180,6 @@ func getPwd(w http.ResponseWriter, req *http.Request) {
 
     w.Header().Set("Content-Type", "text/plain")
     w.Write([]byte("{\"pwd\": \"" + output + "\"}"))
-    // fmt.Fprintf(w, "hello, world!\n")
-    // io.WriteString(w, "hello, world!\n")
 }
 
 func split_params(params_str string) []string {
@@ -227,13 +207,13 @@ func getRun(w http.ResponseWriter, req *http.Request) {
     }
 
     w.Header().Set("Content-Type", "text/plain")
-    fmt.Fprintf(w, "{\"output\": \"" + output + "\"}")
+    w.Write([]byte("{\"output\": \"" + output + "\"}"))
 }
 
 func getTop(w http.ResponseWriter, req *http.Request) {
     output := ""
 
-    out, err := exec.Command("top", "-bn1").CombinedOutput()
+    out, err := exec.Command("top", "-bn1", "-w", "120").CombinedOutput()
 
     if(err != nil) {
         log.Println(err)
@@ -244,9 +224,7 @@ func getTop(w http.ResponseWriter, req *http.Request) {
     }
 
     w.Header().Set("Content-Type", "text/plain")
-    //w.Write([]byte("{\"output\": \"" + output + "\"}"))
-    fmt.Fprintf(w, "{\"output\": \"" + output + "\"}")
-    // io.WriteString(w, "hello, world!\n")
+    w.Write([]byte("{\"output\": \"" + output + "\"}"))
 }
 
 func main() {
