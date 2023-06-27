@@ -33,22 +33,51 @@
 					>
 				</td>
 			</tr>
+			<tr>
+				<td>
+					<input 
+						id="input-secret"
+						type="password"
+						placeholder="secret" 
+						spellcheck="false"
+					>
+				</td>
+			</tr>
 		</table>
-
-		<div id="div-sign-in-failed" style="margin-top: 0.5em; display: none">
-			sign in failed
-		</div>
 
 		<button class="btn" onclick="sign_in()" style="margin-top: 0.5em">sign in</button>
 	</div>
 </div>
 
-<script type="text/javascript" src="@pathtofile(cloudfort-dash/public/assets/js/pocketbase.umd.js)"></script>
+<script src="@pathtofile(public/assets/js/crypto-js/crypto-js.js)"></script>
+<script type="text/javascript" src="@pathtofile(public/assets/js/pocketbase.umd.js)"></script>
 <script>
 	var pb;
 
+	function signature(msg) {
+		return CryptoJS.HmacSHA256(msg, document.getElementById("input-secret").value);
+	}
+
 	async function sign_in() {
-		document.getElementById("div-sign-in-failed").style.display = "none";
+		const date = new Date().getTime().toString();
+
+		const formData = new FormData();
+		formData.append("date", date);
+
+		let response = await fetch("/api/secret/check", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+	        body: formData
+		});
+		let result = await response.json();
+
+		if(result["valid"] != true) {
+			notify("invalid secret");
+			return;
+		}
 		
 		pb = new PocketBase(document.getElementById("input-admin-url").value);
 
@@ -57,17 +86,16 @@
 	        document.getElementById("input-password").value,
 	    ).then((response) => {
 			if(response.error) {
-				document.getElementById("div-sign-in-failed").innerHTML = "sign in failed"
-				document.getElementById("div-sign-in-failed").style.display = "block";
+				notify("sign in failed");
 				console.log(response.error.message)
 			}
 			else {
 				localStorage.setItem("pb-url", document.getElementById("input-admin-url").value);
+				localStorage.setItem("CLOUDFORT_DASH_SECRET", document.getElementById("input-secret").value);
 				window.location.href = "@pathto(/)";
 			}
 		}).catch((err) => {
-			document.getElementById("div-sign-in-failed").innerHTML = "sign in failed"
-			document.getElementById("div-sign-in-failed").style.display = "block";
+			notify("sign in failed");
 			console.log(err);
 		});
 

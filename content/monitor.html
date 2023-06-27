@@ -5,22 +5,26 @@
 
 	async function fetch_top() {
 		if(document.getElementById("monitor-div").style.display != "none") {
-			let response = await fetch("/top", {
-				method: "GET"
+			const date = new Date().getTime().toString();
+			const formData = new FormData();
+			formData.append("date", date);
+		
+			let response = await fetch("/api/top", {
+				method: "POST",
+				headers: {
+					//"content-type": "application/json"
+					"signature": signature(date)
+			    },
+				body: formData
 			});
 			let result = await response.json();
 
 			//monitor.innerHTML = result["output"];
 			monitor.innerHTML = hljs.highlightAuto(result["output"]).value;
+
+			setTimeout(function(){fetch_top()}, 3000);
 		}
-
-		setTimeout(function(){fetch_top()}, 3000);
 	}
-
-	function monitor_init() {
-		fetch_top();
-	}
-	monitor_init();
 </script>
 
 <style>
@@ -30,7 +34,7 @@
 		color: var(--white);
 		height: calc(100vh - 8em); 
 		width: 100%;
-		font-family: Ubuntu Mono;
+		font-family: "ubuntu mono";
 		font-size: 0.9em;
 		overflow-x:auto;
 		padding: 0.25em 0.25em;

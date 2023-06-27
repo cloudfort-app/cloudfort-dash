@@ -15,7 +15,9 @@
 	}
 
 	async function run_cmd() {
+		const date = new Date().getTime().toString();
 		const formData = new FormData();
+		formData.append("date", date);
 
 		prev_cmd = cmd;
 		cmd = document.getElementById("input-terminal").value;
@@ -44,10 +46,11 @@
 
 			formData.append("dir", dir);
 
-			let response = await fetch("/cd", {
+			let response = await fetch("/api/cd", {
 				method: "POST",
 				headers: {
 					//"content-type": "application/json"
+					"signature": signature(date)
 			    },
 		        body: formData
 			});
@@ -59,12 +62,12 @@
 			try {
 				formData.append("command", cmd);
 
-
-				let response = await fetch("/run", {
+				let response = await fetch("/api/run", {
 					method: "POST",
 					headers: {
 						//"content-type": "application/json"
 				    	//"content-type": "application/x-www-form-urlencoded"
+				    	"signature": signature(date)
 				    },
 			        body: formData
 				});
@@ -89,14 +92,11 @@
 	async function terminal_init() {
 		var pwd = await get_pwd();
 
-		if(pwd.substring(0, 6) == "/home/") {
-			home = pwd.substring(0, pwd.indexOf('/', 6));
+		if(pwd.substring(0, home.length) == home)
 			pwd = "~" + pwd.substring(home.length, pwd.length);
-		}
 
 		document.getElementById("textarea-terminal").innerHTML += "<span style='color: var(--sorbet-pink)'>" + pwd + "</span>$ ";
 	}
-	terminal_init();
 
 	function terminal_keypress(e) {
 		var name = e.key;
@@ -114,6 +114,7 @@
 		background: var(--secondary-dark);
 		border: 1px solid var(--light-black);
 		color: var(--white);
+		font-family: "ubuntu mono";
 		max-width: 700px; 
 		width: 90%; 
 		overflow-y: scroll;

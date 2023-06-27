@@ -1,0 +1,18 @@
+{
+	"last-built": "00:13:46 Tuesday June 27 2023",
+	"name": "assets/css/style",
+	"title": "style",
+	"template": "templates/template.css",
+	"dependencies": [
+		"content/assets/css/./base.css",
+		"content/assets/css/./icons.css",
+		"content/assets/css/./menu.css",
+		"content/assets/css/./palettes/hue.css",
+		"content/assets/css/./palettes/neon.css",
+		"content/assets/css/./palettes/sherbet.css",
+		"content/assets/css/./palettes/sorbet.css",
+		"content/assets/css/./pre.css",
+		"content/assets/css/style.css",
+		"templates/template.css"
+	]
+}

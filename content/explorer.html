@@ -110,11 +110,17 @@
 	async function create_dir() {
 		var dirname = document.getElementById("input-name").value;
 
+		const date = new Date().getTime().toString();
 		const formData = new FormData();
+		formData.append("date", date);
 		formData.append("path", bwd + "/" + dirname);
 
-		response = await fetch("/createdir", {
+		response = await fetch("/api/dir/create", {
 			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
 			body: formData
 		});
 		result = await response.json();
@@ -129,11 +135,17 @@
 	async function create_file() {
 		var filename = document.getElementById("input-name").value;
 
+		const date = new Date().getTime().toString();
 		const formData = new FormData();
+		formData.append("date", date);
 		formData.append("path", bwd + "/" + filename);
 
-		response = await fetch("/createfile", {
+		response = await fetch("/api/file/create", {
 			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
 			body: formData
 		});
 		result = await response.json();
@@ -146,12 +158,18 @@
 	}
 
 	async function mv_path() {
+		const date = new Date().getTime().toString();
 		const formData = new FormData();
+		formData.append("date", date);
 		formData.append("path-old", bwd + "/" + document.getElementById("input-name-old").value);
 		formData.append("path-new", bwd + "/" + document.getElementById("input-name-new").value);
 
-		response = await fetch("/mv", {
+		response = await fetch("/api/mv", {
 			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
 			body: formData
 		});
 		result = await response.json();
@@ -166,11 +184,17 @@
 	async function rm_path() {
 		var filename = document.getElementById("input-name").value;
 
+		const date = new Date().getTime().toString();
 		const formData = new FormData();
+		formData.append("date", date);
 		formData.append("path", bwd + "/" + filename);
 
-		response = await fetch("/rm", {
+		response = await fetch("/api/rm", {
 			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
 			body: formData
 		});
 		result = await response.json();
@@ -190,7 +214,9 @@
 	async function get_dir(dir) {
 		clear_table();
 
+		const date = new Date().getTime().toString();
 		const formData = new FormData();
+		formData.append("date", date);
 
 		bwd = dir;
 		document.getElementById("span-pwd").innerHTML = "";
@@ -223,9 +249,13 @@
 			dir = "/";
 
 		formData.append("dir", dir);
-		response = await fetch("/ls", {
+		response = await fetch("/api/ls", {
 			method: "POST",
-			body: formData
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+	        body: formData
 		});
 		result = await response.json();
 
@@ -272,9 +302,8 @@
 		}
 	}
 
-	async function browser_init() {
+	async function explorer_init() {
 		bwd = await get_pwd();
 		get_dir(bwd);
 	}
-	browser_init();
 </script>

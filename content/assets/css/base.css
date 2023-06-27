@@ -58,14 +58,14 @@
 @font-face 
 {
   font-family: "figtree";
-  src: url("@pathtofile(cloudfort-dash/public/assets/fonts/Figtree.ttf)") format("truetype");
+  src: url("@pathtofile(public/assets/fonts/Figtree.ttf)") format("truetype");
   font-display: fallback;
 }
 
 @font-face 
 {
   font-family: "ubuntu mono";
-  src: url("@pathtofile(cloudfort-dash/public/assets/fonts/UbuntuMono.ttf)") format("truetype");
+  src: url("@pathtofile(public/assets/fonts/UbuntuMono.ttf)") format("truetype");
   font-display: fallback;
 }
 

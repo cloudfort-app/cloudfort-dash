@@ -17,14 +17,15 @@ function scroll_editor() {
 
 var highlight_editor = "true";
 function redraw_editor() {
-	editor_content.innerHTML = 
-		mantis_editor.value.replaceAll(
-			"&", "&amp;").replaceAll(
-			"<", "&lt;").replaceAll(
-			"-", "&#8288;-&#8288;") + '\n';
-
 	if(highlight_editor == "true") {
 		editor_content.innerHTML = hljs.highlightAuto(mantis_editor.value).value + "\n";
+	}
+	else {
+		editor_content.innerHTML = 
+			mantis_editor.value.replaceAll(
+				"&", "&amp;").replaceAll(
+				"<", "&lt;").replaceAll(
+				"-", "&#8288;-&#8288;") + '\n';
 	}
 }
 //fixes newline issues when loading content with newlines

@@ -23,7 +23,7 @@
 <div id="editor-content" class="pre-wrap noselect" spellcheck="false" aria-hidden="true" onscroll="scroll_editor()"></div><textarea id="editor" class="pre-wrap" spellcheck="false" readonly oninput="redraw_editor()" onscroll="scroll_editor_content()"></textarea></div><br>
 
 <script>
-	var open_path = "";
+	var open_path = "<nil>";
 	const file_select = document.getElementById("select-open-file");
 	const editor = document.getElementById("editor");
 	var file_content = {};
@@ -35,9 +35,9 @@
 	}
 
 	async function select_open_file_event() {
-		file_content[open_path] = editor.innerHTML;
+		file_content[open_path] = editor.value;
 		open_path = file_select.value;
-		editor.innerHTML = file_content[open_path];
+		editor.value = file_content[open_path];
 		redraw_editor();
 	}
 
@@ -72,6 +72,8 @@
 	}
 
 	async function close_file() {
+		delete file_content[open_path];
+
 		for(var i=0; i<file_select.length; ++i) {
 			if(file_select.options[i].value == open_path) {
 				file_select.remove(i);
@@ -80,6 +82,7 @@
 					editor.value = "";
 					editor.readOnly = true;
 					file_select.value = "none";
+					open_path = "<nil>"
 				}
 				else {
 					if(i == file_select.length)
@@ -91,36 +94,39 @@
 				redraw_editor();
 			}
 		}
-		delete file_content[open_path];
 	}
 
 	async function edit_file(path) {
 		show("editor");
 		editor.readOnly = false;
 
-		file_content[open_path] = document.getElementById("editor").innerHTML;
+		if(open_path != "<nil>")
+			file_content[open_path] = document.getElementById("editor").value;
 		open_path = path;
 
 		if(file_content.hasOwnProperty(open_path) && file_content[open_path] != "") {
 			file_select.value = open_path;
-			document.getElementById("editor").innerHTML = file_content[open_path];
+			document.getElementById("editor").value = file_content[open_path];
 			redraw_editor();
 		}
 		else {
+			const date = new Date().getTime().toString();
 			const formData = new FormData();
+			formData.append("date", date);
 			formData.append("path", open_path);
 
-			let response = await fetch("/filestr", {
+			let response = await fetch("/api/file/read", {
 				method: "POST",
 				headers: {
 					//"content-type": "application/json"
 			    	//"content-type": "application/x-www-form-urlencoded"
+			    	"signature": signature(date)
 			    },
 		        body: formData
 			});
 			let result = await response.json();
 
-			document.getElementById("editor").innerHTML = result["content"];
+			document.getElementById("editor").value = result["content"];
 			redraw_editor();
 
 			var opt = document.createElement('option');
@@ -140,16 +146,18 @@
 			return;
 		}
 
+		const date = new Date().getTime().toString();
 		const formData = new FormData();
-
+		formData.append("date", date);
 		formData.append("path", open_path);
 		formData.append("content", editor.value);
 
-		let response = await fetch("/writefile", {
+		let response = await fetch("/api/file/write", {
 			method: "POST",
 			headers: {
 				//"content-type": "application/json"
 		    	//"content-type": "application/x-www-form-urlencoded"
+		    	"signature": signature(date)
 		    },
 	        body: formData
 		});

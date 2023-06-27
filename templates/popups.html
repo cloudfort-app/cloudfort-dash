@@ -1,0 +1,106 @@
+<div id="div-confirm-popup" class="card border popup popup-middle">
+	<span id="span-confirm-popup-msg">are you sure?</span><br>
+	<button class="btn" onclick="resolve_confirm(false)">no</button>
+	<button class="btn" onclick="resolve_confirm(true)">yes</button>
+</div>
+
+<div id="div-notify-popup" class="card border popup popup-middle">
+	<span id="span-notify-popup-msg">are you sure?</span><br>
+	<button class="btn" onclick="resolve_notify()">ok</button>
+</div>
+
+<style>
+	.popup {
+		display: none;
+		position: fixed;
+		margin-left: auto;
+		margin-right: auto;
+		text-align: center;
+		width: 500px; 
+		max-width: 90%;
+		z-index: 999;
+	}
+
+	.popup-middle {
+		left: 0;
+		right: 0;
+		top: 25vh;
+	}
+
+	.popup-bottom {
+		left: 0;
+		right: 0;
+		bottom: 0;
+	}
+
+	@media screen and (min-width: 600px) {
+		.popup-dash {
+			left: 3.5em;
+			max-width: calc(90% - 3.5em);
+		}
+	}
+
+</style>
+
+<script>
+	function sleep(ms) {
+	    return new Promise(resolve => setTimeout(resolve, ms));
+	}
+
+	var confirm_resolved, confirm_result;
+
+	async function resolve_confirm(res) {
+		document.getElementById("div-confirm-popup").style.display = "none";
+		document.getElementById("div-confirm-popup").style.boxShadow = "0px 0px 3px 1px var(--primary-grey)";
+
+		confirm_result = res;
+		confirm_resolved = true;
+	}
+
+	async function confirm_(msg) {
+		confirm_resolved = false;
+		document.getElementById("span-confirm-popup-msg").innerHTML = msg;
+		document.getElementById("div-confirm-popup").style.display = "block";
+
+		while(!confirm_resolved) {
+			await sleep(250);
+		}
+
+		return confirm_result;
+	}
+
+	async function confirm_color(msg, col) {
+		document.getElementById("div-confirm-popup").style.boxShadow = "0px 0px 3px 1px " + col;
+
+		await confirm_(msg)
+	}
+
+	var notify_resolved;
+
+	async function resolve_notify() {
+		notify_resolved = true;
+		document.getElementById("div-notify-popup").style.display = "none";
+		document.getElementById("div-notify-popup").style.boxShadow = "0px 0px 3px 1px var(--primary-grey)";
+	}
+
+	async function notify(msg) {
+		notify_resolved = false;
+		document.getElementById("span-notify-popup-msg").innerHTML = msg;
+		document.getElementById("div-notify-popup").style.display = "block";
+
+		while(!notify_resolved) {
+			await sleep(250);
+		}
+	}
+
+	async function notify_color(msg, col) {
+		document.getElementById("div-notify-popup").style.boxShadow = "0px 0px 3px 1px " + col;
+
+		await notify(msg)
+	}
+
+	async function notify_resp(result) {
+		await notify_color(result["response"], (result["successful"] ? "var(--primary-grey)" : "var(--primary-red)"));
+	}
+	
+</script>

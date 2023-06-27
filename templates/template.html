@@ -5,6 +5,8 @@
 	</head>
 
 	<body>
+		@input("templates/popups.html")
+
 		<div align="center">
 			@input("templates/menu.html")
 
@@ -18,6 +20,8 @@
 						<a title="terminal" href="#"><i class="bs-ico bootstrap-terminal ico-link-color" onclick="show('terminal')"></i></a><br>
 						<a title="file explorer" href="#"><i class="bs-ico bootstrap-folder ico-link-color" onclick="show('explorer')"></i></a><br>
 						<a title="editor" href="#"><i class="bs-ico bootstrap-code-square ico-link-color" onclick="show('editor')"></i></a><br>
+						<hr>
+						<a title="config" href="#"><i class="bs-ico bootstrap-gear ico-link-color" onclick="edit_file(home + '/.cloudfort/config.json')"></i></a><br>
 					</div>
 				</div>
 
@@ -30,36 +34,6 @@
 						@content
 					</div>
 				</div>
-
-				<script type="text/javascript" src="@pathtofile(cloudfort-dash/public/assets/js/pocketbase.umd.js)"></script>
-				<script>
-					var home = "nil";
-					var pb;
-
-					async function sign_out() {
-					    pb.authStore.clear();
-					    location.href = "@pathto(auth/sign-in/)"
-					}
-
-					if(localStorage.getItem("pb-url")) {
-						pb = new PocketBase(localStorage.getItem("pb-url"));
-
-						if(!pb.authStore.isValid) {
-						    location.href = "@pathto(auth/sign-in/)"
-						}
-					}
-					else 
-						window.location.href = "@pathto(auth/sign-in/)"
-
-					async function get_pwd() {
-						let response = await fetch("/pwd", {
-							method: "GET"
-						});
-						let result = await response.json();
-
-						return result["pwd"];
-					}
-				</script>
 
 				<div id="monitor-div" class="main-div" style="display: none">
 					<div class="main-page">
@@ -196,7 +170,13 @@
 		<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
 		<script type="text/javascript" src="@pathto(assets/js/mantis-editor)"></script>
 
+		<script src="@pathtofile(public/assets/js/crypto-js/crypto-js.js)"></script>
+		<script type="text/javascript" src="@pathtofile(public/assets/js/pocketbase.umd.js)"></script>
+
 		<script>
+			var home = "nil";
+			var pb;
+
 			var x = document.getElementsByName("cyear");
 			for(var i=0; i<x.length; i++)
 				x[i].innerHTML = new Date().getFullYear();
@@ -210,9 +190,77 @@
 
 				document.getElementById(name + "-div").style.display = "block";
 
-				if(name == "terminal")
+				if(name == "monitor")
+					fetch_top();
+				else if(name == "terminal")
 					document.getElementById("input-terminal").focus();
 			}
+
+			async function sign_out() {
+			    pb.authStore.clear();
+			    location.href = "@pathto(auth/sign-in/)"
+			}
+
+			if(localStorage.getItem("pb-url")) {
+				pb = new PocketBase(localStorage.getItem("pb-url"));
+
+				if(!pb.authStore.isValid) {
+				    location.href = "@pathto(auth/sign-in/)"
+				}
+			}
+			else 
+				window.location.href = "@pathto(auth/sign-in/)"
+
+			const CLOUDFORT_DASH_SECRET = localStorage.getItem("CLOUDFORT_DASH_SECRET");
+			//const CLOUDFORT_DASH_SECRET = "testing";
+			function signature(msg) {
+				return CryptoJS.HmacSHA256(msg, CLOUDFORT_DASH_SECRET)
+			}
+
+			async function get_pwd() {
+				const date = new Date().getTime().toString();
+
+				const formData = new FormData();
+				formData.append("date", date);
+
+				let response = await fetch("/api/pwd", {
+					method: "POST",
+					headers: {
+						//"content-type": "application/json"
+						"signature": signature(date)
+				    },
+			        body: formData
+				});
+				let result = await response.json();
+
+				return result["pwd"];
+			}
+
+			async function get_home() {
+				const date = new Date().getTime().toString();
+
+				const formData = new FormData();
+				formData.append("date", date);
+
+				let response = await fetch("/api/home", {
+					method: "POST",
+					headers: {
+						//"content-type": "application/json"
+						"signature": signature(date)
+				    },
+			        body: formData
+				});
+				let result = await response.json();
+
+				return result["home"];
+			}
+
+			async function dash_init() {
+				home = await get_home();
+				await explorer_init();
+				await terminal_init();
+			}
+			dash_init();
 		</script>
 	</body>
 </html>
