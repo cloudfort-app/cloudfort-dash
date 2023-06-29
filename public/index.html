@@ -278,6 +278,13 @@
 								hist_select.value = "none";
 							}
 						
+							function remove_backspaces(str)
+							{
+							    while(str.indexOf("\b") != -1)
+							        str = str.replace(/.\x08/, "");
+							    return str;
+							}
+						
 							async function run_cmd() {
 								const date = new Date().getTime().toString();
 								const formData = new FormData();
@@ -337,7 +344,7 @@
 										});
 										let result = await response.json();
 						
-										document.getElementById("textarea-terminal").innerHTML += result["output"] + "\n";
+										document.getElementById("textarea-terminal").innerHTML += remove_backspaces(result["output"]) + "\n";
 									}
 									catch(error) {
 										alert("error: " + error);

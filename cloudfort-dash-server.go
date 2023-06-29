@@ -21,6 +21,7 @@ import (
 
 var domain = os.Args[1]
 var port = os.Args[2]
+var secret = []byte(os.Args[3])
 
 var home string
 var config *gabs.Container
@@ -34,7 +35,6 @@ func fileExists(path string) bool {
     return err == nil
 }
 
-var secret = []byte(os.Getenv("CLOUDFORT_DASH_SECRET"))
 func hasValidWebhookSignature(w *http.ResponseWriter, req *http.Request, msg []byte) bool {
     mac := hmac.New(sha256.New, secret)
     mac.Write(msg);
@@ -91,6 +91,11 @@ func sanitize(in_str string) string {
 
     str = strings.Replace(str, "\n", "\\n", -1)
     str = strings.Replace(str, "\t", "\\t", -1)
+
+    str = strings.Replace(str, "\b", "\\b", -1)
+    str = strings.Replace(str, "\f", "\\f", -1)
+    str = strings.Replace(str, "\r", "\\r", -1)
+
     str = strings.Replace(str, "\"", "\\\"", -1)
 
     return str;
@@ -321,7 +326,8 @@ func routeRun(w http.ResponseWriter, req *http.Request) {
         log.Println(err)
         output = sanitize(err.Error() + "\n")
     } else {
-        output = sanitize(string(out));
+        output = sanitize(string(out))
+        //fmt.Println("{\"output\": \"" + output + "\"}")
     }
 
     w.Header().Set("Content-Type", "text/plain")
@@ -402,7 +408,7 @@ func main() {
     config_bytes, _ := os.ReadFile(home + "/.cloudfort/config.json");
     config, _ = gabs.ParseJSON(config_bytes)
 
-    fmt.Println(config); 
+    //fmt.Println(config); 
     
     pwd, _ := os.Getwd()
     if(pwd == "/") {
