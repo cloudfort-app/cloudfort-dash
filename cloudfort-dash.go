@@ -24,7 +24,7 @@ var domain string
 var home string
 var port string
 var password []byte
-var version = "v0.1.4"
+var version = "v0.1.5"
 
 /*func check_referer(req *http.Request) bool {
     return (req.Referer() == "" || req.Referer()[0:len(domain)] != domain)
@@ -473,6 +473,8 @@ func main() {
         fmt.Println(string(out))
         fmt.Println("cloudfort-dash updated successfully")
 
+    } else if(cmd == "--version") {
+        fmt.Println(version)
     } else {
         fmt.Println("do not recognize command '" + cmd + "'")
     }

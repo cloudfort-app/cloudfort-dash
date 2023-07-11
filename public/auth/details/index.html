@@ -1202,6 +1202,9 @@
 			}
 
 			async function check_signed_in() {
+				if(!localStorage.getItem("CLOUDFORT_DASH_PW"))
+					window.location.href = "../sign-in/"
+				
 				const date = new Date().getTime().toString();
 
 				const formData = new FormData();
