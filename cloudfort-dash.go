@@ -23,7 +23,8 @@ var config *gabs.Container
 var domain string
 var home string
 var port string
-var secret []byte
+var password []byte
+var version = "v0.1.4"
 
 /*func check_referer(req *http.Request) bool {
     return (req.Referer() == "" || req.Referer()[0:len(domain)] != domain)
@@ -35,7 +36,7 @@ func fileExists(path string) bool {
 }
 
 func hasValidWebhookSignature(w *http.ResponseWriter, req *http.Request, msg []byte) bool {
-    mac := hmac.New(sha256.New, secret)
+    mac := hmac.New(sha256.New, password)
     mac.Write(msg);
 
     if("sha256=" + hex.EncodeToString(mac.Sum(nil)) == req.Header.Get("X-Hub-Signature-256")) {
@@ -51,7 +52,7 @@ func hasValidWebhookSignature(w *http.ResponseWriter, req *http.Request, msg []b
 }
 
 func hasValidSignature(w *http.ResponseWriter, req *http.Request) bool {
-    mac := hmac.New(sha256.New, secret)
+    mac := hmac.New(sha256.New, password)
     mac.Write([]byte(req.PostFormValue("date")))
 
     req_date, _ := strconv.Atoi(req.PostFormValue("date"))
@@ -333,7 +334,7 @@ func routeRun(w http.ResponseWriter, req *http.Request) {
     w.Write([]byte("{\"output\": \"" + output + "\"}"))
 }
 
-func routeSecretCheck(w http.ResponseWriter, req *http.Request) {
+func routePasswordCheck(w http.ResponseWriter, req *http.Request) {
     if(!hasValidSignature(&w, req)) {
         return
     }
@@ -398,12 +399,12 @@ func main() {
         mux.HandleFunc("/api/ls",           routeLs)
         mux.HandleFunc("/api/pwd",          routePwd)
         mux.HandleFunc("/api/run",          routeRun)
-        mux.HandleFunc("/api/secret/check", routeSecretCheck)
+        mux.HandleFunc("/api/password/check", routePasswordCheck)
         mux.HandleFunc("/api/top",          routeTop)
 
         domain = os.Args[2]
         port = os.Args[3]
-        secret = []byte(os.Args[4])
+        password = []byte(os.Args[4])
 
         home, _ = os.UserHomeDir()
 
@@ -440,8 +441,38 @@ func main() {
             }
         }
     } else if(cmd == "update") {
-        //cmd := req.PostFormValue("command")
-        //out, err := exec.Command("/bin/sh", "-c", cmd).CombinedOutput()
+        cmd := "curl -s https://raw.githubusercontent.com/cloudfort-app/cloudfort-dash/main/version.md"
+        latestVersion, err := exec.Command("/bin/sh", "-c", cmd).CombinedOutput()
+
+        if(err != nil) {
+            log.Println(err)
+            return
+        }
+
+        if(string(latestVersion) == version) {
+            fmt.Println("latest version already installed")
+            return
+        }
+
+        cmd = "wget -q -O cloudfort-dash.tar.xz https://github.com/cloudfort-app/cloudfort-dash/releases/download/" + string(latestVersion) + "/cloudfort-dash.tar.xz; "
+        cmd += "tar -xvf cloudfort-dash.tar.xz; "
+        cmd += "rm cloudfort-dash.tar.xz; "
+        cmd += "rm create_http_services.sh; "
+        cmd += "rm -r /var/www/cloudfort-dash/public; "
+        cmd += "mv public /var/www/cloudfort-dash; "
+        cmd += "chmod a+x cloudfort-dash; "
+        cmd += "rm /usr/local/bin/cloudfort-dash; "
+        cmd += "mv cloudfort-dash /usr/local/bin; "
+        out, err := exec.Command("/bin/sh", "-c", cmd).CombinedOutput()
+
+        if(err != nil) {
+            log.Println(err)
+            return
+        }
+
+        fmt.Println(string(out))
+        fmt.Println("cloudfort-dash updated successfully")
+
     } else {
         fmt.Println("do not recognize command '" + cmd + "'")
     }

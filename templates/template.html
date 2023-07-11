@@ -176,7 +176,11 @@
 
 		<script>
 			var home = "nil";
-			var pb;
+
+			const CLOUDFORT_DASH_PW = localStorage.getItem("CLOUDFORT_DASH_PW");
+			function signature(msg) {
+				return CryptoJS.HmacSHA256(msg, CLOUDFORT_DASH_PW)
+			}
 
 			var x = document.getElementsByName("cyear");
 			for(var i=0; i<x.length; i++)
@@ -198,24 +202,29 @@
 			}
 
 			async function sign_out() {
-			    pb.authStore.clear();
-			    location.href = "@pathto(auth/sign-in/)"
+			    localStorage.removeItem("CLOUDFORT_DASH_PW")
+			    window.location.href = "@pathto(auth/sign-in/)"
 			}
 
-			if(localStorage.getItem("pb-url")) {
-				pb = new PocketBase(localStorage.getItem("pb-url"));
+			async function check_signed_in() {
+				const date = new Date().getTime().toString();
 
-				if(!pb.authStore.isValid) {
-				    location.href = "@pathto(auth/sign-in/)"
+				const formData = new FormData();
+				formData.append("date", date);
+
+				let response = await fetch("/api/password/check", {
+					method: "POST",
+					headers: {
+						//"content-type": "application/json"
+						"signature": signature(date)
+				    },
+			        body: formData
+				});
+				let result = await response.json();
+
+				if(result["valid"] != true) {
+					window.location.href = "@pathto(auth/sign-in/)"
 				}
-			}
-			else 
-				window.location.href = "@pathto(auth/sign-in/)"
-
-			const CLOUDFORT_DASH_SECRET = localStorage.getItem("CLOUDFORT_DASH_SECRET");
-			//const CLOUDFORT_DASH_SECRET = "testing";
-			function signature(msg) {
-				return CryptoJS.HmacSHA256(msg, CLOUDFORT_DASH_SECRET)
 			}
 
 			async function get_pwd() {
@@ -257,6 +266,8 @@
 			}
 
 			async function dash_init() {
+				await check_signed_in();
+
 				home = await get_home();
 				await explorer_init();
 				await terminal_init();

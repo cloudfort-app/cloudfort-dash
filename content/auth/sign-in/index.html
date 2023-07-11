@@ -1,44 +1,14 @@
 <div class="auth-page">
-	<div class="card border" style="margin-top: 15vh; width: 350px; max-width: 90%;">
-		<h3>Admin Login</h3>
+	<div class="card border" style="margin-top: 15vh; width: 300px; max-width: 90%;">
+		<h3>Dash Login</h3>
 
-		<table class="centered" style="width: 100%">
-			<tr>
-				<td>
-					<input 
-						id="input-admin-url"
-						type="text"
-						placeholder="admin url" 
-						spellcheck="false"
-					>
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<input 
-						id="input-email"
-						type="email"
-						placeholder="email" 
-						spellcheck="false"
-					>
-				</td>
-			</tr>
+		<table class="centered" style="width: 100%; margin-top: 0.5em">
 			<tr>
 				<td>
 					<input 
 						id="input-password"
 						type="password"
 						placeholder="password" 
-						spellcheck="false"
-					>
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<input 
-						id="input-secret"
-						type="password"
-						placeholder="secret" 
 						spellcheck="false"
 					>
 				</td>
@@ -52,10 +22,8 @@
 <script src="@pathtofile(public/assets/js/crypto-js/crypto-js.js)"></script>
 <script type="text/javascript" src="@pathtofile(public/assets/js/pocketbase.umd.js)"></script>
 <script>
-	var pb;
-
 	function signature(msg) {
-		return CryptoJS.HmacSHA256(msg, document.getElementById("input-secret").value);
+		return CryptoJS.HmacSHA256(msg, document.getElementById("input-password").value);
 	}
 
 	async function sign_in() {
@@ -64,7 +32,7 @@
 		const formData = new FormData();
 		formData.append("date", date);
 
-		let response = await fetch("/api/secret/check", {
+		let response = await fetch("/api/password/check", {
 			method: "POST",
 			headers: {
 				//"content-type": "application/json"
@@ -75,46 +43,12 @@
 		let result = await response.json();
 
 		if(result["valid"] != true) {
-			notify("invalid secret");
+			notify("sign in failed");
 			return;
 		}
-		
-		pb = new PocketBase(document.getElementById("input-admin-url").value);
 
-		const authData = await pb.admins.authWithPassword(
-	        document.getElementById("input-email").value,
-	        document.getElementById("input-password").value,
-	    ).then((response) => {
-			if(response.error) {
-				notify("sign in failed");
-				console.log(response.error.message)
-			}
-			else {
-				localStorage.setItem("pb-url", document.getElementById("input-admin-url").value);
-				localStorage.setItem("CLOUDFORT_DASH_SECRET", document.getElementById("input-secret").value);
-				window.location.href = "@pathto(/)";
-			}
-		}).catch((err) => {
-			notify("sign in failed");
-			console.log(err);
-		});
-
-	    /*console.log(" isValid: " + pb.authStore.isValid);
-	    console.log("   token: " + pb.authStore.token);
-	    console.log("model.id: " + pb.authStore.model.id);*/
-	}
-
-	if(localStorage.getItem("pb-url")) {
-		pb = new PocketBase(localStorage.getItem("pb-url"));
-		if(pb.authStore.isValid) {
-		    location.href = "../../"
-		}
-		else {
-			document.getElementById("input-admin-url").value = localStorage.getItem("pb-url");
-		}
-	}
-	else {
-		document.getElementById("input-admin-url").value = window.location.protocol + "//" + window.location.hostname + ":8000";
+		localStorage.setItem("CLOUDFORT_DASH_PW", document.getElementById("input-password").value);
+		window.location.href = "@pathto(/)";
 	}
 
 	document.addEventListener('keypress', (event) => {
