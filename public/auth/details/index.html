@@ -393,31 +393,31 @@
 
 				<div id="explorer-div" class="main-div" style="display: none">
 					<div class="main-page">
-						<div class="card">
+						<div class="card border">
 							<span id="span-pwd"></span>
 						</div><br>
 						
-						<div class="card">
+						<div class="card border">
 							<i title="new dir" class='bs-ico bootstrap-folder-plus width-1em ico-link-color' onclick="show_create_dir()"></i> &nbsp;&nbsp;
 							<i title="new file" class='bs-ico bootstrap-file-earmark-plus width-1em ico-link-color' onclick="show_create_file()"></i> &nbsp;&nbsp;
 							<i title="del path" class='bs-ico bootstrap-trash width-1em ico-link-color' onclick="show_rm_path()"></i> &nbsp;&nbsp;
 							<i title="rename" class='bs-ico bootstrap-input-cursor-text width-1em ico-link-color' onclick="show_mv_path()"></i>
 						</div><br>
 						
-						<div id="card-input-name" class="card" style="display: none">
+						<div id="card-input-name" class="card border" style="display: none">
 							<input id="input-name" placeholder="name">
 							<button id="create_dir_button"  class="btn" onclick="create_dir()" style="display: none">create</button>
 							<button id="create_file_button" class="btn" onclick="create_file()" style="display: none">create</button>
 							<button id="rm_path_button"  class="btn" onclick="rm_path()" style="display: none">delete</button>
 						</div>
 						
-						<div id="card-input-rename" class="card" style="display: none">
+						<div id="card-input-rename" class="card border" style="display: none">
 							<input id="input-name-old" placeholder="path old"> &nbsp;&nbsp;
 							<input id="input-name-new" placeholder="path new">
 							<button id="mv_path_button"  class="btn" onclick="mv_path()">rename</button>
 						</div>
 						
-						<div class="card" id="card-browser">
+						<div class="card border" id="card-browser">
 							<table id="table-files">
 								<tr>
 									<th></th>
@@ -658,9 +658,9 @@
 									var row = table.insertRow(1);
 						
 									if(result["files"][f][0])
-										row.insertCell(0).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-folder' style='padding-top: 3px'></i>";
+										row.insertCell(0).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-folder no-hover-ico' style='padding-top: 3px'></i>";
 									else 
-										row.insertCell(0).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-file-earmark' style='padding-top: 3px'></i>";
+										row.insertCell(0).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-file-earmark no-hover-ico' style='padding-top: 3px'></i>";
 						
 									if(result["files"][f][0]) {
 										row.insertCell(1).innerHTML = "<a href='#' onclick='get_dir(\"" + bwd + "/" + result["files"][f][1] +  "\")'>" + result["files"][f][1] + "/</a>";
@@ -707,7 +707,7 @@
 
 				<div id="editor-div" class="main-div" style="display: none">
 					<div class="main-page">
-						<div class="card">
+						<div class="card border">
 							<i title="open" class='bs-ico bootstrap-folder-open width-1em ico-link-color' onclick="show_input_path_create()"></i> &nbsp;&nbsp;
 							<i title="save" class='bs-ico bootstrap-save width-1em ico-link-color' onclick="save_file()"></i> &nbsp;&nbsp;
 							<i title="goto line" class='bs-ico bootstrap-arrow-down-up width-1em ico-link-color' onclick="show_goto_line_no()"></i> &nbsp;&nbsp;

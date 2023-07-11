@@ -397,7 +397,7 @@ ul li {
   filter: var(--filter-sherb-blue);
 }
 
-.ico-white {
+.ico-white, .ico-white:hover {
   filter: var(--filter-white);
 }
 
