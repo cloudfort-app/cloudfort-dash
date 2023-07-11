@@ -47,7 +47,7 @@
 		let result = await response.json();
 
 		//certs_ta.innerHTML = result["output"];
-		certs_ta.innerHTML = result["output"].substring(result["output"].indexOf("\n")+1, result["output"].lastIndexOf("\n", result["output"].length-2));
+		certs_ta.innerHTML = result["output"].substring(result["output"].indexOf("\n")+1, result["output"].lastIndexOf("\n", result["output"].length-1));
 	}
 
 	async function get_host(domain) {

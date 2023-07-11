@@ -334,7 +334,6 @@
 								}
 						
 								await get_pwd();
-								//var pwd = await get_pwd();
 						
 								if(pwd.substring(0, home.length) == home)
 									pwd = "~" + pwd.substring(home.length, pwd.length);
@@ -345,7 +344,6 @@
 						
 							async function terminal_init() {
 								await get_pwd();
-								//var pwd = await get_pwd();
 						
 								if(pwd.substring(0, home.length) == home)
 									pwd = "~" + pwd.substring(home.length, pwd.length);
@@ -994,7 +992,7 @@
 								let result = await response.json();
 						
 								//certs_ta.innerHTML = result["output"];
-								certs_ta.innerHTML = result["output"].substring(result["output"].indexOf("\n")+1, result["output"].lastIndexOf("\n", result["output"].length-2));
+								certs_ta.innerHTML = result["output"].substring(result["output"].indexOf("\n")+1, result["output"].lastIndexOf("\n", result["output"].length-1));
 							}
 						
 							async function get_host(domain) {

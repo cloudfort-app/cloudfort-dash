@@ -88,7 +88,6 @@
 		}
 
 		await get_pwd();
-		//var pwd = await get_pwd();
 
 		if(pwd.substring(0, home.length) == home)
 			pwd = "~" + pwd.substring(home.length, pwd.length);
@@ -99,7 +98,6 @@
 
 	async function terminal_init() {
 		await get_pwd();
-		//var pwd = await get_pwd();
 
 		if(pwd.substring(0, home.length) == home)
 			pwd = "~" + pwd.substring(home.length, pwd.length);

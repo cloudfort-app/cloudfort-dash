@@ -24,7 +24,7 @@ var domain string
 var home string
 var port string
 var password []byte
-var version = "v0.1.10"
+var version = "v0.1.11"
 
 /*func check_referer(req *http.Request) bool {
     return (req.Referer() == "" || req.Referer()[0:len(domain)] != domain)
@@ -385,9 +385,8 @@ func routeHost(w http.ResponseWriter, req *http.Request) {
         return
     }
 
-    output := ""
     out, _ := exec.Command("/bin/sh", "-c", "dig +short " + req.PostFormValue("domain") + " | head -n1").CombinedOutput()
-    output = sanitize(string(out));
+    output := sanitize(string(out));
     respond(&w, true, output)
 }
 
@@ -396,10 +395,9 @@ func routeIP(w http.ResponseWriter, req *http.Request) {
         return
     }
 
-    output := ""
     out, _ := exec.Command("/bin/sh", "-c", "dig +short txt ch whoami.cloudflare @1.0.0.1").CombinedOutput()
-    output, _ = strconv.Unquote(string(out))
-    output = sanitize(output);
+    output := string(out)
+    output = sanitize(output[1:len(output)-2]);
     respond(&w, true, output)
 }
 
@@ -438,7 +436,7 @@ func routeLsCerts(w http.ResponseWriter, req *http.Request) {
     }
 
     output := ""
-    out, err := exec.Command("/bin/sh", "-c", "certbot certificates").CombinedOutput()
+    out, err := exec.Command("/bin/sh", "-c", "certbot --non-interactive certificates").CombinedOutput()
 
     if(err != nil) {
         log.Println(err)
