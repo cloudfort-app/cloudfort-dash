@@ -24,7 +24,7 @@ var domain string
 var home string
 var port string
 var password []byte
-var version = "v0.1.9"
+var version = "v0.1.10"
 
 /*func check_referer(req *http.Request) bool {
     return (req.Referer() == "" || req.Referer()[0:len(domain)] != domain)
