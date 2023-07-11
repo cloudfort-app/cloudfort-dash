@@ -24,7 +24,7 @@ var domain string
 var home string
 var port string
 var password []byte
-var version = "v0.1.11"
+var version = "v0.1.12"
 
 /*func check_referer(req *http.Request) bool {
     return (req.Referer() == "" || req.Referer()[0:len(domain)] != domain)
@@ -386,7 +386,8 @@ func routeHost(w http.ResponseWriter, req *http.Request) {
     }
 
     out, _ := exec.Command("/bin/sh", "-c", "dig +short " + req.PostFormValue("domain") + " | head -n1").CombinedOutput()
-    output := sanitize(string(out));
+    output := string(out)
+    output = sanitize(output[0:len(output)-1]);
     respond(&w, true, output)
 }
 
