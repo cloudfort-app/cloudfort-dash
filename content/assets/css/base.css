@@ -1,12 +1,13 @@
 :root {
   --white: white;
   --grey:  #3d3b36;
-  --primary-black: #1a1a1a;
+  --primary-black: #1a191b; /*#1a1a1a;*/
   --secondary-black: #1f1f1f;
   --light-black: #262626; /*#2b2b2b;*/
 
   --primary-grey: #4f4f4f;
 
+  --primary-green: #1fb524;
   --primary-red: #b54848;
   --secondary-red: #ff7b76;
 
@@ -18,13 +19,13 @@
   --neon-purple: #c922c9;
   --neon-pink:   #ff1493;
 
-  --sherb-red:    #e36868;
-  --sherb-orange: #e3ba68;
-  --sherb-yellow: #e3dd68;
-  --sherb-green:  #8be368;
+  --sherb-red:    #de4b4b;
+  --sherb-orange: #deac49;
+  --sherb-yellow: #dbd33b;
+  --sherb-green:  #6cd941;
   --sherb-blue:   #68b8e3;
-  --sherb-purple: #9d68e3;
-  --sherb-pink:   #e368db;
+  --sherb-purple: #8543de;
+  --sherb-pink:   #cc3fa6;
 
   --filter-white:  invert(1.0);
 
@@ -34,10 +35,15 @@
   --filter-neon-orange:  invert(69%) sepia(35%) saturate(3123%) hue-rotate(347deg) brightness(100%) contrast(102%);;
   --filter-neon-red:  invert(69%) sepia(35%) saturate(3123%) hue-rotate(312deg) brightness(100%) contrast(102%);;
 
-  --filter-sherb-green:  invert(96%) sepia(94%) saturate(735%)  hue-rotate(39deg)  brightness(92%) contrast(93%);
+  --filter-sherb-red:    invert(41%) sepia(94%) saturate(3010%) hue-rotate(334deg) brightness(93%) contrast(85%);
+  --filter-sherb-orange: invert(66%) sepia(98%) saturate(284%) hue-rotate(356deg) brightness(89%) contrast(94%);
+  --filter-sherb-yellow:  invert(93%) sepia(34%) saturate(962%) hue-rotate(350deg) brightness(89%) contrast(92%);
+  --filter-sherb-green:  invert(81%) sepia(44%) saturate(729%) hue-rotate(46deg) brightness(90%) contrast(88%);
   --filter-sherb-blue:   invert(70%) sepia(18%) saturate(1152%) hue-rotate(160deg) brightness(97%) contrast(83%);
-  --filter-sherb-pink:   invert(63%) sepia(55%) saturate(1993%) hue-rotate(273deg) brightness(94%) contrast(89%);
-  --filter-sherb-purple: invert(43%) sepia(86%) saturate(463%)  hue-rotate(223deg) brightness(95%) contrast(87%);
+  --filter-sherb-purple: invert(33%) sepia(43%) saturate(2843%) hue-rotate(246deg) brightness(87%) contrast(100%);
+  --filter-sherb-pink:   invert(58%) sepia(69%) saturate(6370%) hue-rotate(291deg) brightness(85%) contrast(86%);
+
+  --filter-spinner-color:  invert(53%) sepia(86%) saturate(463%)  hue-rotate(0deg) brightness(95%) contrast(87%);
 
   --primary-dark:   var(--primary-black);
   --secondary-dark: var(--secondary-black);
@@ -51,7 +57,7 @@
   --filter-primary-color: var(--filter-sherb-green);
   --filter-secondary-color: var(--filter-sherb-blue);
 
-  --filter-link-color: var(--filter-primary-red);
+  --filter-link-color: var(--filter-sherb-pink);
   --filter-hover-color: var(--filter-neon-orange);
 }
 
@@ -99,11 +105,27 @@ body {
 }
 
 a {
-  color: var(--link-color);
+  color: var(--sherb-green);
   text-decoration: none;
 }
 a:hover {
   color: var(--hover-color);
+}
+
+#breadcrumb {
+  position: absolute;
+  top: 1.1em;
+  right: 1em;
+}
+
+#dash-breadcrumb {
+  position: absolute;
+  top: 1.1em;
+  right: 1em;
+}
+
+b {
+  color: var(--sherb-purple);
 }
 
 .btn {
@@ -112,7 +134,7 @@ a:hover {
   cursor: pointer;
   padding: 0.25em 0.5em;
   margin: 0.25em 0.5em;
-  background: var(--link-color);
+  background: var(--sherb-purple);
   border: 0px;
   border-radius: 0.25em;
 }
@@ -129,7 +151,8 @@ a:hover {
   height:fit-content;
   border-radius: 5px;
 }
-.card:hover h2 {
+
+.card:hover .card-hover-color {
   color: var(--hover-color);
 }
 
@@ -150,7 +173,7 @@ a:hover {
   background: var(--secondary-dark);
 }
 
-.card-shadow:hover, .card-hover-shadow:hover {
+.card-shadow:hover, .card-hover-shadow:hover, .card-shadow-no-hover {
   box-shadow: 0px 0px 5px 1px var(--neon-orange);
   background: var(--primary-dark);
 }
@@ -161,6 +184,7 @@ a:hover {
 
 code {
   color: var(--secondary-color); 
+  overflow-wrap: break-word;
 }
 
 .gradient-text {
@@ -179,7 +203,17 @@ code {
 
 h1, h2, h3, h4, h5, h6 {
   text-align: center;
-  color: var(--primary-red);
+  color: var(--sherb-green);
+}
+
+h1 {
+  color: var(--sherb-blue);
+}
+h2 {
+  color: var(--sherb-pink);
+}
+h3 {
+  color: var(--sherb-green);
 }
 
 hr {
@@ -234,6 +268,10 @@ input:-internal-autofill-previewed { /*prevent bg-col change in chrome*/
   -webkit-text-fill-color: var(--primary-dark);
 }
 
+.spinner {
+  filter: var(--filter-spinner-color);
+}
+
 table { 
    /*border-collapse: separate;*/
    border-spacing: 1em 0;
@@ -243,7 +281,7 @@ th {
   color: var(--neon-orange);
 }
 
-.main-page ul {
+#content ul {
   text-align: left;
   max-width: 90%;
 }
@@ -253,9 +291,9 @@ ul li {
   list-style-position: outside !important;
 }
 
-#main-page ul li::before {
+.dotted li::before {
   content: "\2022"; 
-  color: var(--primary-color);
+  color: var(--neon-orange);
   font-weight: bold;
   font-size: 11pt;
   display: inline-block; 

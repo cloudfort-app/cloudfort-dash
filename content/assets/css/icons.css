@@ -39,22 +39,27 @@
 /**
  * colors
  */
-.ico-link-color, .ico-link-color-card, .ico-link-color-no-hover {
-  filter: var(--filter-link-color);
+.bs-ico:hover, .card:hover .card-hover-filter {
+  filter: var(--filter-neon-orange);
 }
-.ico-link-color:hover,
-.card:hover .ico-link-color-card {
-  filter: var(--filter-hover-color);
+.bs-ico, .no-hover-ico:hover {
+  filter: var(--filter-sherb-pink);
 }
+.menu-ico {
+  filter: var(--filter-primary-red);
+}
+
 
 .ico-primary-red {
   filter: var(--filter-primary-red);
+}
+.ico-sherb-blue {
+  filter: var(--filter-sherb-blue);
 }
 
 .ico-white {
   filter: var(--filter-white);
 }
-
 
 /**
  * solid
@@ -80,6 +85,9 @@
 
 .bootstrap-activity:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-activity.svg)"); 
+}
+.bootstrap-arrow-down-up:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-arrow-down-up.svg)"); 
 }
 .bootstrap-card-checklist:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-card-checklist.svg)"); 

@@ -9,16 +9,85 @@ new ResizeObserver(() => new_editor_content_size()).observe(editor_content);
 
 function scroll_editor_content() {
 	editor_content.scrollTop = mantis_editor.scrollTop;
+	editor_content.scrollLeft = mantis_editor.scrollLeft;
 }
 
 function scroll_editor() {
 	mantis_editor.scrollTop = editor_content.scrollTop;
+	mantis_editor.scrollLeft = editor_content.scrollLeft;
 }
+
+function getLineHeight(el) {
+    var temp = document.createElement(el.nodeName), ret;
+    temp.setAttribute("style", "margin:0; padding:0; "
+        + "font-family:" + (el.style.fontFamily || "inherit") + "; "
+        + "font-size:" + (el.style.fontSize || "inherit"));
+    temp.innerHTML = "A";
+
+    el.parentNode.appendChild(temp);
+    ret = temp.clientHeight;
+    temp.parentNode.removeChild(temp);
+
+    return ret;
+}
+
+function set_line_no() {
+	mantis_editor.title = "line " + mantis_editor.value.substr(0, mantis_editor.selectionStart).split("\n").length;
+}
+
+function setSelectionRange(input, selectionStart, selectionEnd) {
+    if (input.setSelectionRange) {
+        input.focus();
+        input.setSelectionRange(selectionStart, selectionEnd);
+    }
+    else if (input.createTextRange) {
+        var range = input.createTextRange();
+        range.collapse(true);
+        range.moveEnd('character', selectionEnd);
+        range.moveStart('character', selectionStart);
+        range.select();
+    }
+}
+
+function setCaretToPos (input, pos) {
+	setSelectionRange(input, pos, pos);
+}
+
+function jump_to_line(line)
+{
+	var line = document.getElementById("input-line-no").value;
+
+	var pos = 0;
+	var lines = mantis_editor.value.split("\n");
+	for(var i=0; i+1<line; ++i)
+		pos += lines[i].length + 1;
+	setCaretToPos(mantis_editor, pos);
+
+	var lineHeight = 14.4;
+	var jump = (line - 1) * lineHeight;
+	mantis_editor.scrollTop = jump;
+
+	set_line_no();
+
+	document.getElementById("card-input-line-no").style.display = "none";
+}
+
+hljs.highlightAll();
+hljs.initLineNumbersOnLoad();
 
 var highlight_editor = "true";
 function redraw_editor() {
+	set_line_no();
+
 	if(highlight_editor == "true") {
+		//editor_content.innerHTML = hljs.highlightAuto(mantis_editor.value).value + "\n";
 		editor_content.innerHTML = hljs.highlightAuto(mantis_editor.value).value + "\n";
+		editor_content.innerHTML = hljs.lineNumbersValue(editor_content.innerHTML);
+
+		//var test = document.getElementsByClassName("hljs-ln-numbers");
+		//document.getElementById("editor").style.setProperty("margin-left", "calc(1em + " + test[0].clientWidth + "px)", "important"); 
+		//document.getElementById("editor").style.setProperty("width", "calc(100% - 1em - " + test[0].clientWidth + "px)", "important"); 
+		//alert(test[0].clientWidth)
 	}
 	else {
 		editor_content.innerHTML = 
@@ -26,6 +95,8 @@ function redraw_editor() {
 				"&", "&amp;").replaceAll(
 				"<", "&lt;").replaceAll(
 				"-", "&#8288;-&#8288;") + '\n';
+
+		editor_content.innerHTML = hljs.lineNumbersValue(editor_content.innerHTML);
 	}
 }
 //fixes newline issues when loading content with newlines

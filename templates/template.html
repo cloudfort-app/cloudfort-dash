@@ -13,15 +13,15 @@
 			<div id="content">
 				<div id="menu-div">
 					<div style="margin: 0 auto">
-						<i id="open-menu-icon" class="fa fa-bars ico-link-color" onclick="show_menu()"></i><br><br>
-						<i title="home" class="bs-ico bootstrap-house ico-link-color" onclick="show('index')"></i><br>
+						<i id="open-menu-icon" class="fa fa-bars menu-ico" onclick="show_menu()"></i><br><br>
+						<i title="home" class="bs-ico bootstrap-house menu-ico" onclick="show('index')"></i><br>
 						<hr>
-						<i title="server monitor" class="bs-ico bootstrap-activity ico-link-color" onclick="show('monitor')"></i><br>
-						<a title="terminal" href="#"><i class="bs-ico bootstrap-terminal ico-link-color" onclick="show('terminal')"></i></a><br>
-						<a title="file explorer" href="#"><i class="bs-ico bootstrap-folder ico-link-color" onclick="show('explorer')"></i></a><br>
-						<a title="editor" href="#"><i class="bs-ico bootstrap-code-square ico-link-color" onclick="show('editor')"></i></a><br>
+						<i title="server monitor" class="bs-ico bootstrap-activity menu-ico" onclick="show('monitor')"></i><br>
+						<a title="terminal" href="#"><i class="bs-ico bootstrap-terminal menu-ico" onclick="show('terminal')"></i></a><br>
+						<a title="file explorer" href="#"><i class="bs-ico bootstrap-folder menu-ico" onclick="show('explorer')"></i></a><br>
+						<a title="editor" href="#"><i class="bs-ico bootstrap-code-square menu-ico" onclick="show('editor')"></i></a><br>
 						<hr>
-						<a title="config" href="#"><i class="bs-ico bootstrap-gear ico-link-color" onclick="edit_file(home + '/.cloudfort/config.json')"></i></a><br>
+						<a title="config" href="#"><i class="bs-ico bootstrap-gear menu-ico" onclick="edit_file(home + '/.cloudfort/config.json')"></i></a><br>
 					</div>
 				</div>
 
@@ -168,6 +168,7 @@
 		<script type="text/javascript" src="@pathto(assets/js/menu)"></script>
 
 		<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
 		<script type="text/javascript" src="@pathto(assets/js/mantis-editor)"></script>
 
 		<script src="@pathtofile(public/assets/js/crypto-js/crypto-js.js)"></script>

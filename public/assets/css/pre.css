@@ -118,7 +118,7 @@ pre{
 
 #editor {
 	background: transparent;
-	border:1px solid var(--primary-grey);
+	border: 1px solid var(--primary-grey);
 	color: transparent;
 
   white-space: pre;
@@ -127,6 +127,11 @@ pre{
 	z-index: 2;
 
 	caret-color: var(--neon-purple);
+
+	margin-left: 3.05em !important;
+	line-height: 1.25em !important;
+	width: calc(100% - 3.05em) !important;
+	border-left: 0px solid grey;
 }
 
 #editor:focus {
