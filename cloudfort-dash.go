@@ -24,7 +24,7 @@ var domain string
 var home string
 var port string
 var password []byte
-var version = "v0.1.5"
+var version = "v0.1.6"
 
 /*func check_referer(req *http.Request) bool {
     return (req.Referer() == "" || req.Referer()[0:len(domain)] != domain)
@@ -63,8 +63,8 @@ func hasValidSignature(w *http.ResponseWriter, req *http.Request) bool {
         (*w).Write([]byte("{\"msg\": \"invalid signature\"}"))
 
         return false;
-    } else if(int(time.Now().UnixMilli()) - req_date > 2000) {
-        fmt.Println("request is older than 2 seconds")
+    } else if(int(time.Now().UnixMilli()) - req_date > 5000) {
+        fmt.Println("request is older than 5 seconds")
         (*w).Header().Set("Content-Type", "text/plain")
         (*w).Write([]byte("{\"msg\": \"invalid signature\"}"))
 
@@ -428,7 +428,7 @@ func main() {
             fmt.Println("Hosting Cloudfort Dash (http) on port " + port)
             err := http.ListenAndServe(":" + port, mux)
             if err != nil {
-                log.Println("Listen: ", err)
+                log.Println("ListenAndServe: ", err)
             }
         } else {
             fmt.Println("Hosting Cloudfort Dash (https) on port " + port)
@@ -437,7 +437,7 @@ func main() {
                 "/etc/letsencrypt/live/" + domain + "/privkey.pem", 
                 mux);
             if err != nil {
-                log.Println("ListenAndServe: ", err)
+                log.Println("ListenAndServeTLS: ", err)
             }
         }
     } else if(cmd == "update") {
@@ -457,7 +457,6 @@ func main() {
         cmd = "wget -q -O cloudfort-dash.tar.xz https://github.com/cloudfort-app/cloudfort-dash/releases/download/" + string(latestVersion) + "/cloudfort-dash.tar.xz; "
         cmd += "tar -xvf cloudfort-dash.tar.xz; "
         cmd += "rm cloudfort-dash.tar.xz; "
-        cmd += "rm create_http_services.sh; "
         cmd += "rm -r /var/www/cloudfort-dash/public; "
         cmd += "mv public /var/www/cloudfort-dash; "
         cmd += "chmod a+x cloudfort-dash; "

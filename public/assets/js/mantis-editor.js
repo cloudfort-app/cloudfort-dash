@@ -75,19 +75,25 @@ function jump_to_line(line)
 hljs.highlightAll();
 hljs.initLineNumbersOnLoad();
 
+function one_newline(str) {
+	var count = 0;
+	for(var i=0; count < 2 && i<str.length; i++) {
+		if(str[i] == '\n')
+			++count;
+	}
+
+	return (count == 1);
+}
+
 var highlight_editor = "true";
 function redraw_editor() {
 	set_line_no();
 
 	if(highlight_editor == "true") {
-		//editor_content.innerHTML = hljs.highlightAuto(mantis_editor.value).value + "\n";
 		editor_content.innerHTML = hljs.highlightAuto(mantis_editor.value).value + "\n";
+		if(one_newline(editor_content.innerHTML))
+			editor_content.innerHTML = editor_content.innerHTML + "\n";
 		editor_content.innerHTML = hljs.lineNumbersValue(editor_content.innerHTML);
-
-		//var test = document.getElementsByClassName("hljs-ln-numbers");
-		//document.getElementById("editor").style.setProperty("margin-left", "calc(1em + " + test[0].clientWidth + "px)", "important"); 
-		//document.getElementById("editor").style.setProperty("width", "calc(100% - 1em - " + test[0].clientWidth + "px)", "important"); 
-		//alert(test[0].clientWidth)
 	}
 	else {
 		editor_content.innerHTML = 
@@ -95,6 +101,8 @@ function redraw_editor() {
 				"&", "&amp;").replaceAll(
 				"<", "&lt;").replaceAll(
 				"-", "&#8288;-&#8288;") + '\n';
+		if(one_newline(editor_content.innerHTML))
+			editor_content.innerHTML = editor_content.innerHTML + "\n";
 
 		editor_content.innerHTML = hljs.lineNumbersValue(editor_content.innerHTML);
 	}
