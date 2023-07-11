@@ -359,7 +359,8 @@
 									}
 								}
 						
-								var pwd = await get_pwd();
+								await get_pwd();
+								//var pwd = await get_pwd();
 						
 								if(pwd.substring(0, home.length) == home)
 									pwd = "~" + pwd.substring(home.length, pwd.length);
@@ -369,7 +370,8 @@
 							}
 						
 							async function terminal_init() {
-								var pwd = await get_pwd();
+								await get_pwd();
+								//var pwd = await get_pwd();
 						
 								if(pwd.substring(0, home.length) == home)
 									pwd = "~" + pwd.substring(home.length, pwd.length);
@@ -726,7 +728,7 @@
 							}
 						
 							async function explorer_init() {
-								bwd = await get_pwd();
+								bwd = pwd
 								get_dir(bwd);
 							}
 						</script>
@@ -1370,6 +1372,7 @@
 
 		<script>
 			var home = "nil";
+			var pwd = "~/";
 
 			const CLOUDFORT_DASH_PW = localStorage.getItem("CLOUDFORT_DASH_PW");
 			function signature(msg) {
@@ -1441,7 +1444,7 @@
 				});
 				let result = await response.json();
 
-				return result["pwd"];
+				pwd = result["pwd"];
 			}
 
 			async function get_home() {
@@ -1460,13 +1463,15 @@
 				});
 				let result = await response.json();
 
-				return result["home"];
+				home = result["home"];
 			}
 
 			async function dash_init() {
 				await check_signed_in();
 
-				home = await get_home();
+				await get_home();
+				await get_pwd();
+
 				await explorer_init();
 				await terminal_init();
 				await certs_init();
