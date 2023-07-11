@@ -24,7 +24,7 @@ var domain string
 var home string
 var port string
 var password []byte
-var version = "v0.1.8"
+var version = "v0.1.9"
 
 /*func check_referer(req *http.Request) bool {
     return (req.Referer() == "" || req.Referer()[0:len(domain)] != domain)
@@ -397,8 +397,9 @@ func routeIP(w http.ResponseWriter, req *http.Request) {
     }
 
     output := ""
-    out, _ := exec.Command("/bin/sh", "-c", "dig +short myip.opendns.com @resolver1.opendns.com").CombinedOutput()
-    output = sanitize(string(out));
+    out, _ := exec.Command("/bin/sh", "-c", "dig +short txt ch whoami.cloudflare @1.0.0.1").CombinedOutput()
+    output, _ = strconv.Unquote(string(out))
+    output = sanitize(output);
     respond(&w, true, output)
 }
 
