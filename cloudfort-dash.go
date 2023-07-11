@@ -24,7 +24,7 @@ var domain string
 var home string
 var port string
 var password []byte
-var version = "v0.1.7"
+var version = "v0.1.8"
 
 /*func check_referer(req *http.Request) bool {
     return (req.Referer() == "" || req.Referer()[0:len(domain)] != domain)
@@ -105,6 +105,26 @@ func sanitize_for_saving(in_str string) string {
     str := strings.Replace(in_str, "\r\n", "\n", -1)
 
     return str;
+}
+
+func responseStr(result bool, response string) string {
+    return `{"successful": ` + strconv.FormatBool(result) + `, "response": "` + response + `"}`  
+}
+
+func respond(w *http.ResponseWriter, result bool, response string) {
+    (*w).Header().Set("Content-Type", "text/plain")
+    fmt.Println(responseStr(result, response))
+    fmt.Fprintf(*w, responseStr(result, response))
+}
+
+func responseJSONStr(result bool, response string) string {
+    return `{"successful": ` + strconv.FormatBool(result) + `, "response": ` + response + `}`  
+}
+
+func respondJSON(w *http.ResponseWriter, result bool, response string) {
+    (*w).Header().Set("Content-Type", "text/plain")
+    fmt.Println(responseJSONStr(result, response))
+    fmt.Fprintf(*w, responseJSONStr(result, response))
 }
 
 func routeCd(w http.ResponseWriter, req *http.Request) {
@@ -324,11 +344,10 @@ func routeRun(w http.ResponseWriter, req *http.Request) {
 
     if(err != nil) {
         log.Println(err)
-        output = sanitize(err.Error() + "\n")
-    } else {
-        output = sanitize(string(out))
-        //fmt.Println("{\"output\": \"" + output + "\"}")
+        //output = sanitize(err.Error() + "\n")
     }
+
+    output = sanitize(string(out))
 
     w.Header().Set("Content-Type", "text/plain")
     w.Write([]byte("{\"output\": \"" + output + "\"}"))
@@ -349,16 +368,82 @@ func routeTop(w http.ResponseWriter, req *http.Request) {
     }
 
     output := ""
-
-    out, err := exec.Command("top", "-bn1", "-o", "%MEM", "-w", "120").CombinedOutput()
+    out, err := exec.Command("/bin/sh", "-c", "top -bn1 -o %MEM -w 120").CombinedOutput()
 
     if(err != nil) {
         log.Println(err)
-        output = err.Error() + "\\n"
-        output = sanitize(output);
-    } else {
-        output = sanitize(string(out));
+    } 
+
+    output = sanitize(string(out));
+
+    w.Header().Set("Content-Type", "text/plain")
+    w.Write([]byte("{\"output\": \"" + output + "\"}"))
+}
+
+func routeHost(w http.ResponseWriter, req *http.Request) {
+    if(!hasValidSignature(&w, req)) {
+        return
     }
+
+    output := ""
+    out, _ := exec.Command("/bin/sh", "-c", "dig +short " + req.PostFormValue("domain") + " | head -n1").CombinedOutput()
+    output = sanitize(string(out));
+    respond(&w, true, output)
+}
+
+func routeIP(w http.ResponseWriter, req *http.Request) {
+    if(!hasValidSignature(&w, req)) {
+        return
+    }
+
+    output := ""
+    out, _ := exec.Command("/bin/sh", "-c", "dig +short myip.opendns.com @resolver1.opendns.com").CombinedOutput()
+    output = sanitize(string(out));
+    respond(&w, true, output)
+}
+
+func routeAddCert(w http.ResponseWriter, req *http.Request) {
+    if(!hasValidSignature(&w, req)) {
+        return
+    }
+
+    output := ""
+    out, _ := exec.Command("/bin/sh", "-c", "certbot --non-interactive certonly --standalone -n --domains " + req.PostFormValue("domain") + " --agree-tos -m " + req.PostFormValue("email")).CombinedOutput()
+
+    /*if(err != nil) {
+        log.Println(err)
+        output = sanitize(err.Error() + "\\n");
+    }*/
+    
+    output = sanitize(string(out));
+    respond(&w, true, output)
+}
+
+func routeDelCert(w http.ResponseWriter, req *http.Request) {
+    if(!hasValidSignature(&w, req)) {
+        return
+    }
+
+    output := ""
+    out, _ := exec.Command("/bin/sh", "-c", "certbot --non-interactive delete --cert-name " + req.PostFormValue("domain")).CombinedOutput()
+    
+    output = sanitize(string(out));
+    respond(&w, true, output)
+}
+
+func routeLsCerts(w http.ResponseWriter, req *http.Request) {
+    if(!hasValidSignature(&w, req)) {
+        return
+    }
+
+    output := ""
+    out, err := exec.Command("/bin/sh", "-c", "certbot certificates").CombinedOutput()
+
+    if(err != nil) {
+        log.Println(err)
+    }
+
+    output = sanitize(string(out));
 
     w.Header().Set("Content-Type", "text/plain")
     w.Write([]byte("{\"output\": \"" + output + "\"}"))
@@ -401,6 +486,11 @@ func main() {
         mux.HandleFunc("/api/run",          routeRun)
         mux.HandleFunc("/api/password/check", routePasswordCheck)
         mux.HandleFunc("/api/top",          routeTop)
+        mux.HandleFunc("/api/host",         routeHost)
+        mux.HandleFunc("/api/ip",         routeIP)
+        mux.HandleFunc("/api/certs/add",    routeAddCert)
+        mux.HandleFunc("/api/certs/delete", routeDelCert)
+        mux.HandleFunc("/api/certs/ls",     routeLsCerts)
 
         domain = os.Args[2]
         port = os.Args[3]

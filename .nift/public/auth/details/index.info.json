@@ -1,10 +1,11 @@
 {
-	"last-built": "20:15:47 Tuesday July 11 2023",
+	"last-built": "06:44:59 Wednesday July 12 2023",
 	"name": "auth/details/",
 	"title": "auth/details",
 	"template": "templates/template.html",
 	"dependencies": [
 		"content/auth/details/index.html",
+		"content/certs.html",
 		"content/editor.html",
 		"content/explorer.html",
 		"content/monitor.html",

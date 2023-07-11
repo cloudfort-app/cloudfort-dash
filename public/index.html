@@ -14,13 +14,13 @@
 	</head>
 
 	<body>
-		<div id="div-confirm-popup" class="card border popup popup-middle">
+		<div id="div-confirm-popup" class="card border popup popup-dash popup-middle">
 			<span id="span-confirm-popup-msg">are you sure?</span><br>
 			<button class="btn" onclick="resolve_confirm(false)">no</button>
 			<button class="btn" onclick="resolve_confirm(true)">yes</button>
 		</div>
 		
-		<div id="div-notify-popup" class="card border popup popup-middle">
+		<div id="div-notify-popup" class="card border popup popup-dash popup-middle">
 			<span id="span-notify-popup-msg">are you sure?</span><br>
 			<button class="btn" onclick="resolve_notify()">ok</button>
 		</div>
@@ -104,9 +104,9 @@
 				document.getElementById("span-notify-popup-msg").innerHTML = msg;
 				document.getElementById("div-notify-popup").style.display = "block";
 		
-				while(!notify_resolved) {
+				/*while(!notify_resolved) {
 					await sleep(250);
-				}
+				}*/
 			}
 		
 			async function notify_color(msg, col) {
@@ -143,6 +143,7 @@
 			          <li class="subitem"><a href="#" onclick="show('terminal'); close_menu()">terminal</a></li>
 			          <li class="subitem"><a href="#" onclick="show('browser'); close_menu()">browser</a></li>
 			          <li class="subitem"><a href="#" onclick="show('editor'); close_menu()">editor</a></li>
+			          <li class="subitem"><a href="#" onclick="show('certs'); close_menu()">certificates</a></li>
 			        </ul>
 			      </li>
 			
@@ -167,11 +168,12 @@
 						<i title="home" class="bs-ico bootstrap-house menu-ico" onclick="show('index')"></i><br>
 						<hr>
 						<i title="server monitor" class="bs-ico bootstrap-activity menu-ico" onclick="show('monitor')"></i><br>
-						<a title="terminal" href="#"><i class="bs-ico bootstrap-terminal menu-ico" onclick="show('terminal')"></i></a><br>
-						<a title="file explorer" href="#"><i class="bs-ico bootstrap-folder menu-ico" onclick="show('explorer')"></i></a><br>
-						<a title="editor" href="#"><i class="bs-ico bootstrap-code-square menu-ico" onclick="show('editor')"></i></a><br>
+						<i title="terminal" class="bs-ico bootstrap-terminal menu-ico" onclick="show('terminal')"></i><br>
+						<i title="file explorer" class="bs-ico bootstrap-folder menu-ico" onclick="show('explorer')"></i><br>
+						<i title="editor" class="bs-ico bootstrap-code-square menu-ico" onclick="show('editor')"></i><br>
+						<i title="certificates" class="bs-ico bootstrap-robot menu-ico" onclick="show('certs')"></i><br>
 						<hr>
-						<a title="config" href="#"><i class="bs-ico bootstrap-gear menu-ico" onclick="edit_file(home + '/.cloudfort/config.json')"></i></a><br>
+						<i title="config" class="bs-ico bootstrap-gear menu-ico" onclick="edit_file(home + '/.cloudfort/config.json')"></i><br>
 					</div>
 				</div>
 
@@ -205,6 +207,12 @@
 							<i class="bs-ico bootstrap-code-square width-5em card-hover-filter"></i><br>
 							<hr>
 							<h2 class="card-hover-color">editor</h2>
+						</div>
+						
+						<div class="card border-hover" onclick="show('certs')" style="cursor: pointer; width: 9em">
+							<i class="bs-ico bootstrap-robot width-5em card-hover-filter"></i><br>
+							<hr>
+							<h2 class="card-hover-color">certificates</h2>
 						</div>
 					</div>
 				</div>
@@ -959,6 +967,178 @@
 					</div>
 				</div>
 
+				<div id="certs-div" class="main-div" style="display: none">
+					<div class="main-page">
+						<div id="textarea-certs" spellcheck="false"></div>
+						
+						<button class="btn" onclick="document.getElementById('add-cert-popup').style.display = 'block'">add</button>
+						<button class="btn" onclick="document.getElementById('del-cert-popup').style.display = 'block'">delete</button>
+						
+						<div id="add-cert-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
+							<input style="margin: 0.25em 0"
+								id="input-domain"
+								type="text"
+								placeholder="domain" 
+							>
+							<input style="margin: 0.25em 0"
+								id="input-email"
+								type="email"
+								placeholder="email" 
+							>
+							<button class="btn" onclick="document.getElementById('add-cert-popup').style.display = 'none'">cancel</button>
+							<button class="btn" onclick="add_cert()">add</button>
+						</div>
+						
+						<div id="del-cert-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
+							<input style="margin: 0.25em 0"
+								id="input-del-domain"
+								type="text"
+								placeholder="domain" 
+							>
+							<button class="btn" onclick="document.getElementById('del-cert-popup').style.display = 'none'">cancel</button>
+							<button class="btn" onclick="del_cert()">delete</button>
+						</div>
+						
+						<script>
+							const certs_ta = document.getElementById("textarea-certs");
+						
+							async function fetch_certs() {
+								const date = new Date().getTime().toString();
+								const formData = new FormData();
+								formData.append("date", date);
+							
+								let response = await fetch("/api/certs/ls", {
+									method: "POST",
+									headers: {
+										//"content-type": "application/json"
+										"signature": signature(date)
+								    },
+									body: formData
+								});
+								let result = await response.json();
+						
+								//certs_ta.innerHTML = result["output"];
+								certs_ta.innerHTML = result["output"].substring(result["output"].indexOf("\n")+1, result["output"].lastIndexOf("\n", result["output"].length-2));
+							}
+						
+							async function get_host(domain) {
+								const date = new Date().getTime().toString();
+								const formData = new FormData();
+								formData.append("date", date);
+								formData.append("domain", document.getElementById("input-domain").value);
+							
+								let response = await fetch("/api/host", {
+									method: "POST",
+									headers: {
+										//"content-type": "application/json"
+										"signature": signature(date)
+								    },
+									body: formData
+								});
+								let result = await response.json();
+						
+								return result["response"];
+							}
+						
+							async function get_ip() {
+								const date = new Date().getTime().toString();
+								const formData = new FormData();
+								formData.append("date", date);
+								formData.append("domain", document.getElementById("input-domain").value);
+							
+								let response = await fetch("/api/ip", {
+									method: "POST",
+									headers: {
+										//"content-type": "application/json"
+										"signature": signature(date)
+								    },
+									body: formData
+								});
+								let result = await response.json();
+						
+								return result["response"];
+							}
+						
+							async function check_host(domain) {
+								const host = await get_host(domain);
+								const ip = await get_ip();
+						
+								if(host != ip) 
+									notify_color("domain records for " + domain + " do not point towards " + ip, "var(--primary-red)");
+						
+								return (host == ip);
+							}
+						
+							async function add_cert() {
+								document.getElementById("add-cert-popup").style.display = "none";
+						
+								if(await check_host(document.getElementById("input-domain").value)) {
+									const date = new Date().getTime().toString();
+									const formData = new FormData();
+									formData.append("date", date);
+									formData.append("domain", document.getElementById("input-domain").value);
+									formData.append("email", document.getElementById("input-email").value);
+								
+									let response = await fetch("/api/certs/add", {
+										method: "POST",
+										headers: {
+											//"content-type": "application/json"
+											"signature": signature(date)
+									    },
+										body: formData
+									});
+									let result = await response.json();
+						
+									await notify_resp(result);
+								}
+							}
+						
+							async function del_cert() {
+								document.getElementById("del-cert-popup").style.display = "none";
+						
+								const date = new Date().getTime().toString();
+								const formData = new FormData();
+								formData.append("date", date);
+								formData.append("domain", document.getElementById("input-del-domain").value);
+							
+								let response = await fetch("/api/certs/delete", {
+									method: "POST",
+									headers: {
+										//"content-type": "application/json"
+										"signature": signature(date)
+								    },
+									body: formData
+								});
+								let result = await response.json();
+								
+								await notify_resp(result);
+							}
+						
+							async function certs_init() {
+								await fetch_certs();
+							}
+						</script>
+						
+						<style>
+							#textarea-certs {
+								background: var(--secondary-dark);
+								border: 1px solid var(--light-black);
+								color: var(--white);
+								height: calc(100vh - 10em); 
+								width: 580px;
+								font-family: "ubuntu mono";
+								font-size: 0.9em;
+								overflow-x:auto;
+								padding: 0.25em 0.25em;
+								margin: 0.25em 0.5em;
+								resize: none;
+								text-align: left;
+								white-space: pre-wrap;
+							}
+						</style>
+					</div>
+				</div>
+
 				<div id="tos-div" class="main-div" style="display: none">
 					<div class="main-page">
 						<h2>Terms of Service</h2>
@@ -1187,7 +1367,6 @@
 		<script type="text/javascript" src="assets/js/mantis-editor.js"></script>
 
 		<script src="assets/js/crypto-js/crypto-js.js"></script>
-		<script type="text/javascript" src="assets/js/pocketbase.umd.js"></script>
 
 		<script>
 			var home = "nil";
@@ -1204,6 +1383,7 @@
 			function show(name) {
 				document.getElementById("index-div").style.display = "none";
 				document.getElementById("monitor-div").style.display = "none";
+				document.getElementById("certs-div").style.display = "none";
 				document.getElementById("terminal-div").style.display = "none";
 				document.getElementById("explorer-div").style.display = "none";
 				document.getElementById("editor-div").style.display = "none";
@@ -1224,7 +1404,7 @@
 			async function check_signed_in() {
 				if(!localStorage.getItem("CLOUDFORT_DASH_PW"))
 					window.location.href = "auth/sign-in/"
-				
+
 				const date = new Date().getTime().toString();
 
 				const formData = new FormData();
@@ -1289,6 +1469,7 @@
 				home = await get_home();
 				await explorer_init();
 				await terminal_init();
+				await certs_init();
 			}
 			dash_init();
 		</script>

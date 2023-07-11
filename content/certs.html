@@ -1,0 +1,167 @@
+<div id="textarea-certs" spellcheck="false"></div>
+
+<button class="btn" onclick="document.getElementById('add-cert-popup').style.display = 'block'">add</button>
+<button class="btn" onclick="document.getElementById('del-cert-popup').style.display = 'block'">delete</button>
+
+<div id="add-cert-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
+	<input style="margin: 0.25em 0"
+		id="input-domain"
+		type="text"
+		placeholder="domain" 
+	>
+	<input style="margin: 0.25em 0"
+		id="input-email"
+		type="email"
+		placeholder="email" 
+	>
+	<button class="btn" onclick="document.getElementById('add-cert-popup').style.display = 'none'">cancel</button>
+	<button class="btn" onclick="add_cert()">add</button>
+</div>
+
+<div id="del-cert-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
+	<input style="margin: 0.25em 0"
+		id="input-del-domain"
+		type="text"
+		placeholder="domain" 
+	>
+	<button class="btn" onclick="document.getElementById('del-cert-popup').style.display = 'none'">cancel</button>
+	<button class="btn" onclick="del_cert()">delete</button>
+</div>
+
+<script>
+	const certs_ta = document.getElementById("textarea-certs");
+
+	async function fetch_certs() {
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+	
+		let response = await fetch("/api/certs/ls", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		let result = await response.json();
+
+		//certs_ta.innerHTML = result["output"];
+		certs_ta.innerHTML = result["output"].substring(result["output"].indexOf("\n")+1, result["output"].lastIndexOf("\n", result["output"].length-2));
+	}
+
+	async function get_host(domain) {
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		formData.append("domain", document.getElementById("input-domain").value);
+	
+		let response = await fetch("/api/host", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		let result = await response.json();
+
+		return result["response"];
+	}
+
+	async function get_ip() {
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		formData.append("domain", document.getElementById("input-domain").value);
+	
+		let response = await fetch("/api/ip", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		let result = await response.json();
+
+		return result["response"];
+	}
+
+	async function check_host(domain) {
+		const host = await get_host(domain);
+		const ip = await get_ip();
+
+		if(host != ip) 
+			notify_color("domain records for " + domain + " do not point towards " + ip, "var(--primary-red)");
+
+		return (host == ip);
+	}
+
+	async function add_cert() {
+		document.getElementById("add-cert-popup").style.display = "none";
+
+		if(await check_host(document.getElementById("input-domain").value)) {
+			const date = new Date().getTime().toString();
+			const formData = new FormData();
+			formData.append("date", date);
+			formData.append("domain", document.getElementById("input-domain").value);
+			formData.append("email", document.getElementById("input-email").value);
+		
+			let response = await fetch("/api/certs/add", {
+				method: "POST",
+				headers: {
+					//"content-type": "application/json"
+					"signature": signature(date)
+			    },
+				body: formData
+			});
+			let result = await response.json();
+
+			await notify_resp(result);
+		}
+	}
+
+	async function del_cert() {
+		document.getElementById("del-cert-popup").style.display = "none";
+
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		formData.append("domain", document.getElementById("input-del-domain").value);
+	
+		let response = await fetch("/api/certs/delete", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		let result = await response.json();
+		
+		await notify_resp(result);
+	}
+
+	async function certs_init() {
+		await fetch_certs();
+	}
+</script>
+
+<style>
+	#textarea-certs {
+		background: var(--secondary-dark);
+		border: 1px solid var(--light-black);
+		color: var(--white);
+		height: calc(100vh - 10em); 
+		width: 580px;
+		font-family: "ubuntu mono";
+		font-size: 0.9em;
+		overflow-x:auto;
+		padding: 0.25em 0.25em;
+		margin: 0.25em 0.5em;
+		resize: none;
+		text-align: left;
+		white-space: pre-wrap;
+	}
+</style>

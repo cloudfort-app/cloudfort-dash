@@ -14,13 +14,13 @@
 	</head>
 
 	<body>
-		<div id="div-confirm-popup" class="card border popup popup-middle">
+		<div id="div-confirm-popup" class="card border popup popup-dash popup-middle">
 			<span id="span-confirm-popup-msg">are you sure?</span><br>
 			<button class="btn" onclick="resolve_confirm(false)">no</button>
 			<button class="btn" onclick="resolve_confirm(true)">yes</button>
 		</div>
 		
-		<div id="div-notify-popup" class="card border popup popup-middle">
+		<div id="div-notify-popup" class="card border popup popup-dash popup-middle">
 			<span id="span-notify-popup-msg">are you sure?</span><br>
 			<button class="btn" onclick="resolve_notify()">ok</button>
 		</div>
@@ -104,9 +104,9 @@
 				document.getElementById("span-notify-popup-msg").innerHTML = msg;
 				document.getElementById("div-notify-popup").style.display = "block";
 		
-				while(!notify_resolved) {
+				/*while(!notify_resolved) {
 					await sleep(250);
-				}
+				}*/
 			}
 		
 			async function notify_color(msg, col) {
@@ -144,7 +144,6 @@
 			</div>
 			
 			<script src="../../assets/js/crypto-js/crypto-js.js"></script>
-			<script type="text/javascript" src="../../assets/js/pocketbase.umd.js"></script>
 			<script>
 				function signature(msg) {
 					return CryptoJS.HmacSHA256(msg, document.getElementById("input-password").value);

@@ -1,10 +1,10 @@
-<div id="div-confirm-popup" class="card border popup popup-middle">
+<div id="div-confirm-popup" class="card border popup popup-dash popup-middle">
 	<span id="span-confirm-popup-msg">are you sure?</span><br>
 	<button class="btn" onclick="resolve_confirm(false)">no</button>
 	<button class="btn" onclick="resolve_confirm(true)">yes</button>
 </div>
 
-<div id="div-notify-popup" class="card border popup popup-middle">
+<div id="div-notify-popup" class="card border popup popup-dash popup-middle">
 	<span id="span-notify-popup-msg">are you sure?</span><br>
 	<button class="btn" onclick="resolve_notify()">ok</button>
 </div>
@@ -88,9 +88,9 @@
 		document.getElementById("span-notify-popup-msg").innerHTML = msg;
 		document.getElementById("div-notify-popup").style.display = "block";
 
-		while(!notify_resolved) {
+		/*while(!notify_resolved) {
 			await sleep(250);
-		}
+		}*/
 	}
 
 	async function notify_color(msg, col) {

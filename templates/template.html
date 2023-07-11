@@ -17,11 +17,12 @@
 						<i title="home" class="bs-ico bootstrap-house menu-ico" onclick="show('index')"></i><br>
 						<hr>
 						<i title="server monitor" class="bs-ico bootstrap-activity menu-ico" onclick="show('monitor')"></i><br>
-						<a title="terminal" href="#"><i class="bs-ico bootstrap-terminal menu-ico" onclick="show('terminal')"></i></a><br>
-						<a title="file explorer" href="#"><i class="bs-ico bootstrap-folder menu-ico" onclick="show('explorer')"></i></a><br>
-						<a title="editor" href="#"><i class="bs-ico bootstrap-code-square menu-ico" onclick="show('editor')"></i></a><br>
+						<i title="terminal" class="bs-ico bootstrap-terminal menu-ico" onclick="show('terminal')"></i><br>
+						<i title="file explorer" class="bs-ico bootstrap-folder menu-ico" onclick="show('explorer')"></i><br>
+						<i title="editor" class="bs-ico bootstrap-code-square menu-ico" onclick="show('editor')"></i><br>
+						<i title="certificates" class="bs-ico bootstrap-robot menu-ico" onclick="show('certs')"></i><br>
 						<hr>
-						<a title="config" href="#"><i class="bs-ico bootstrap-gear menu-ico" onclick="edit_file(home + '/.cloudfort/config.json')"></i></a><br>
+						<i title="config" class="bs-ico bootstrap-gear menu-ico" onclick="edit_file(home + '/.cloudfort/config.json')"></i><br>
 					</div>
 				</div>
 
@@ -56,6 +57,12 @@
 				<div id="editor-div" class="main-div" style="display: none">
 					<div class="main-page">
 						@input("content/editor.html")
+					</div>
+				</div>
+
+				<div id="certs-div" class="main-div" style="display: none">
+					<div class="main-page">
+						@input("content/certs.html")
 					</div>
 				</div>
 
@@ -172,7 +179,6 @@
 		<script type="text/javascript" src="@pathto(assets/js/mantis-editor)"></script>
 
 		<script src="@pathtofile(public/assets/js/crypto-js/crypto-js.js)"></script>
-		<script type="text/javascript" src="@pathtofile(public/assets/js/pocketbase.umd.js)"></script>
 
 		<script>
 			var home = "nil";
@@ -189,6 +195,7 @@
 			function show(name) {
 				document.getElementById("index-div").style.display = "none";
 				document.getElementById("monitor-div").style.display = "none";
+				document.getElementById("certs-div").style.display = "none";
 				document.getElementById("terminal-div").style.display = "none";
 				document.getElementById("explorer-div").style.display = "none";
 				document.getElementById("editor-div").style.display = "none";
@@ -209,7 +216,7 @@
 			async function check_signed_in() {
 				if(!localStorage.getItem("CLOUDFORT_DASH_PW"))
 					window.location.href = "@pathto(auth/sign-in/)"
-				
+
 				const date = new Date().getTime().toString();
 
 				const formData = new FormData();
@@ -274,6 +281,7 @@
 				home = await get_home();
 				await explorer_init();
 				await terminal_init();
+				await certs_init();
 			}
 			dash_init();
 		</script>

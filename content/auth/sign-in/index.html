@@ -20,7 +20,6 @@
 </div>
 
 <script src="@pathtofile(public/assets/js/crypto-js/crypto-js.js)"></script>
-<script type="text/javascript" src="@pathtofile(public/assets/js/pocketbase.umd.js)"></script>
 <script>
 	function signature(msg) {
 		return CryptoJS.HmacSHA256(msg, document.getElementById("input-password").value);
