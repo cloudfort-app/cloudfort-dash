@@ -429,8 +429,17 @@ ul li {
 .bootstrap-arrow-down-up:before {
   content: url("../icons/bootstrap-arrow-down-up.svg"); 
 }
+.bootstrap-arrow-repeat:before {
+  content: url("../icons/bootstrap-arrow-repeat.svg"); 
+}
+.bootstrap-bricks:before {
+  content: url("../icons/bootstrap-bricks.svg"); 
+}
 .bootstrap-card-checklist:before {
   content: url("../icons/bootstrap-card-checklist.svg"); 
+}
+.bootstrap-cloud-arrow-up:before {
+  content: url("../icons/bootstrap-cloud-arrow-up.svg"); 
 }
 .bootstrap-cloud-haze:before {
   content: url("../icons/bootstrap-cloud-haze.svg"); 
@@ -465,14 +474,26 @@ ul li {
 .bootstrap-input-cursor-text:before {
   content: url("../icons/bootstrap-input-cursor-text.svg"); 
 }
+.bootstrap-key:before {
+  content: url("../icons/bootstrap-key.svg"); 
+}
 .bootstrap-robot:before {
   content: url("../icons/bootstrap-robot.svg"); 
+}
+.bootstrap-safe:before {
+  content: url("../icons/bootstrap-safe.svg"); 
 }
 .bootstrap-save:before {
   content: url("../icons/bootstrap-save.svg"); 
 }
 .bootstrap-terminal:before {
   content: url("../icons/bootstrap-terminal.svg"); 
+}
+.bootstrap-terminal-ssh:before {
+  content: url("../icons/bootstrap-terminal-ssh.svg"); 
+}
+.bootstrap-tools:before {
+  content: url("../icons/bootstrap-tools.svg"); 
 }
 .bootstrap-trash:before {
   content: url("../icons/bootstrap-trash.svg"); 
@@ -800,7 +821,7 @@ pre{
 
 #editor-container {
 	max-width: 100%;
-	margin: 0 15px;
+	margin: 0 0;
 
 	font-family: "ubuntu mono";
 	font-size: 90%;
@@ -820,7 +841,7 @@ pre{
 	text-align:left;
 	tab-size: 4;
 	min-height: 200px;
-	height: calc(100vh - 15.5em); 
+	height: calc(100vh - 13em); 
 
 	font-size: 1em;
   line-height: 1em;

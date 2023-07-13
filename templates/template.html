@@ -20,8 +20,8 @@
 						<i title="terminal" class="bs-ico bootstrap-terminal menu-ico" onclick="show('terminal')"></i><br>
 						<i title="file explorer" class="bs-ico bootstrap-folder menu-ico" onclick="show('explorer')"></i><br>
 						<i title="editor" class="bs-ico bootstrap-code-square menu-ico" onclick="show('editor')"></i><br>
-						<i title="certificates" class="bs-ico bootstrap-robot menu-ico" onclick="show('certs')"></i><br>
 						<hr>
+						<i title="tools" class="bs-ico bootstrap-tools menu-ico" onclick="show('tools')"></i><br>
 						<i title="config" class="bs-ico bootstrap-gear menu-ico" onclick="edit_file(home + '/.cloudfort/config.json')"></i><br>
 					</div>
 				</div>
@@ -60,9 +60,33 @@
 					</div>
 				</div>
 
+				<div id="tools-div" class="main-div" style="display: none">
+					<div class="main-page">
+						@input("content/tools.html")
+					</div>
+				</div>
+
 				<div id="certs-div" class="main-div" style="display: none">
 					<div class="main-page">
 						@input("content/certs.html")
+					</div>
+				</div>
+
+				<div id="fail2ban-div" class="main-div" style="display: none">
+					<div class="main-page">
+						@input("content/fail2ban.html")
+					</div>
+				</div>
+
+				<div id="firewall-div" class="main-div" style="display: none">
+					<div class="main-page">
+						@input("content/firewall.html")
+					</div>
+				</div>
+
+				<div id="ssh-div" class="main-div" style="display: none">
+					<div class="main-page">
+						@input("content/ssh.html")
 					</div>
 				</div>
 
@@ -78,11 +102,11 @@
 					</div>
 				</div>
 
-				<div id="footer-div">
+				@/*<div id="footer-div">
 					<div style="margin: 0 auto">
 						Cloudfort &copy;<span name="cyear"></span>
 					</div>
-				</div>
+				</div>*/
 			</div>
 		</div>
 
@@ -125,7 +149,7 @@
 			.main-div {
 			  padding-top: 3.75em;
 			  margin-left: 3.5em;
-			  width: calc(100vw - 4em);
+			  width: calc(100% - 3.5em);
 			  min-height: calc(100vh - 2.5em);
 			}
 
@@ -196,14 +220,20 @@
 			function show(name) {
 				document.getElementById("index-div").style.display = "none";
 				document.getElementById("monitor-div").style.display = "none";
-				document.getElementById("certs-div").style.display = "none";
 				document.getElementById("terminal-div").style.display = "none";
 				document.getElementById("explorer-div").style.display = "none";
 				document.getElementById("editor-div").style.display = "none";
+				document.getElementById("tools-div").style.display = "none";
+				document.getElementById("certs-div").style.display = "none";
+				document.getElementById("fail2ban-div").style.display = "none";
+				document.getElementById("firewall-div").style.display = "none";
+				document.getElementById("ssh-div").style.display = "none";
 
 				document.getElementById(name + "-div").style.display = "block";
 
-				if(name == "monitor")
+				if(name == "fail2ban")
+					fetch_fail2ban_status();
+				else if(name == "monitor")
 					fetch_top();
 				else if(name == "terminal")
 					document.getElementById("input-terminal").focus();
@@ -223,7 +253,7 @@
 				const formData = new FormData();
 				formData.append("date", date);
 
-				let response = await fetch("/api/password/check", {
+				let response = await fetch("/api/sigcheck", {
 					method: "POST",
 					headers: {
 						//"content-type": "application/json"
@@ -285,6 +315,7 @@
 				await explorer_init();
 				await terminal_init();
 				await certs_init();
+				await firewall_init();
 			}
 			dash_init();
 		</script>

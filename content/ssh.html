@@ -1,0 +1,40 @@
+<h1 style="margin: 0.5em 0">SSH</h1>
+
+<div class="card border-hover" onclick="edit_file('~/.ssh/authorized_keys')" style="cursor: pointer; width: 10em">
+	<i class="bs-ico bootstrap-key width-5em card-hover-filter"></i><br>
+	<hr>
+	<h2 class="card-hover-color">keys</h2>
+</div>
+
+<div class="card border-hover" onclick="edit_file('/etc/ssh/sshd_config')" style="cursor: pointer; width: 10em">
+	<i class="bs-ico bootstrap-gear width-5em card-hover-filter"></i><br>
+	<hr>
+	<h2 class="card-hover-color">config</h2>
+</div>
+
+<div class="card border-hover" onclick="reset_ssh()" style="cursor: pointer; width: 10em">
+	<i class="bs-ico bootstrap-arrow-repeat width-5em card-hover-filter"></i><br>
+	<hr>
+	<h2 class="card-hover-color">reset</h2>
+</div>
+
+<script>
+	async function reset_ssh() {
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		formData.append("command", "/etc/init.d/ssh reload");
+	
+		let response = await fetch("/api/run", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		let result = await response.json();
+
+		notify(result["output"].replaceAll("\n", "<br>"));
+	}
+</script>

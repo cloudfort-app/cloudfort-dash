@@ -1,0 +1,134 @@
+<div id="textarea-fail2ban" spellcheck="false"></div>
+
+<button id="fail2ban-ban-btn" class="btn" onclick="document.getElementById('ban-ip-popup').style.display = 'block'">ban</button>
+<button id="fail2ban-unban-btn" class="btn" onclick="document.getElementById('unban-ip-popup').style.display = 'block'">unban</button>
+<button id="fail2ban-restart-btn" class="btn" onclick="restart_fail2ban()">restart</button>
+<button class="btn" onclick="edit_file('/etc/fail2ban/jail.local')">config</button>
+
+<div id="ban-ip-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
+	<input style="margin: 0.25em 0"
+		id="input-ban-ip"
+		type="text"
+		placeholder="ip" 
+	>
+	<button class="btn" onclick="document.getElementById('ban-ip-popup').style.display = 'none'">cancel</button>
+	<button class="btn" onclick="ban_ip()">ban</button>
+</div>
+
+<div id="unban-ip-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
+	<input style="margin: 0.25em 0"
+		id="input-unban-ip"
+		type="text"
+		placeholder="ip" 
+	>
+	<button class="btn" onclick="document.getElementById('unban-ip-popup').style.display = 'none'">cancel</button>
+	<button class="btn" onclick="unban_ip()">unban</button>
+</div>
+
+<script>
+	const fail2ban_ta = document.getElementById("textarea-fail2ban");
+
+	async function fetch_fail2ban_status() {
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		formData.append("command", "fail2ban-client status sshd");
+	
+		let response = await fetch("/api/run", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		let result = await response.json();
+
+		if(result["output"].search("not found") == -1)
+			fail2ban_ta.innerHTML = result["output"];
+		else
+			fail2ban_ta.innerHTML = "fail2ban not installed";
+	}
+
+	async function restart_fail2ban() {
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		formData.append("command", "service fail2ban restart");
+	
+		let response = await fetch("/api/run", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		let result = await response.json();
+
+		await notify(result["output"].replaceAll("\n", "<br>"));
+		await fetch_fail2ban_status();
+	}
+
+	async function ban_ip() {
+		document.getElementById("ban-ip-popup").style.display = "none";
+
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		formData.append("command", "fail2ban-client set sshd banip " + document.getElementById("input-ban-ip").value);
+	
+		let response = await fetch("/api/run", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		let result = await response.json();
+		
+		await notify(result["output"].replaceAll("\n", "<br>"));
+		await fetch_fail2ban_status();
+	}
+
+	async function unban_ip() {
+		document.getElementById("unban-ip-popup").style.display = "none";
+
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		formData.append("command", "fail2ban-client set sshd unbanip " + document.getElementById("input-unban-ip").value);
+	
+		let response = await fetch("/api/run", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		let result = await response.json();
+		
+		await notify(result["output"].replaceAll("\n", "<br>"));
+		await fetch_fail2ban_status();
+	}
+</script>
+
+<style>
+	#textarea-fail2ban {
+		background: var(--secondary-dark);
+		border: 1px solid var(--light-black);
+		color: var(--white);
+		height: calc(100vh - 7.5em); 
+		width: 100%;
+		font-family: "ubuntu mono";
+		font-size: 0.9em;
+		overflow-x:auto;
+		padding: 0.25em 0.25em;
+		margin: 0.25em 0.5em;
+		resize: none;
+		text-align: left;
+		white-space: pre-wrap;
+	}
+</style>

@@ -3,10 +3,13 @@
 </div><br>
 
 <div class="card border">
-	<i title="new dir" class='bs-ico bootstrap-folder-plus width-1em ico-link-color' onclick="show_create_dir()"></i> &nbsp;&nbsp;
-	<i title="new file" class='bs-ico bootstrap-file-earmark-plus width-1em ico-link-color' onclick="show_create_file()"></i> &nbsp;&nbsp;
-	<i title="del path" class='bs-ico bootstrap-trash width-1em ico-link-color' onclick="show_rm_path()"></i> &nbsp;&nbsp;
-	<i title="rename" class='bs-ico bootstrap-input-cursor-text width-1em ico-link-color' onclick="show_mv_path()"></i>
+	<i title="home" class='bs-ico bootstrap-house ico-link-color' onclick="get_dir(home)"></i> &nbsp;&nbsp;
+	<i title="refresh" class='bs-ico bootstrap-arrow-repeat ico-link-color' onclick="get_dir(bwd)"></i> &nbsp;&nbsp;
+	<i title="new directory" class='bs-ico bootstrap-folder-plus ico-link-color' onclick="show_create_dir()"></i> &nbsp;&nbsp;
+	<i title="new file" class='bs-ico bootstrap-file-earmark-plus ico-link-color' onclick="show_create_file()"></i> &nbsp;&nbsp;
+	<i title="upload" class='bs-ico bootstrap-cloud-arrow-up ico-link-color' onclick="show_upload_file()"></i> &nbsp;&nbsp;
+	<i title="delete" class='bs-ico bootstrap-trash ico-link-color' onclick="show_rm_path()"></i> &nbsp;&nbsp;
+	<i title="rename" class='bs-ico bootstrap-input-cursor-text ico-link-color' onclick="show_mv_path()"></i>
 </div><br>
 
 <div id="card-input-name" class="card border" style="display: none">
@@ -14,6 +17,14 @@
 	<button id="create_dir_button"  class="btn" onclick="create_dir()" style="display: none">create</button>
 	<button id="create_file_button" class="btn" onclick="create_file()" style="display: none">create</button>
 	<button id="rm_path_button"  class="btn" onclick="rm_path()" style="display: none">delete</button>
+</div>
+
+<div id="card-input-upload" class="card border" style="display: none">
+	<div class="dropzone">
+		<div id="span-dropzone" style="padding: 0.25em 0">drop or select</div>
+		<input id="input-file" type="file" class="upload-input" onchange="display_filename()" />
+	</div>
+	<button id="upload_button"  class="btn" onclick="upload_file()">upload</button>
 </div>
 
 <div id="card-input-rename" class="card border" style="display: none">
@@ -34,6 +45,29 @@
 </div>
 
 <style>
+	.dropzone {
+		margin-top: 0.15em;
+		width: 300px;
+		height: 30px;
+		border: 1px dashed #999;
+		border-radius: 3px;
+		text-align: center;
+	}
+
+	.upload-icon {
+		vertical-align: middle;
+	}
+
+	.upload-input {
+		cursor: pointer;
+		position: relative;
+		top: -28px;
+		left: 0;
+		width: 100%;
+		height: 30px;
+		opacity: 0;
+	}
+
 	#table-files {
 		margin: 0 auto; 
 		text-align: left;
@@ -53,6 +87,7 @@
 	var bwd = "nil"; //browser working directory
 
 	async function hide_input_cards() {
+		document.getElementById("card-input-upload").style.display = "none";
 		document.getElementById("card-input-rename").style.display = "none";
 		document.getElementById("card-input-name").style.display = "none";
 		document.getElementById("create_dir_button").style.display = "none";
@@ -82,6 +117,20 @@
 		else {
 			hide_input_cards();
 		}
+	}
+
+	async function show_upload_file() {
+		if(document.getElementById("card-input-upload").style.display == "none") {
+			hide_input_cards();
+			document.getElementById("card-input-upload").style.display = "flex";
+		}
+		else {
+			hide_input_cards();
+		}
+	}
+
+	async function display_filename() {
+		document.getElementById("span-dropzone").innerHTML = document.getElementById("input-file").value.split('\\').pop();
 	}
 
 	async function show_rm_path() {
@@ -155,6 +204,35 @@
 		document.getElementById("input-name").value = "";
 		document.getElementById("card-input-name").style.display = "none";
 		document.getElementById("create_file_button").style.display = "none";
+	}
+
+	async function upload_file() {
+		const fileField = document.getElementById("input-file");
+
+		if(!fileField.files.length) {
+			alert("No file chosen");
+			return;
+		}
+
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		formData.append("path", bwd + "/" + fileField.value.split('\\').pop());
+		formData.append("file", fileField.files[0]);
+
+		response = await fetch("/api/upload", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		result = await response.json();
+
+		get_dir(bwd);
+
+		document.getElementById("card-input-upload").style.display = "none";
 	}
 
 	async function mv_path() {
@@ -283,9 +361,9 @@
 				if(result["files"][f][2] < 1000)
 					row.insertCell(2).innerHTML = result["files"][f][2] + "b";
 				else if(result["files"][f][2] < 1000000)
-					row.insertCell(2).innerHTML = result["files"][f][2]/1000 + "kb";
+					row.insertCell(2).innerHTML = (result["files"][f][2]/1000).toFixed(2) + "kb";
 				else
-					row.insertCell(2).innerHTML = result["files"][f][2]/1000000 + "mb";
+					row.insertCell(2).innerHTML = (result["files"][f][2]/1000000).toFixed(2) + "mb";
 
 				row.insertCell(3).innerHTML = result["files"][f][3];
 			}

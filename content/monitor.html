@@ -1,4 +1,10 @@
-<div id="textarea-monitor" class="microlight" spellcheck="false"></div>
+<select id="select-monitor-sort" onchange="fetch_top()" style="margin: 0.25em; width: 300px">
+	<option value="none" disabled>sort by</option>
+	<option value="cpu">cpu</option>
+	<option value="memory" selected>memory</option>
+</select>
+
+<div id="textarea-monitor" spellcheck="false"></div>
 
 <script>
 	const monitor = document.getElementById("textarea-monitor");
@@ -8,8 +14,12 @@
 			const date = new Date().getTime().toString();
 			const formData = new FormData();
 			formData.append("date", date);
+			if(document.getElementById("select-monitor-sort").value == "memory")
+				formData.append("command", "top -bn1 -o %MEM -w 120")
+			else
+				formData.append("command", "top -bn1 -w 120")
 		
-			let response = await fetch("/api/top", {
+			let response = await fetch("/api/run", {
 				method: "POST",
 				headers: {
 					//"content-type": "application/json"
@@ -32,13 +42,13 @@
 		background: var(--secondary-dark);
 		border: 1px solid var(--light-black);
 		color: var(--white);
-		height: calc(100vh - 8em); 
+		height: calc(100vh - 7em); 
 		width: 100%;
 		font-family: "ubuntu mono";
 		font-size: 0.9em;
 		overflow-x:auto;
-		padding: 0.25em 0.25em;
-		margin: 0.25em 0.5em;
+		padding: 0.25em 0em;
+		margin: 0.25em 0em;
 		resize: none;
 		text-align: left;
 		white-space: pre-wrap;

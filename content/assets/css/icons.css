@@ -89,8 +89,17 @@
 .bootstrap-arrow-down-up:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-arrow-down-up.svg)"); 
 }
+.bootstrap-arrow-repeat:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-arrow-repeat.svg)"); 
+}
+.bootstrap-bricks:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-bricks.svg)"); 
+}
 .bootstrap-card-checklist:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-card-checklist.svg)"); 
+}
+.bootstrap-cloud-arrow-up:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-cloud-arrow-up.svg)"); 
 }
 .bootstrap-cloud-haze:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-cloud-haze.svg)"); 
@@ -125,14 +134,26 @@
 .bootstrap-input-cursor-text:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-input-cursor-text.svg)"); 
 }
+.bootstrap-key:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-key.svg)"); 
+}
 .bootstrap-robot:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-robot.svg)"); 
+}
+.bootstrap-safe:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-safe.svg)"); 
 }
 .bootstrap-save:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-save.svg)"); 
 }
 .bootstrap-terminal:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-terminal.svg)"); 
+}
+.bootstrap-terminal-ssh:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-terminal-ssh.svg)"); 
+}
+.bootstrap-tools:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-tools.svg)"); 
 }
 .bootstrap-trash:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-trash.svg)"); 

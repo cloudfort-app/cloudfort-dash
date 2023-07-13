@@ -24,7 +24,7 @@ var domain string
 var home string
 var port string
 var password []byte
-var version = "v0.1.12"
+var version = "v0.1.13"
 
 /*func check_referer(req *http.Request) bool {
     return (req.Referer() == "" || req.Referer()[0:len(domain)] != domain)
@@ -89,6 +89,7 @@ func sanitize(in_str string) string {
 
     str = strings.Replace(str, "\\", "\\\\", -1)
 
+    //str = strings.Replace(str, "\n", "<br>", -1)
     str = strings.Replace(str, "\n", "\\n", -1)
     str = strings.Replace(str, "\t", "\\t", -1)
 
@@ -353,100 +354,33 @@ func routeRun(w http.ResponseWriter, req *http.Request) {
     w.Write([]byte("{\"output\": \"" + output + "\"}"))
 }
 
-func routePasswordCheck(w http.ResponseWriter, req *http.Request) {
+func routeUpload(w http.ResponseWriter, req *http.Request) {
+    if(!hasValidSignature(&w, req)) {
+        return
+    }
+
+    file, _, err := req.FormFile("file")
+    if err != nil {
+        w.Header().Set("Content-Type", "text/plain")
+        w.Write([]byte("{\"output\": \"error retrieving file\"}"))
+        return
+    }
+    defer file.Close()
+    f, err := os.OpenFile(req.PostFormValue("path"), os.O_WRONLY|os.O_CREATE, 0666)
+    defer f.Close()
+    io.Copy(f, file)
+
+    w.Header().Set("Content-Type", "text/plain")
+    w.Write([]byte("{\"output\": \"upload successful\"}"))
+}
+
+func routeVerifySignature(w http.ResponseWriter, req *http.Request) {
     if(!hasValidSignature(&w, req)) {
         return
     }
 
     w.Header().Set("Content-Type", "text/plain")
     w.Write([]byte("{\"valid\": true}"))
-}
-
-func routeTop(w http.ResponseWriter, req *http.Request) {
-    if(!hasValidSignature(&w, req)) {
-        return
-    }
-
-    output := ""
-    out, err := exec.Command("/bin/sh", "-c", "top -bn1 -o %MEM -w 120").CombinedOutput()
-
-    if(err != nil) {
-        log.Println(err)
-    } 
-
-    output = sanitize(string(out));
-
-    w.Header().Set("Content-Type", "text/plain")
-    w.Write([]byte("{\"output\": \"" + output + "\"}"))
-}
-
-func routeHost(w http.ResponseWriter, req *http.Request) {
-    if(!hasValidSignature(&w, req)) {
-        return
-    }
-
-    out, _ := exec.Command("/bin/sh", "-c", "dig +short " + req.PostFormValue("domain") + " | head -n1").CombinedOutput()
-    output := string(out)
-    output = sanitize(output[0:len(output)-1]);
-    respond(&w, true, output)
-}
-
-func routeIP(w http.ResponseWriter, req *http.Request) {
-    if(!hasValidSignature(&w, req)) {
-        return
-    }
-
-    out, _ := exec.Command("/bin/sh", "-c", "dig +short txt ch whoami.cloudflare @1.0.0.1").CombinedOutput()
-    output := string(out)
-    output = sanitize(output[1:len(output)-2]);
-    respond(&w, true, output)
-}
-
-func routeAddCert(w http.ResponseWriter, req *http.Request) {
-    if(!hasValidSignature(&w, req)) {
-        return
-    }
-
-    output := ""
-    out, _ := exec.Command("/bin/sh", "-c", "certbot --non-interactive certonly --standalone -n --domains " + req.PostFormValue("domain") + " --agree-tos -m " + req.PostFormValue("email")).CombinedOutput()
-
-    /*if(err != nil) {
-        log.Println(err)
-        output = sanitize(err.Error() + "\\n");
-    }*/
-    
-    output = sanitize(string(out));
-    respond(&w, true, output)
-}
-
-func routeDelCert(w http.ResponseWriter, req *http.Request) {
-    if(!hasValidSignature(&w, req)) {
-        return
-    }
-
-    output := ""
-    out, _ := exec.Command("/bin/sh", "-c", "certbot --non-interactive delete --cert-name " + req.PostFormValue("domain")).CombinedOutput()
-    
-    output = sanitize(string(out));
-    respond(&w, true, output)
-}
-
-func routeLsCerts(w http.ResponseWriter, req *http.Request) {
-    if(!hasValidSignature(&w, req)) {
-        return
-    }
-
-    output := ""
-    out, err := exec.Command("/bin/sh", "-c", "certbot --non-interactive certificates").CombinedOutput()
-
-    if(err != nil) {
-        log.Println(err)
-    }
-
-    output = sanitize(string(out));
-
-    w.Header().Set("Content-Type", "text/plain")
-    w.Write([]byte("{\"output\": \"" + output + "\"}"))
 }
 
 func createConfig() {
@@ -472,25 +406,20 @@ func main() {
 
     if(cmd == "serve") {
         mux := http.NewServeMux()
-        mux.HandleFunc("/api/cd",           routeCd)
-        mux.HandleFunc("/api/deploy",       routeDeploy)
-        mux.HandleFunc("/api/dir/create",   routeDirCreate)
-        mux.HandleFunc("/api/file/create",  routeFileCreate)
-        mux.HandleFunc("/api/file/read",    routeFileRead)
-        mux.HandleFunc("/api/file/write",   routeFileWrite)
-        mux.HandleFunc("/api/home",         routeHome)
-        mux.HandleFunc("/api/mv",           routeMv)
-        mux.HandleFunc("/api/rm",           routeRm)
-        mux.HandleFunc("/api/ls",           routeLs)
-        mux.HandleFunc("/api/pwd",          routePwd)
-        mux.HandleFunc("/api/run",          routeRun)
-        mux.HandleFunc("/api/password/check", routePasswordCheck)
-        mux.HandleFunc("/api/top",          routeTop)
-        mux.HandleFunc("/api/host",         routeHost)
-        mux.HandleFunc("/api/ip",         routeIP)
-        mux.HandleFunc("/api/certs/add",    routeAddCert)
-        mux.HandleFunc("/api/certs/delete", routeDelCert)
-        mux.HandleFunc("/api/certs/ls",     routeLsCerts)
+        mux.HandleFunc("/api/cd",          routeCd)
+        mux.HandleFunc("/api/deploy",      routeDeploy)
+        mux.HandleFunc("/api/dir/create",  routeDirCreate)
+        mux.HandleFunc("/api/file/create", routeFileCreate)
+        mux.HandleFunc("/api/file/read",   routeFileRead)
+        mux.HandleFunc("/api/file/write",  routeFileWrite)
+        mux.HandleFunc("/api/home",        routeHome)
+        mux.HandleFunc("/api/mv",          routeMv)
+        mux.HandleFunc("/api/rm",          routeRm)
+        mux.HandleFunc("/api/ls",          routeLs)
+        mux.HandleFunc("/api/pwd",         routePwd)
+        mux.HandleFunc("/api/run",         routeRun)
+        mux.HandleFunc("/api/upload",      routeUpload)
+        mux.HandleFunc("/api/sigcheck",    routeVerifySignature)
 
         domain = os.Args[2]
         port = os.Args[3]

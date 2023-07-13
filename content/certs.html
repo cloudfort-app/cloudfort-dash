@@ -35,8 +35,9 @@
 		const date = new Date().getTime().toString();
 		const formData = new FormData();
 		formData.append("date", date);
+		formData.append("command", "certbot --non-interactive certificates")
 	
-		let response = await fetch("/api/certs/ls", {
+		let response = await fetch("/api/run", {
 			method: "POST",
 			headers: {
 				//"content-type": "application/json"
@@ -47,16 +48,16 @@
 		let result = await response.json();
 
 		//certs_ta.innerHTML = result["output"];
-		certs_ta.innerHTML = result["output"].substring(result["output"].indexOf("\n")+1, result["output"].lastIndexOf("\n", result["output"].length-1));
+		certs_ta.innerHTML = result["output"].substring(result["output"].indexOf("-"), result["output"].lastIndexOf("-")+1);
 	}
 
 	async function get_host(domain) {
 		const date = new Date().getTime().toString();
 		const formData = new FormData();
 		formData.append("date", date);
-		formData.append("domain", document.getElementById("input-domain").value);
+		formData.append("command", "dig +short " + document.getElementById("input-domain").value + " | head -n1");
 	
-		let response = await fetch("/api/host", {
+		let response = await fetch("/api/run", {
 			method: "POST",
 			headers: {
 				//"content-type": "application/json"
@@ -66,16 +67,16 @@
 		});
 		let result = await response.json();
 
-		return result["response"];
+		return result["output"].substring(0, result["output"].length-1);
 	}
 
 	async function get_ip() {
 		const date = new Date().getTime().toString();
 		const formData = new FormData();
 		formData.append("date", date);
-		formData.append("domain", document.getElementById("input-domain").value);
+		formData.append("command", "dig +short txt ch whoami.cloudflare @1.0.0.1")
 	
-		let response = await fetch("/api/ip", {
+		let response = await fetch("/api/run", {
 			method: "POST",
 			headers: {
 				//"content-type": "application/json"
@@ -85,7 +86,7 @@
 		});
 		let result = await response.json();
 
-		return result["response"];
+		return result["output"].substring(1, result["output"].length-2);
 	}
 
 	async function check_host(domain) {
@@ -105,10 +106,9 @@
 			const date = new Date().getTime().toString();
 			const formData = new FormData();
 			formData.append("date", date);
-			formData.append("domain", document.getElementById("input-domain").value);
-			formData.append("email", document.getElementById("input-email").value);
+			formData.append("command", "certbot --non-interactive certonly --standalone -n --domains " + document.getElementById("input-domain").value + " --agree-tos -m " + document.getElementById("input-email").value);
 		
-			let response = await fetch("/api/certs/add", {
+			let response = await fetch("/api/run", {
 				method: "POST",
 				headers: {
 					//"content-type": "application/json"
@@ -118,7 +118,8 @@
 			});
 			let result = await response.json();
 
-			await notify_resp(result);
+			await notify(result["output"]);
+			await fetch_certs();
 		}
 	}
 
@@ -128,9 +129,9 @@
 		const date = new Date().getTime().toString();
 		const formData = new FormData();
 		formData.append("date", date);
-		formData.append("domain", document.getElementById("input-del-domain").value);
+		formData.append("command", "certbot --non-interactive delete --cert-name " + document.getElementById("input-del-domain").value);
 	
-		let response = await fetch("/api/certs/delete", {
+		let response = await fetch("/api/run", {
 			method: "POST",
 			headers: {
 				//"content-type": "application/json"
@@ -140,7 +141,8 @@
 		});
 		let result = await response.json();
 		
-		await notify_resp(result);
+		await notify(result["output"]);
+		await fetch_certs();
 	}
 
 	async function certs_init() {
@@ -153,8 +155,8 @@
 		background: var(--secondary-dark);
 		border: 1px solid var(--light-black);
 		color: var(--white);
-		height: calc(100vh - 10em); 
-		width: 580px;
+		height: calc(100vh - 7.5em); 
+		width: 100%;
 		font-family: "ubuntu mono";
 		font-size: 0.9em;
 		overflow-x:auto;

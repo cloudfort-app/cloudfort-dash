@@ -1,0 +1,200 @@
+<div id="textarea-firewall" spellcheck="false"></div>
+
+<button id="firewall-add-btn" class="btn" onclick="document.getElementById('add-rule-popup').style.display = 'block'">add</button>
+<button id="firewall-del-btn" class="btn" onclick="document.getElementById('del-rule-popup').style.display = 'block'">delete</button>
+<button id="firewall-enable-btn" class="btn" onclick="enable_firewall()">enable</button>
+<button id="firewall-reset-btn" class="btn" onclick="reset_firewall()">reset</button>
+<button id="firewall-disable-btn" class="btn" onclick="disable_firewall()">disable</button>
+<button class="btn" onclick="edit_file('/etc/default/ufw')">config</button>
+
+<div id="add-rule-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
+	<select id="select-rule-type" style="margin: 0.25em 0">
+		<option value="allow" selected>allow</option>
+		<option value="deny">deny</option>
+	</select>
+	<input style="margin: 0.25em 0"
+		id="input-rule"
+		type="text"
+		placeholder="rule" 
+	>
+	<button class="btn" onclick="document.getElementById('add-rule-popup').style.display = 'none'">cancel</button>
+	<button class="btn" onclick="add_rule()">add</button>
+</div>
+
+<div id="del-rule-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
+	<select id="select-del-rule-type" style="margin: 0.25em 0">
+		<option value="allow" selected>allow</option>
+		<option value="deny">deny</option>
+	</select>
+	<input style="margin: 0.25em 0"
+		id="input-del-rule"
+		type="text"
+		placeholder="rule" 
+	>
+	<button class="btn" onclick="document.getElementById('del-rule-popup').style.display = 'none'">cancel</button>
+	<button class="btn" onclick="del_rule()">delete</button>
+</div>
+
+<script>
+	const firewall_ta = document.getElementById("textarea-firewall");
+
+	async function fetch_rules() {
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		formData.append("command", "ufw status");
+	
+		let response = await fetch("/api/run", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		let result = await response.json();
+
+		firewall_ta.innerHTML = result["output"];
+
+		document.getElementById("firewall-add-btn").style.display = "none";
+		document.getElementById("firewall-del-btn").style.display = "none";
+		document.getElementById("firewall-enable-btn").style.display = "none";
+		document.getElementById("firewall-reset-btn").style.display = "none";
+		document.getElementById("firewall-disable-btn").style.display = "none";
+		if(result["output"].search("inactive") != -1) {
+			document.getElementById("firewall-enable-btn").style.display = "inline-flex";
+		}
+		else {
+			document.getElementById("firewall-add-btn").style.display = "inline-flex";
+			document.getElementById("firewall-del-btn").style.display = "inline-flex";
+			document.getElementById("firewall-reset-btn").style.display = "inline-flex";
+			document.getElementById("firewall-disable-btn").style.display = "inline-flex";
+		}
+	}
+
+	async function enable_firewall() {
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		formData.append("command", "ufw enable");
+	
+		let response = await fetch("/api/run", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		let result = await response.json();
+
+		await notify(result["output"].replaceAll("\n", "<br>"));
+		await fetch_rules();
+	}
+
+	async function disable_firewall() {
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		formData.append("command", "ufw disable");
+	
+		let response = await fetch("/api/run", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		let result = await response.json();
+
+		await notify(result["output"].replaceAll("\n", "<br>"));
+		await fetch_rules();
+	}
+
+	async function reset_firewall() {
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		formData.append("command", "ufw reset");
+	
+		let response = await fetch("/api/run", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		let result = await response.json();
+
+		await notify(result["output"].replaceAll("\n", "<br>"));
+		await fetch_rules();
+	}
+
+	async function add_rule() {
+		document.getElementById("add-rule-popup").style.display = "none";
+
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		formData.append("command", "ufw " + document.getElementById("select-rule-type").value + " " + document.getElementById("input-rule").value);
+	
+		let response = await fetch("/api/run", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		let result = await response.json();
+
+		await notify(result["output"].replaceAll("\n", "<br>"));
+		await fetch_rules();
+	}
+
+	async function del_rule() {
+		document.getElementById("del-rule-popup").style.display = "none";
+
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		formData.append("command", "ufw delete " + document.getElementById("select-del-rule-type").value + " " + document.getElementById("input-del-rule").value);
+	
+		let response = await fetch("/api/run", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		let result = await response.json();
+		
+		await notify(result["output"].replaceAll("\n", "<br>"));
+		await fetch_rules();
+	}
+
+	async function firewall_init() {
+		await fetch_rules();
+	}
+</script>
+
+<style>
+	#textarea-firewall {
+		background: var(--secondary-dark);
+		border: 1px solid var(--light-black);
+		color: var(--white);
+		height: calc(100vh - 7.5em); 
+		width: 100%;
+		font-family: "ubuntu mono";
+		font-size: 0.9em;
+		overflow-x:auto;
+		padding: 0.25em 0.25em;
+		margin: 0.25em 0.5em;
+		resize: none;
+		text-align: left;
+		white-space: pre-wrap;
+	}
+</style>
