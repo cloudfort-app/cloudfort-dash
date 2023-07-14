@@ -16,9 +16,9 @@
 						<i id="open-menu-icon" class="fa fa-bars menu-ico" onclick="show_menu()"></i><br><br>
 						<i title="home" class="bs-ico bootstrap-house menu-ico" onclick="show('index')"></i><br>
 						<hr>
-						<i title="server monitor" class="bs-ico bootstrap-activity menu-ico" onclick="show('monitor')"></i><br>
+						<i title="monitor" class="bs-ico bootstrap-activity menu-ico" onclick="show('monitor')"></i><br>
 						<i title="terminal" class="bs-ico bootstrap-terminal menu-ico" onclick="show('terminal')"></i><br>
-						<i title="file explorer" class="bs-ico bootstrap-folder menu-ico" onclick="show('explorer')"></i><br>
+						<i title="explorer" class="bs-ico bootstrap-folder menu-ico" onclick="show('explorer')"></i><br>
 						<i title="editor" class="bs-ico bootstrap-code-square menu-ico" onclick="show('editor')"></i><br>
 						<hr>
 						<i title="tools" class="bs-ico bootstrap-tools menu-ico" onclick="show('tools')"></i><br>
@@ -27,7 +27,7 @@
 				</div>
 
 				<div id="banner-div">
-					<h2 style="color: white; margin-top: -0.125em; margin-left: 2.5em">Cloudfort</h2>
+					<h2 id="h2-Cloudfort" style="color: white; margin-top: -0.125em; margin-left: 2.5em">Cloudfort</h2>
 				</div>
 
 				<div id="index-div" class="main-div">
@@ -171,6 +171,10 @@
 			}
 
 			@media screen and (max-width: 600px) {
+			  #h2-Cloudfort {
+			  	display: none;
+			  }
+
 			  #menu-bars {
 			  	display: block;
 			  }
@@ -318,6 +322,19 @@
 				await firewall_init();
 			}
 			dash_init();
+
+			document.body.onkeydown = function(e) {
+				if(e.altKey) {
+					if(e.shiftKey && e.key == 'E')
+						show('editor');
+					else if(e.key == 'm')
+						show('monitor');
+					else if(e.key == 't')
+						show('terminal');
+					else if(e.key == 'x')
+						show('explorer')
+				}
+			}
 		</script>
 	</body>
 </html>

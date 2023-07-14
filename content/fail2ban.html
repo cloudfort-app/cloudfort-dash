@@ -1,9 +1,15 @@
+<div id="dash-breadcrumb">
+    <a onclick="show('index')">dash</a>/<a onclick="show('tools')">tools</a>/fail2ban
+</div>
+
 <div id="textarea-fail2ban" spellcheck="false"></div>
 
-<button id="fail2ban-ban-btn" class="btn" onclick="document.getElementById('ban-ip-popup').style.display = 'block'">ban</button>
-<button id="fail2ban-unban-btn" class="btn" onclick="document.getElementById('unban-ip-popup').style.display = 'block'">unban</button>
-<button id="fail2ban-restart-btn" class="btn" onclick="restart_fail2ban()">restart</button>
-<button class="btn" onclick="edit_file('/etc/fail2ban/jail.local')">config</button>
+<div id="div-fail2ban-btns">
+	<button id="fail2ban-ban-btn" class="btn" onclick="document.getElementById('ban-ip-popup').style.display = 'block'">ban</button>
+	<button id="fail2ban-unban-btn" class="btn" onclick="document.getElementById('unban-ip-popup').style.display = 'block'">unban</button>
+	<button id="fail2ban-restart-btn" class="btn" onclick="restart_fail2ban()">restart</button>
+	<button class="btn" onclick="edit_file('/etc/fail2ban/jail.local')">config</button>
+</div>
 
 <div id="ban-ip-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
 	<input style="margin: 0.25em 0"
@@ -46,8 +52,10 @@
 
 		if(result["output"].search("not found") == -1)
 			fail2ban_ta.innerHTML = result["output"];
-		else
+		else {
 			fail2ban_ta.innerHTML = "fail2ban not installed";
+			document.getElementById("div-fail2ban-btns").style.display = "none";
+		}
 	}
 
 	async function restart_fail2ban() {
@@ -88,7 +96,7 @@
 		});
 		let result = await response.json();
 		
-		await notify(result["output"].replaceAll("\n", "<br>"));
+		//await notify(result["output"].replaceAll("\n", "<br>"));
 		await fetch_fail2ban_status();
 	}
 
@@ -110,7 +118,7 @@
 		});
 		let result = await response.json();
 		
-		await notify(result["output"].replaceAll("\n", "<br>"));
+		//await notify(result["output"].replaceAll("\n", "<br>"));
 		await fetch_fail2ban_status();
 	}
 </script>
@@ -126,7 +134,7 @@
 		font-size: 0.9em;
 		overflow-x:auto;
 		padding: 0.25em 0.25em;
-		margin: 0.25em 0.5em;
+		margin: 0.25em 0;
 		resize: none;
 		text-align: left;
 		white-space: pre-wrap;

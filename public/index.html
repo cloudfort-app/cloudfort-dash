@@ -25,6 +25,15 @@
 			<button class="btn" onclick="resolve_notify()">ok</button>
 		</div>
 		
+		<div id="div-waiting-popup" class="card border popup popup-dash popup-middle">
+			<span id="span-waiting-popup-msg"></span><br>
+			<img src="assets/icons/loading-boxes.svg" class="width-2em spinner no-hover-ico" style="margin-top: 1em">
+		</div>
+		
+		<script>
+			
+		</script>
+		
 		<style>
 			.popup {
 				display: none;
@@ -59,6 +68,30 @@
 		</style>
 		
 		<script>
+			const root = document.querySelector(':root');
+			var hue = 0;
+			var cycle_hue = false;
+			async function increment_spinner_hue() {
+				if(cycle_hue) {
+					hue = (hue+50)%360;
+					root.style.setProperty('--filter-spinner-color', "invert(53%) sepia(86%) saturate(463%)  hue-rotate(" + hue + "deg) brightness(95%) contrast(87%)");
+					setTimeout(increment_spinner_hue, 500);
+				}
+			}
+		
+			async function waiting_popup(msg) {
+				document.getElementById("span-waiting-popup-msg").innerHTML = msg;
+				cycle_hue = true;
+				increment_spinner_hue();
+				document.getElementById("div-waiting-popup").style.display = "block";
+			}
+		
+			async function resolve_waiting_popup() {
+				document.getElementById("div-waiting-popup").style.display = "none";
+				cycle_hue = false;
+				document.getElementById("span-waiting-popup-msg").innerHTML = "";
+			}
+		
 			function sleep(ms) {
 			    return new Promise(resolve => setTimeout(resolve, ms));
 			}
@@ -131,7 +164,7 @@
 			    <i id="close-menu-icon" class="fa fa-xmark" onclick="close_menu()"></i>
 			  </div>
 			
-			  <h2><i class='bs-ico bootstrap-cloud-haze no-hover-ico' style="cursor: default"></i> Cloudfort</h2>
+			  <h2 class="noselect" style="cursor: default"><i class='bs-ico bootstrap-cloud-haze no-hover-ico' style="cursor: default"></i> Cloudfort</h2>
 			
 			  <nav id="nav" class="noselect">
 			    <ul>
@@ -168,9 +201,9 @@
 						<i id="open-menu-icon" class="fa fa-bars menu-ico" onclick="show_menu()"></i><br><br>
 						<i title="home" class="bs-ico bootstrap-house menu-ico" onclick="show('index')"></i><br>
 						<hr>
-						<i title="server monitor" class="bs-ico bootstrap-activity menu-ico" onclick="show('monitor')"></i><br>
+						<i title="monitor" class="bs-ico bootstrap-activity menu-ico" onclick="show('monitor')"></i><br>
 						<i title="terminal" class="bs-ico bootstrap-terminal menu-ico" onclick="show('terminal')"></i><br>
-						<i title="file explorer" class="bs-ico bootstrap-folder menu-ico" onclick="show('explorer')"></i><br>
+						<i title="explorer" class="bs-ico bootstrap-folder menu-ico" onclick="show('explorer')"></i><br>
 						<i title="editor" class="bs-ico bootstrap-code-square menu-ico" onclick="show('editor')"></i><br>
 						<hr>
 						<i title="tools" class="bs-ico bootstrap-tools menu-ico" onclick="show('tools')"></i><br>
@@ -179,32 +212,36 @@
 				</div>
 
 				<div id="banner-div">
-					<h2 style="color: white; margin-top: -0.125em; margin-left: 2.5em">Cloudfort</h2>
+					<h2 id="h2-Cloudfort" style="color: white; margin-top: -0.125em; margin-left: 2.5em">Cloudfort</h2>
 				</div>
 
 				<div id="index-div" class="main-div">
 					<div class="main-page">
+						<div id="dash-breadcrumb">
+						    dash
+						</div>
+						
 						<h1 style="margin: 0.5em 0">Dashboard</h1>
 						
-						<div class="card border-hover" onclick="show('monitor')" style="cursor: pointer; width: 10em">
+						<div class="card border-hover" title="alt m" onclick="show('monitor')" style="cursor: pointer; width: 10em">
 							<i class="bs-ico bootstrap-activity width-5em card-hover-filter"></i><br>
 							<hr>
 							<h2 class="card-hover-color">monitor</h2>
 						</div>
 						
-						<div class="card border-hover" onclick="show('terminal')" style="cursor: pointer; width: 10em">
+						<div class="card border-hover" title="alt t" onclick="show('terminal')" style="cursor: pointer; width: 10em">
 							<i class="bs-ico bootstrap-terminal width-5em card-hover-filter"></i><br>
 							<hr>
 							<h2 class="card-hover-color">terminal</h2>
 						</div>
 						
-						<div class="card border-hover" onclick="show('explorer')" style="cursor: pointer; width: 10em">
+						<div class="card border-hover" title="alt x" onclick="show('explorer')" style="cursor: pointer; width: 10em">
 							<i class="bs-ico bootstrap-folder width-5em card-hover-filter"></i><br>
 							<hr>
 							<h2 class="card-hover-color">explorer</h2>
 						</div>
 						
-						<div class="card border-hover" onclick="show('editor')" style="cursor: pointer; width: 10em">
+						<div class="card border-hover" title="alt shift e" onclick="show('editor')" style="cursor: pointer; width: 10em">
 							<i class="bs-ico bootstrap-code-square width-5em card-hover-filter"></i><br>
 							<hr>
 							<h2 class="card-hover-color">editor</h2>
@@ -220,8 +257,11 @@
 
 				<div id="monitor-div" class="main-div" style="display: none">
 					<div class="main-page">
+						<div id="dash-breadcrumb">
+						    <a onclick="show('index')">dash</a>/monitor
+						</div>
+						
 						<select id="select-monitor-sort" onchange="fetch_top()" style="margin: 0.25em; width: 300px">
-							<option value="none" disabled>sort by</option>
 							<option value="cpu">cpu</option>
 							<option value="memory" selected>memory</option>
 						</select>
@@ -281,8 +321,12 @@
 
 				<div id="terminal-div" class="main-div" style="display: none">
 					<div class="main-page">
+						<div id="dash-breadcrumb">
+						    <a onclick="show('index')">dash</a>/terminal
+						</div>
+						
 						<div id="textarea-terminal" style="text-align: left; margin: 0.5em 0;"></div>
-						<input id="input-terminal" placeholder="cmd" onkeypress="terminal_keypress(event)"><br>
+						<input id="input-terminal" placeholder="cmd" onkeydown="terminal_keypress(event)"><br>
 						<select id="select-hist" onchange="hist_event()">
 							<option value="none" disabled hidden selected>history</option>
 						</select>
@@ -290,6 +334,7 @@
 						<script>
 							const hist_select = document.getElementById("select-hist");
 							var prev_cmd, cmd;
+							var hist_no = 0;
 						
 							async function hist_event() {
 								document.getElementById("input-terminal").value = hist_select.value;
@@ -319,6 +364,7 @@
 								    opt.value = cmd;
 								    opt.innerHTML = cmd;
 								    hist_select.appendChild(opt);
+								    hist_no = hist_select.options.length;
 								}
 						
 								document.getElementById("textarea-terminal").innerHTML += document.getElementById("input-terminal").value + "\n";
@@ -394,7 +440,25 @@
 						
 								//alert(name)
 						
-								if(name == 'Enter' || code == 'Enter')
+								if(name == 'ArrowUp' || code == 'ArrowUp') {
+									if(hist_no > 1) {
+										document.getElementById("input-terminal").value = hist_select.options[--hist_no].value;
+									}
+						
+									setTimeout(function(){ document.getElementById("input-terminal").selectionStart = document.getElementById("input-terminal").selectionEnd = 1000; }, 0);
+								}
+								else if(name == 'ArrowDown' || code == 'ArrowDown') {
+									if(hist_no + 1 < hist_select.options.length) {
+										document.getElementById("input-terminal").value = hist_select.options[++hist_no].value;
+						
+										setTimeout(function(){ document.getElementById("input-terminal").selectionStart = document.getElementById("input-terminal").selectionEnd = 1000; }, 0);
+									}
+									else if(hist_no < hist_select.options.length) {
+										++hist_no;
+										document.getElementById("input-terminal").value = "";
+									}
+								}
+								else if(name == 'Enter' || code == 'Enter')
 							  		run_cmd();
 							}
 						</script>
@@ -432,25 +496,58 @@
 
 				<div id="explorer-div" class="main-div" style="display: none">
 					<div class="main-page">
+						<div id="dash-breadcrumb">
+						    <a onclick="show('index')">dash</a>/explorer
+						</div>
+						
 						<div class="card border">
 							<span id="span-pwd"></span>
 						</div><br>
 						
-						<div class="card border">
+						<div class="card border" style="overflow-x: scroll; white-space: nowrap; max-width: 90%;">
 							<i title="home" class='bs-ico bootstrap-house ico-link-color' onclick="get_dir(home)"></i> &nbsp;&nbsp;
 							<i title="refresh" class='bs-ico bootstrap-arrow-repeat ico-link-color' onclick="get_dir(bwd)"></i> &nbsp;&nbsp;
 							<i title="new directory" class='bs-ico bootstrap-folder-plus ico-link-color' onclick="show_create_dir()"></i> &nbsp;&nbsp;
 							<i title="new file" class='bs-ico bootstrap-file-earmark-plus ico-link-color' onclick="show_create_file()"></i> &nbsp;&nbsp;
+							<i title="edit" class='bs-ico bootstrap-code-square ico-link-color' onclick="edit_selected_files()"></i> &nbsp;&nbsp;
+							<i title="compress" class='bs-ico bootstrap-box ico-link-color' onclick="show_compress_file()"></i> &nbsp;&nbsp;
+							<i title="extract" class='bs-ico bootstrap-file-zip ico-link-color' onclick="extract_paths()"></i> &nbsp;&nbsp;
 							<i title="upload" class='bs-ico bootstrap-cloud-arrow-up ico-link-color' onclick="show_upload_file()"></i> &nbsp;&nbsp;
-							<i title="delete" class='bs-ico bootstrap-trash ico-link-color' onclick="show_rm_path()"></i> &nbsp;&nbsp;
-							<i title="rename" class='bs-ico bootstrap-input-cursor-text ico-link-color' onclick="show_mv_path()"></i>
+							<i title="url" class='bs-ico bootstrap-cloud-arrow-down ico-link-color' onclick="show_fetch_url()"></i> &nbsp;&nbsp;
+							<i title="download" class='bs-ico bootstrap-download ico-link-color' onclick="download_files()"></i> &nbsp;&nbsp;
+							<i title="copy/move" class='bs-ico bootstrap-box-arrow-right ico-link-color' onclick="show_mv_paths()"></i> &nbsp;&nbsp;
+							<i title="rename" class='bs-ico bootstrap-input-cursor-text ico-link-color' onclick="show_rename_path()"></i> &nbsp;&nbsp;
+							<i title="delete" class='bs-ico bootstrap-trash ico-link-color' onclick="rm_paths()"></i>
 						</div><br>
+						
+						
+						<div id="download-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
+							<table id="table-downloads">
+							</table><br>
+						
+							<button class="btn" onclick="document.getElementById('download-popup').style.display = 'none'" style="width: 100px; margin: 0 auto">close</button>
+						</div>
+						
+						<div id="card-fetch-url" class="card border" style="display: none">
+							<input id="input-fetch-url" placeholder="url" style="width: 300px; max-width: 90%;">
+							<button class="btn" onclick="fetch_url()">fetch</button>
+						</div>
 						
 						<div id="card-input-name" class="card border" style="display: none">
 							<input id="input-name" placeholder="name">
 							<button id="create_dir_button"  class="btn" onclick="create_dir()" style="display: none">create</button>
 							<button id="create_file_button" class="btn" onclick="create_file()" style="display: none">create</button>
-							<button id="rm_path_button"  class="btn" onclick="rm_path()" style="display: none">delete</button>
+						</div>
+						
+						<div id="card-input-compress" class="card border" style="display: none">
+							<input id="input-name-compress" placeholder="name" style="width:200px">
+							<select id="select-compress" style="margin: 0.25em; width: 75px">
+								<option value=".tar.xz" selected>.tar.xz</option>
+								<option value=".tar.gz">.tar.gz</option>
+								<option value=".tar.bz2">.tar.bz2</option>
+								<option value=".zip">.zip</option>
+							</select>
+							<button  class="btn" onclick="compress_paths()">compress</button>
 						</div>
 						
 						<div id="card-input-upload" class="card border" style="display: none">
@@ -462,14 +559,21 @@
 						</div>
 						
 						<div id="card-input-rename" class="card border" style="display: none">
-							<input id="input-name-old" placeholder="path old"> &nbsp;&nbsp;
+							<input id="input-name-old" placeholder="path old">
 							<input id="input-name-new" placeholder="path new">
-							<button id="mv_path_button"  class="btn" onclick="mv_path()">rename</button>
+							<button id="rename_path_button"  class="btn" onclick="rename_path()">rename</button>
 						</div>
 						
-						<div class="card border" id="card-browser">
+						<div id="card-input-mv" class="card border" style="display: none">
+							<input id="input-mv-path" placeholder="path">
+							<button  class="btn" onclick="cp_paths()">copy</button>
+							<button  class="btn" onclick="mv_paths()">move</button>
+						</div>
+						
+						<div class="card border" id="card-browser" style="max-width: 90%;">
 							<table id="table-files">
 								<tr>
+									<th><input type='checkbox' id='checkbox-all' onchange='select_all_event()' style='vertical-align: middle;'></th>
 									<th></th>
 									<th style="margin-right:100px">name</th>
 									<th>size</th>
@@ -479,6 +583,37 @@
 						</div>
 						
 						<style>
+							input[type=checkbox] {
+								position: relative;
+								cursor: pointer;
+						    }
+						    input[type=checkbox]:before {
+								content: "";
+								display: block;
+								position: absolute;
+								width: 12px;
+								height: 12px;
+								top: 0;
+								left: 2px;
+								border: 1px solid grey;
+								border-radius: 4px;
+								background-color: var(--secondary-dark);
+							}
+						    input[type=checkbox]:checked:after {
+								content: "";
+								display: block;
+								width: 3px;
+								height: 8px;
+								border: solid white;
+								border-width: 0 2px 2px 0;
+								-webkit-transform: rotate(45deg);
+								-ms-transform: rotate(45deg);
+								transform: rotate(45deg);
+								position: absolute;
+								top: 0px;
+								left: 6px;
+							}
+						
 							.dropzone {
 								margin-top: 0.15em;
 								width: 300px;
@@ -502,11 +637,12 @@
 								opacity: 0;
 							}
 						
-							#table-files {
+							#table-files, #table-downloads {
 								margin: 0 auto; 
 								text-align: left;
 						
 								display: block;
+								overflow-x: scroll;
 								/*height: calc(100vh - 16em);
 								overflow-y: scroll;*/
 							}
@@ -517,22 +653,43 @@
 						</style>
 						
 						<script>
-							const table = document.getElementById("table-files");
+							const files_table = document.getElementById("table-files");
 							var bwd = "nil"; //browser working directory
+							var explorer_files;
+						
+							async function select_all_event() {
+								//document.getElementById('checkbox-parent').checked = document.getElementById('checkbox-all').checked;
+								for(var f=0; f<explorer_files.length; ++f) {
+									document.getElementById('checkbox-' + f).checked = document.getElementById('checkbox-all').checked;
+								}
+							}
 						
 							async function hide_input_cards() {
+								document.getElementById("card-fetch-url").style.display = "none";
 								document.getElementById("card-input-upload").style.display = "none";
+								document.getElementById("card-input-mv").style.display = "none";
 								document.getElementById("card-input-rename").style.display = "none";
 								document.getElementById("card-input-name").style.display = "none";
+								document.getElementById("card-input-compress").style.display = "none";
 								document.getElementById("create_dir_button").style.display = "none";
 								document.getElementById("create_file_button").style.display = "none";
-								document.getElementById("rm_path_button").style.display = "none";
+							}
+						
+							async function show_fetch_url() {
+								if(document.getElementById("card-fetch-url").style.display == "none") {
+									hide_input_cards();
+									document.getElementById("card-fetch-url").style.display = "block";
+									document.getElementById("input-fetch-url").focus();
+								}
+								else {
+									hide_input_cards();
+								}
 							}
 						
 							async function show_create_dir() {
 								if(document.getElementById("create_dir_button").style.display == "none") {
 									hide_input_cards();
-									document.getElementById("card-input-name").style.display = "flex";
+									document.getElementById("card-input-name").style.display = "block";
 									document.getElementById("create_dir_button").style.display = "inline-flex";
 									document.getElementById("input-name").focus();
 								}
@@ -544,9 +701,20 @@
 							async function show_create_file() {
 								if(document.getElementById("create_file_button").style.display == "none") {
 									hide_input_cards();
-									document.getElementById("card-input-name").style.display = "flex";
+									document.getElementById("card-input-name").style.display = "block";
 									document.getElementById("create_file_button").style.display = "inline-flex";
 									document.getElementById("input-name").focus();
+								}
+								else {
+									hide_input_cards();
+								}
+							}
+						
+							async function show_compress_file() {
+								if(document.getElementById("card-input-compress").style.display == "none") {
+									hide_input_cards();
+									document.getElementById("card-input-compress").style.display = "block";
+									document.getElementById("input-name-compress").focus();
 								}
 								else {
 									hide_input_cards();
@@ -556,7 +724,7 @@
 							async function show_upload_file() {
 								if(document.getElementById("card-input-upload").style.display == "none") {
 									hide_input_cards();
-									document.getElementById("card-input-upload").style.display = "flex";
+									document.getElementById("card-input-upload").style.display = "block";
 								}
 								else {
 									hide_input_cards();
@@ -567,23 +735,22 @@
 								document.getElementById("span-dropzone").innerHTML = document.getElementById("input-file").value.split('\\').pop();
 							}
 						
-							async function show_rm_path() {
-								if(document.getElementById("rm_path_button").style.display == "none") {
+							async function show_rename_path() {
+								if(document.getElementById("card-input-rename").style.display == "none") {
 									hide_input_cards();
-									document.getElementById("card-input-name").style.display = "flex";
-									document.getElementById("rm_path_button").style.display = "inline-flex";
-									document.getElementById("input-name").focus();
+									document.getElementById("card-input-rename").style.display = "block";
+									document.getElementById("input-name-old").focus();
 								}
 								else {
 									hide_input_cards();
 								}
 							}
 						
-							async function show_mv_path() {
-								if(document.getElementById("card-input-rename").style.display == "none") {
+							async function show_mv_paths() {
+								if(document.getElementById("card-input-mv").style.display == "none") {
 									hide_input_cards();
-									document.getElementById("card-input-rename").style.display = "flex";
-									document.getElementById("input-name-old").focus();
+									document.getElementById("card-input-mv").style.display = "block";
+									document.getElementById("input-mv-path").focus();
 								}
 								else {
 									hide_input_cards();
@@ -640,13 +807,129 @@
 								document.getElementById("create_file_button").style.display = "none";
 							}
 						
+							async function edit_selected_files() {
+								var paths = "";
+								var count = 0;
+								for(var f=0; f<explorer_files.length; ++f) {
+									if(document.getElementById('checkbox-' + f).checked) {
+										if(explorer_files[f][0]) {
+											await notify("cannot edit directories");
+										}
+										else {
+											++count;
+											await edit_file(explorer_files[f][1]);
+										}
+									}
+								}
+						
+								if(!count) {
+									notify("nothing selected")
+								}
+							}
+						
+							async function extract_paths() {
+								var paths = "";
+								var count = 0;
+								for(var f=0; f<explorer_files.length; ++f) {
+									if(document.getElementById('checkbox-' + f).checked) {
+										++count;
+										var ext = explorer_files[f][1].substring(explorer_files[f][1].indexOf('.'), explorer_files[f][1].length);
+						
+										const date = new Date().getTime().toString();
+										const formData = new FormData();
+										formData.append("date", date);
+						
+										if(ext == ".zip") 
+											formData.append("command", "cd " + bwd + "; unzip " + explorer_files[f][1]);
+										else 
+											formData.append("command", "cd " + bwd + "; tar -xf " + explorer_files[f][1]);
+						
+										response = await fetch("/api/run", {
+											method: "POST",
+											headers: {
+												//"content-type": "application/json"
+												"signature": signature(date)
+										    },
+											body: formData
+										});
+										result = await response.json();
+						
+										if(result["output"] != "") {
+											notify(result["output"].replaceAll("\n", "<br>"));
+										}
+									}
+								}
+						
+								if(!count) {
+									notify("nothing selected")
+								}
+						
+								get_dir(bwd);
+							}
+						
+							async function compress_paths() {
+								var paths = "";
+								var first = true;
+								var count = 0;
+								for(var f=0; f<explorer_files.length; ++f) {
+									if(document.getElementById('checkbox-' + f).checked) {
+										if(first)
+											first = false;
+										else
+											paths += " ";
+										paths += explorer_files[f][1];
+										document.getElementById('checkbox-' + f).checked = false;
+										++count;
+									}
+								}
+						
+								if(count) {
+									const date = new Date().getTime().toString();
+									const formData = new FormData();
+									formData.append("date", date);
+									//https://stackoverflow.com/a/27785347
+									if(document.getElementById("select-compress").value == ".tar.xz") {
+										formData.append("command", "tar -C " + bwd + "/ -c " + paths + " | xz > " + bwd + "/" + document.getElementById("input-name-compress").value + ".tar.xz");
+									}
+									else if(document.getElementById("select-compress").value == ".tar.gz") {
+										formData.append("command", "tar -czf " + bwd + "/" + document.getElementById("input-name-compress").value + document.getElementById("select-compress").value + " -C " + bwd + "/ "  + paths);
+									}
+									else if(document.getElementById("select-compress").value == ".tar.bz2") {
+										formData.append("command", "tar -C " + bwd + "/ -c " + paths + " | bzip2 > " + bwd + "/" + document.getElementById("input-name-compress").value + ".tar.bz2");
+									}
+									else if(document.getElementById("select-compress").value == ".zip") {
+										formData.append("command", "cd " + bwd + "; zip -r " + bwd + "/" + document.getElementById("input-name-compress").value + ".zip " + paths);
+									}
+						
+									response = await fetch("/api/run", {
+										method: "POST",
+										headers: {
+											//"content-type": "application/json"
+											"signature": signature(date)
+									    },
+										body: formData
+									});
+									result = await response.json();
+						
+									get_dir(bwd);
+								}
+								else {
+									notify("nothing selected")
+								}
+						
+								document.getElementById("input-mv-path").value = "";
+								document.getElementById("card-input-mv").style.display = "none";
+							}
+						
 							async function upload_file() {
 								const fileField = document.getElementById("input-file");
 						
 								if(!fileField.files.length) {
-									alert("No file chosen");
+									notify("No file chosen");
 									return;
 								}
+						
+								waiting_popup("uploading " + fileField.value.split('\\').pop());
 						
 								const date = new Date().getTime().toString();
 								const formData = new FormData();
@@ -664,19 +947,98 @@
 								});
 								result = await response.json();
 						
+								resolve_waiting_popup();
+						
 								get_dir(bwd);
 						
 								document.getElementById("card-input-upload").style.display = "none";
 							}
 						
-							async function mv_path() {
+							async function fetch_url() {
+								const date = new Date().getTime().toString();
+								const formData = new FormData();
+								formData.append("date", date);
+								formData.append("command", "wget -q -O " + bwd + "/" + document.getElementById("input-fetch-url").value.split('?')[0].split('/').pop() + " " + document.getElementById("input-fetch-url").value);
+						
+								//alert("wget -q -O " + bwd + "/" + document.getElementById("input-fetch-url").value.split('?')[0].split('/').pop() + " " + document.getElementById("input-fetch-url").value);
+						
+								waiting_popup("downloading " + document.getElementById("input-fetch-url").value);
+						
+								response = await fetch("/api/run", {
+									method: "POST",
+									headers: {
+										//"content-type": "application/json"
+										"signature": signature(date)
+								    },
+									body: formData
+								});
+								result = await response.json();
+						
+								resolve_waiting_popup();
+						
+								get_dir(bwd);
+						
+								document.getElementById("input-fetch-url").value = "";
+								document.getElementById("card-fetch-url").style.display = "none";
+							}
+						
+							async function clear_downloads_table() {
+								const downloads_table = document.getElementById("table-downloads");
+						
+								while(downloads_table.rows.length > 0)
+									downloads_table.deleteRow(0);
+							}
+						
+							async function download_files() {
+								const downloads_table = document.getElementById("table-downloads");
+								var r = 0;
+						
+								clear_downloads_table();
+						
+								for(var f=0; f<explorer_files.length; ++f) {
+									if(document.getElementById('checkbox-' + f).checked) {
+										if(explorer_files[f][0]) {
+											await notify("cannot download directories");
+										}
+										else {
+											const date = new Date().getTime().toString();
+											const formData = new FormData();
+											formData.append("date", date);
+											formData.append("path", bwd + "/" + explorer_files[f][1]);
+						
+											response = await fetch("/api/download", {
+												method: "POST",
+												headers: {
+													//"content-type": "application/json"
+													"signature": signature(date)
+											    },
+												body: formData
+											});
+											var blob = await response.blob();
+						
+											var file = window.URL.createObjectURL(blob);
+						
+											var row = downloads_table.insertRow(0);
+											row.insertCell(0).innerHTML = explorer_files[f][1];
+											row.insertCell(1).innerHTML = "<a id='download-link-" + f + "' download><button class='btn'>download</button></a>";
+											document.getElementById("download-link-"+ f).href = file;
+											document.getElementById("download-link-"+ f).download = explorer_files[f][1];
+											document.getElementById("download-link-"+ f).click();
+											
+							    			//window.location.assign(file);
+										}
+									}
+								}
+							}
+						
+							async function rename_path() {
 								const date = new Date().getTime().toString();
 								const formData = new FormData();
 								formData.append("date", date);
 								formData.append("path-old", bwd + "/" + document.getElementById("input-name-old").value);
 								formData.append("path-new", bwd + "/" + document.getElementById("input-name-new").value);
 						
-								response = await fetch("/api/mv", {
+								response = await fetch("/api/rename", {
 									method: "POST",
 									headers: {
 										//"content-type": "application/json"
@@ -693,38 +1055,137 @@
 								document.getElementById("card-input-rename").style.display = "none";
 							}
 						
-							async function rm_path() {
-								var filename = document.getElementById("input-name").value;
+							async function mv_paths() {
+								var paths = "";
+								var first = true;
+								var count = 0;
+								for(var f=0; f<explorer_files.length; ++f) {
+									if(document.getElementById('checkbox-' + f).checked) {
+										if(first)
+											first = false;
+										else
+											paths += " ";
+										paths += bwd + "/" + explorer_files[f][1];
+										document.getElementById('checkbox-' + f).checked = false;
+										++count;
+									}
+								}
 						
-								const date = new Date().getTime().toString();
-								const formData = new FormData();
-								formData.append("date", date);
-								formData.append("path", bwd + "/" + filename);
+								if(count) {
+									const date = new Date().getTime().toString();
+									const formData = new FormData();
+									formData.append("date", date);
+									formData.append("paths", paths);
+									formData.append("path", bwd + "/" + document.getElementById("input-mv-path").value);
 						
-								response = await fetch("/api/rm", {
-									method: "POST",
-									headers: {
-										//"content-type": "application/json"
-										"signature": signature(date)
-								    },
-									body: formData
-								});
-								result = await response.json();
+									response = await fetch("/api/mv", {
+										method: "POST",
+										headers: {
+											//"content-type": "application/json"
+											"signature": signature(date)
+									    },
+										body: formData
+									});
+									result = await response.json();
 						
-								get_dir(bwd);
+									get_dir(bwd);
+								}
+								else {
+									notify("nothing selected")
+								}
 						
-								document.getElementById("input-name").value = "";
-								document.getElementById("card-input-name").style.display = "none";
-								document.getElementById("rm_path_button").style.display = "none";
+								document.getElementById("input-mv-path").value = "";
+								document.getElementById("card-input-mv").style.display = "none";
 							}
 						
-							async function clear_table() {
-								while(table.rows.length > 1)
-									table.deleteRow(1);
+							async function cp_paths() {
+								var paths = "";
+								var first = true;
+								var count = 0;
+								for(var f=0; f<explorer_files.length; ++f) {
+									if(document.getElementById('checkbox-' + f).checked) {
+										if(first)
+											first = false;
+										else
+											paths += " ";
+										paths += bwd + "/" + explorer_files[f][1];
+										document.getElementById('checkbox-' + f).checked = false;
+										++count;
+									}
+								}
+						
+								if(count) {
+									const date = new Date().getTime().toString();
+									const formData = new FormData();
+									formData.append("date", date);
+									formData.append("command", "cp -rf " + paths + " " + bwd + "/" + document.getElementById("input-mv-path").value);
+						
+									response = await fetch("/api/run", {
+										method: "POST",
+										headers: {
+											//"content-type": "application/json"
+											"signature": signature(date)
+									    },
+										body: formData
+									});
+									result = await response.json();
+						
+									get_dir(bwd);
+								}
+								else {
+									notify("nothing selected")
+								}
+						
+								document.getElementById("input-mv-path").value = "";
+								document.getElementById("card-input-mv").style.display = "none";
+							}
+						
+							async function rm_paths() {
+								var paths = "";
+								var first = true;
+								var count = 0;
+								for(var f=0; f<explorer_files.length; ++f) {
+									if(document.getElementById('checkbox-' + f).checked) {
+										if(first)
+											first = false;
+										else
+											paths += " ";
+										paths += bwd + "/" + explorer_files[f][1];
+										document.getElementById('checkbox-' + f).checked = false;
+										++count;
+									}
+								}
+						
+								if(count) {
+									const date = new Date().getTime().toString();
+									const formData = new FormData();
+									formData.append("date", date);
+									formData.append("paths", paths);
+						
+									response = await fetch("/api/rm", {
+										method: "POST",
+										headers: {
+											//"content-type": "application/json"
+											"signature": signature(date)
+									    },
+										body: formData
+									});
+									result = await response.json();
+						
+									get_dir(bwd);
+								}
+								else {
+									notify("nothing selected")
+								}
+							}
+						
+							async function clear_explorer_table() {
+								while(files_table.rows.length > 1)
+									files_table.deleteRow(1);
 							}
 						
 							async function get_dir(dir) {
-								clear_table();
+								clear_explorer_table();
 						
 								const date = new Date().getTime().toString();
 								const formData = new FormData();
@@ -770,47 +1231,51 @@
 							        body: formData
 								});
 								result = await response.json();
+								explorer_files = result["files"];
 						
 								for(var f=result["files"].length-1; f>=0; --f) {
-									var row = table.insertRow(1);
+									var row = files_table.insertRow(1);
+						
+									row.insertCell(0).innerHTML = "<input type='checkbox' id='checkbox-" + f + "' style='vertical-align: middle;'>"
 						
 									if(result["files"][f][0])
-										row.insertCell(0).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-folder no-hover-ico' style='padding-top: 3px'></i>";
+										row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-folder no-hover-ico' style='padding-top: 3px'></i>";
 									else 
-										row.insertCell(0).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-file-earmark no-hover-ico' style='padding-top: 3px'></i>";
+										row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-file-earmark no-hover-ico' style='padding-top: 3px'></i>";
 						
 									if(result["files"][f][0]) {
-										row.insertCell(1).innerHTML = "<a href='#' onclick='get_dir(\"" + bwd + "/" + result["files"][f][1] +  "\")'>" + result["files"][f][1] + "/</a>";
+										row.insertCell(2).innerHTML = "<a href='#' onclick='get_dir(\"" + bwd + "/" + result["files"][f][1] +  "\")'>" + result["files"][f][1] + "/</a>";
 									}
 									else {
-										row.insertCell(1).innerHTML = "<a href='#' onclick='edit_file(\"" + bwd + "/" + result["files"][f][1] +  "\")'>" + result["files"][f][1] + "</a>";
+										row.insertCell(2).innerHTML = "<a href='#' onclick='edit_file(\"" + bwd + "/" + result["files"][f][1] +  "\")'>" + result["files"][f][1] + "</a>";
 										//row.insertCell(1).innerHTML = result["files"][f][1];
 									}
 						
 									if(result["files"][f][0]) {
-										row.insertCell(2);
 										row.insertCell(3);
+										row.insertCell(4);
 									}
 									else {
 										if(result["files"][f][2] < 1000)
-											row.insertCell(2).innerHTML = result["files"][f][2] + "b";
+											row.insertCell(3).innerHTML = result["files"][f][2] + "b";
 										else if(result["files"][f][2] < 1000000)
-											row.insertCell(2).innerHTML = (result["files"][f][2]/1000).toFixed(2) + "kb";
+											row.insertCell(3).innerHTML = (result["files"][f][2]/1000).toFixed(2) + "kb";
 										else
-											row.insertCell(2).innerHTML = (result["files"][f][2]/1000000).toFixed(2) + "mb";
+											row.insertCell(3).innerHTML = (result["files"][f][2]/1000000).toFixed(2) + "mb";
 						
-										row.insertCell(3).innerHTML = result["files"][f][3];
+										row.insertCell(4).innerHTML = result["files"][f][3];
 									}
 								}
 						
 								if(dir != "/") 
 								{
-									var row = table.insertRow(1);
+									var row = files_table.insertRow(1);
 									var par = bwd.substring(0, bwd.lastIndexOf("/"));
-									row.insertCell(0).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-folder'></i>";
-									row.insertCell(1).innerHTML = "<a href='#' onclick='get_dir(\"" + par + "\")'>../</a>";
-									row.insertCell(2);
+									row.insertCell(0).innerHTML = "<input type='checkbox' id='checkbox-parent' disabled style='vertical-align: middle;'>";
+									row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-folder'></i>";
+									row.insertCell(2).innerHTML = "<a href='#' onclick='get_dir(\"" + par + "\")'>../</a>";
 									row.insertCell(3);
+									row.insertCell(4);
 								}
 							}
 						
@@ -824,6 +1289,10 @@
 
 				<div id="editor-div" class="main-div" style="display: none">
 					<div class="main-page">
+						<div id="dash-breadcrumb">
+						    <a onclick="show('index')">dash</a>/editor
+						</div>
+						
 						<div class="card border">
 							<i title="open" class='bs-ico bootstrap-folder-open ico-link-color' onclick="show_input_path_create()"></i> &nbsp;&nbsp;
 							<i title="save" class='bs-ico bootstrap-save ico-link-color' onclick="save_file()"></i> &nbsp;&nbsp;
@@ -1058,6 +1527,10 @@
 
 				<div id="tools-div" class="main-div" style="display: none">
 					<div class="main-page">
+						<div id="dash-breadcrumb">
+						    <a onclick="show('index')">dash</a>/tools
+						</div>
+						
 						<h1 style="margin: 0.5em 0">Tools</h1>
 						
 						<div class="card border-hover" onclick="show('certs')" style="cursor: pointer; width: 10em">
@@ -1067,7 +1540,7 @@
 						</div>
 						
 						<div class="card border-hover" onclick="show('fail2ban')" style="cursor: pointer; width: 10em">
-							<i class="bs-ico bootstrap-safe width-5em card-hover-filter"></i><br>
+							<i class="bs-ico bootstrap-shield-lock width-5em card-hover-filter"></i><br>
 							<hr>
 							<h2 class="card-hover-color">fail2ban</h2>
 						</div>
@@ -1079,7 +1552,7 @@
 						</div>
 						
 						<div class="card border-hover" onclick="show('ssh')" style="cursor: pointer; width: 10em">
-							<i class="bs-ico bootstrap-terminal-ssh width-5em card-hover-filter"></i><br>
+							<i class="bs-ico bootstrap-safe width-5em card-hover-filter"></i><br>
 							<hr>
 							<h2 class="card-hover-color">ssh</h2>
 						</div>
@@ -1088,6 +1561,10 @@
 
 				<div id="certs-div" class="main-div" style="display: none">
 					<div class="main-page">
+						<div id="dash-breadcrumb">
+						    <a onclick="show('index')">dash</a>/<a onclick="show('tools')">tools</a>/certs
+						</div>
+						
 						<div id="textarea-certs" spellcheck="false"></div>
 						
 						<button class="btn" onclick="document.getElementById('add-cert-popup').style.display = 'block'">add</button>
@@ -1251,7 +1728,7 @@
 								font-size: 0.9em;
 								overflow-x:auto;
 								padding: 0.25em 0.25em;
-								margin: 0.25em 0.5em;
+								margin: 0.25em 0;
 								resize: none;
 								text-align: left;
 								white-space: pre-wrap;
@@ -1262,12 +1739,18 @@
 
 				<div id="fail2ban-div" class="main-div" style="display: none">
 					<div class="main-page">
+						<div id="dash-breadcrumb">
+						    <a onclick="show('index')">dash</a>/<a onclick="show('tools')">tools</a>/fail2ban
+						</div>
+						
 						<div id="textarea-fail2ban" spellcheck="false"></div>
 						
-						<button id="fail2ban-ban-btn" class="btn" onclick="document.getElementById('ban-ip-popup').style.display = 'block'">ban</button>
-						<button id="fail2ban-unban-btn" class="btn" onclick="document.getElementById('unban-ip-popup').style.display = 'block'">unban</button>
-						<button id="fail2ban-restart-btn" class="btn" onclick="restart_fail2ban()">restart</button>
-						<button class="btn" onclick="edit_file('/etc/fail2ban/jail.local')">config</button>
+						<div id="div-fail2ban-btns">
+							<button id="fail2ban-ban-btn" class="btn" onclick="document.getElementById('ban-ip-popup').style.display = 'block'">ban</button>
+							<button id="fail2ban-unban-btn" class="btn" onclick="document.getElementById('unban-ip-popup').style.display = 'block'">unban</button>
+							<button id="fail2ban-restart-btn" class="btn" onclick="restart_fail2ban()">restart</button>
+							<button class="btn" onclick="edit_file('/etc/fail2ban/jail.local')">config</button>
+						</div>
 						
 						<div id="ban-ip-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
 							<input style="margin: 0.25em 0"
@@ -1310,8 +1793,10 @@
 						
 								if(result["output"].search("not found") == -1)
 									fail2ban_ta.innerHTML = result["output"];
-								else
+								else {
 									fail2ban_ta.innerHTML = "fail2ban not installed";
+									document.getElementById("div-fail2ban-btns").style.display = "none";
+								}
 							}
 						
 							async function restart_fail2ban() {
@@ -1352,7 +1837,7 @@
 								});
 								let result = await response.json();
 								
-								await notify(result["output"].replaceAll("\n", "<br>"));
+								//await notify(result["output"].replaceAll("\n", "<br>"));
 								await fetch_fail2ban_status();
 							}
 						
@@ -1374,7 +1859,7 @@
 								});
 								let result = await response.json();
 								
-								await notify(result["output"].replaceAll("\n", "<br>"));
+								//await notify(result["output"].replaceAll("\n", "<br>"));
 								await fetch_fail2ban_status();
 							}
 						</script>
@@ -1390,7 +1875,7 @@
 								font-size: 0.9em;
 								overflow-x:auto;
 								padding: 0.25em 0.25em;
-								margin: 0.25em 0.5em;
+								margin: 0.25em 0;
 								resize: none;
 								text-align: left;
 								white-space: pre-wrap;
@@ -1401,6 +1886,10 @@
 
 				<div id="firewall-div" class="main-div" style="display: none">
 					<div class="main-page">
+						<div id="dash-breadcrumb">
+						    <a onclick="show('index')">dash</a>/<a onclick="show('tools')">tools</a>/firewall
+						</div>
+						
 						<div id="textarea-firewall" spellcheck="false"></div>
 						
 						<button id="firewall-add-btn" class="btn" onclick="document.getElementById('add-rule-popup').style.display = 'block'">add</button>
@@ -1595,7 +2084,7 @@
 								font-size: 0.9em;
 								overflow-x:auto;
 								padding: 0.25em 0.25em;
-								margin: 0.25em 0.5em;
+								margin: 0.25em 0;
 								resize: none;
 								text-align: left;
 								white-space: pre-wrap;
@@ -1606,6 +2095,10 @@
 
 				<div id="ssh-div" class="main-div" style="display: none">
 					<div class="main-page">
+						<div id="dash-breadcrumb">
+						    <a onclick="show('index')">dash</a>/<a onclick="show('tools')">tools</a>/ssh
+						</div>
+						
 						<h1 style="margin: 0.5em 0">SSH</h1>
 						
 						<div class="card border-hover" onclick="edit_file('~/.ssh/authorized_keys')" style="cursor: pointer; width: 10em">
@@ -1840,6 +2333,10 @@
 			}
 
 			@media screen and (max-width: 600px) {
+			  #h2-Cloudfort {
+			  	display: none;
+			  }
+
 			  #menu-bars {
 			  	display: block;
 			  }
@@ -1987,6 +2484,19 @@
 				await firewall_init();
 			}
 			dash_init();
+
+			document.body.onkeydown = function(e) {
+				if(e.altKey) {
+					if(e.shiftKey && e.key == 'E')
+						show('editor');
+					else if(e.key == 'm')
+						show('monitor');
+					else if(e.key == 't')
+						show('terminal');
+					else if(e.key == 'x')
+						show('explorer')
+				}
+			}
 		</script>
 	</body>
 </html>

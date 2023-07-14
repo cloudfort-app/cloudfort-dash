@@ -24,7 +24,7 @@ var domain string
 var home string
 var port string
 var password []byte
-var version = "v0.1.13"
+var version = "v0.1.14"
 
 /*func check_referer(req *http.Request) bool {
     return (req.Referer() == "" || req.Referer()[0:len(domain)] != domain)
@@ -253,17 +253,83 @@ func routeHome(w http.ResponseWriter, req *http.Request) {
     w.Write([]byte("{\"home\": \"" + home + "\"}"))
 }
 
+func routeRename(w http.ResponseWriter, req *http.Request) {
+    if(!hasValidSignature(&w, req)) {
+        return
+    }
+
+    output := ""
+    err := os.Rename(req.PostFormValue("path-old"), req.PostFormValue("path-new"))
+    if(err != nil) {
+        log.Println(err)
+        output = err.Error() + "\\n"
+    }
+
+    w.Header().Set("Content-Type", "text/plain")
+    w.Write([]byte("{\"output\": \"" + output + "\"}"))
+}
+
 func routeMv(w http.ResponseWriter, req *http.Request) {
     if(!hasValidSignature(&w, req)) {
         return
     }
 
     output := ""
+    paths := strings.Split(req.PostFormValue("paths"), " ")
 
-    err := os.Rename(req.PostFormValue("path-old"), req.PostFormValue("path-new"))
-    if(err != nil) {
-        log.Println(err)
-        output = err.Error() + "\\n"
+    for p:=0; p<len(paths); p++ {
+        sl := strings.Split(paths[p], "/")
+        err := os.Rename(paths[p], req.PostFormValue("path") + "/" + sl[len(sl)-1])
+        if(err != nil) {
+            log.Println(err)
+            output = err.Error() + "\\n"
+        }
+    }
+
+    w.Header().Set("Content-Type", "text/plain")
+    w.Write([]byte("{\"output\": \"" + output + "\"}"))
+}
+
+func Copy(srcpath, dstpath string) (err error) {
+    r, err := os.Open(srcpath)
+    if err != nil {
+        return err
+    }
+    defer r.Close() // ignore error: file was opened read-only.
+
+    w, err := os.Create(dstpath)
+    if err != nil {
+        return err
+    }
+
+    defer func() {
+        // Report the error from Close, if any,
+        // but do so only if there isn't already
+        // an outgoing error.
+        if c := w.Close(); c != nil && err == nil {
+                err = c
+        }
+    }()
+
+    _, err = io.Copy(w, r)
+    return err
+}
+
+func routeCp(w http.ResponseWriter, req *http.Request) {
+    if(!hasValidSignature(&w, req)) {
+        return
+    }
+
+    output := ""
+    paths := strings.Split(req.PostFormValue("paths"), " ")
+
+    for p:=0; p<len(paths); p++ {
+        sl := strings.Split(paths[p], "/")
+        err := Copy(paths[p], req.PostFormValue("path") + "/" + sl[len(sl)-1])
+        if(err != nil) {
+            log.Println(err)
+            output = err.Error() + "\\n"
+        }
     }
 
     w.Header().Set("Content-Type", "text/plain")
@@ -276,11 +342,15 @@ func routeRm(w http.ResponseWriter, req *http.Request) {
     }
 
     output := ""
+    paths := strings.Split(req.PostFormValue("paths"), " ")
 
-    err := os.Remove(req.PostFormValue("path"))
-    if(err != nil) {
-        log.Println(err)
-        output = err.Error() + "\\n"
+    for p:=0; p<len(paths); p++ {
+        //err := os.Remove(paths[p])
+        err := os.RemoveAll(paths[p])
+        if(err != nil) {
+            log.Println(err)
+            output = err.Error() + "\\n"
+        }
     }
 
     w.Header().Set("Content-Type", "text/plain")
@@ -354,6 +424,16 @@ func routeRun(w http.ResponseWriter, req *http.Request) {
     w.Write([]byte("{\"output\": \"" + output + "\"}"))
 }
 
+func routeDownload(w http.ResponseWriter, req *http.Request) {
+    fmt.Println(req.URL.String())
+    fmt.Println(req.PostFormValue("path"))
+
+    //w.Header().Set("Content-Disposition", "attachment; filename=" + req.PostFormValue("path"))
+    //w.Header().Set("Content-Type", "application/octet-stream")
+    http.ServeFile(w, req, req.PostFormValue("path"))
+}
+
+
 func routeUpload(w http.ResponseWriter, req *http.Request) {
     if(!hasValidSignature(&w, req)) {
         return
@@ -413,11 +493,14 @@ func main() {
         mux.HandleFunc("/api/file/read",   routeFileRead)
         mux.HandleFunc("/api/file/write",  routeFileWrite)
         mux.HandleFunc("/api/home",        routeHome)
+        mux.HandleFunc("/api/rename",      routeRename)
         mux.HandleFunc("/api/mv",          routeMv)
+        mux.HandleFunc("/api/cp",          routeCp)
         mux.HandleFunc("/api/rm",          routeRm)
         mux.HandleFunc("/api/ls",          routeLs)
         mux.HandleFunc("/api/pwd",         routePwd)
         mux.HandleFunc("/api/run",         routeRun)
+        mux.HandleFunc("/api/download",    routeDownload)
         mux.HandleFunc("/api/upload",      routeUpload)
         mux.HandleFunc("/api/sigcheck",    routeVerifySignature)
 

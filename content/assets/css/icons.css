@@ -92,11 +92,20 @@
 .bootstrap-arrow-repeat:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-arrow-repeat.svg)"); 
 }
+.bootstrap-box:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-box.svg)"); 
+}
+.bootstrap-box-arrow-right:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-box-arrow-right.svg)"); 
+}
 .bootstrap-bricks:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-bricks.svg)"); 
 }
 .bootstrap-card-checklist:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-card-checklist.svg)"); 
+}
+.bootstrap-cloud-arrow-down:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-cloud-arrow-down.svg)"); 
 }
 .bootstrap-cloud-arrow-up:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-cloud-arrow-up.svg)"); 
@@ -110,11 +119,17 @@
 .bootstrap-database:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-database.svg)"); 
 }
+.bootstrap-download:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-download.svg)"); 
+}
 .bootstrap-file-earmark:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-file-earmark.svg)"); 
 }
 .bootstrap-file-earmark-plus:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-file-earmark-plus.svg)"); 
+}
+.bootstrap-file-zip:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-file-zip.svg)"); 
 }
 .bootstrap-folder:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-folder.svg)"); 
@@ -145,6 +160,12 @@
 }
 .bootstrap-save:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-save.svg)"); 
+}
+.bootstrap-shield-check:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-shield-check.svg)"); 
+}
+.bootstrap-shield-lock:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-shield-lock.svg)"); 
 }
 .bootstrap-terminal:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-terminal.svg)"); 

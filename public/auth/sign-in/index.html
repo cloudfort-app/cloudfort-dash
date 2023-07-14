@@ -25,6 +25,15 @@
 			<button class="btn" onclick="resolve_notify()">ok</button>
 		</div>
 		
+		<div id="div-waiting-popup" class="card border popup popup-dash popup-middle">
+			<span id="span-waiting-popup-msg"></span><br>
+			<img src="../../assets/icons/loading-boxes.svg" class="width-2em spinner no-hover-ico" style="margin-top: 1em">
+		</div>
+		
+		<script>
+			
+		</script>
+		
 		<style>
 			.popup {
 				display: none;
@@ -59,6 +68,30 @@
 		</style>
 		
 		<script>
+			const root = document.querySelector(':root');
+			var hue = 0;
+			var cycle_hue = false;
+			async function increment_spinner_hue() {
+				if(cycle_hue) {
+					hue = (hue+50)%360;
+					root.style.setProperty('--filter-spinner-color', "invert(53%) sepia(86%) saturate(463%)  hue-rotate(" + hue + "deg) brightness(95%) contrast(87%)");
+					setTimeout(increment_spinner_hue, 500);
+				}
+			}
+		
+			async function waiting_popup(msg) {
+				document.getElementById("span-waiting-popup-msg").innerHTML = msg;
+				cycle_hue = true;
+				increment_spinner_hue();
+				document.getElementById("div-waiting-popup").style.display = "block";
+			}
+		
+			async function resolve_waiting_popup() {
+				document.getElementById("div-waiting-popup").style.display = "none";
+				cycle_hue = false;
+				document.getElementById("span-waiting-popup-msg").innerHTML = "";
+			}
+		
 			function sleep(ms) {
 			    return new Promise(resolve => setTimeout(resolve, ms));
 			}
