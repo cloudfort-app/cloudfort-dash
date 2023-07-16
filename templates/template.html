@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html id="html" lang="en">
 	<head>
 		@input("templates/head.html")
 	</head>
@@ -325,14 +325,41 @@
 
 			document.body.onkeydown = function(e) {
 				if(e.altKey) {
-					if(e.shiftKey && e.key == 'E')
+					if(e.key == 'e') {
+						e.preventDefault();
 						show('editor');
-					else if(e.key == 'm')
+					}
+					else if(e.key == 'm') {
+						e.preventDefault();
 						show('monitor');
-					else if(e.key == 't')
+					}
+					else if(e.key == 't') {
+						e.preventDefault();
 						show('terminal');
-					else if(e.key == 'x')
+					}
+					else if(e.key == 'x') {
+						e.preventDefault();
 						show('explorer')
+					}
+					else if(e.key == "f" || e.key == "Enter") {
+						e.preventDefault();
+						if(document.fullscreenElement) {
+							document.exitFullscreen();
+						}
+						else {
+							if(document.getElementById("html").requestFullscreen)
+								document.getElementById("html").requestFullscreen();
+							else if(document.getElementById("html").webkitRequestFullscreen)
+								document.getElementById("html").webkitRequestFullscreen();
+							else if(document.getElementById("html").msRequestFullscreen)
+								document.getElementById("html").msRequestFullscreen();
+						}
+					}
+				}
+				else if(e.ctrlKey) {
+					/*if(e.key == "r") {
+						e.preventDefault();
+					}*/
 				}
 			}
 		</script>

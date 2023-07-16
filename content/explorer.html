@@ -12,6 +12,7 @@
 	<i title="new directory" class='bs-ico bootstrap-folder-plus ico-link-color' onclick="show_create_dir()"></i> &nbsp;&nbsp;
 	<i title="new file" class='bs-ico bootstrap-file-earmark-plus ico-link-color' onclick="show_create_file()"></i> &nbsp;&nbsp;
 	<i title="edit" class='bs-ico bootstrap-code-square ico-link-color' onclick="edit_selected_files()"></i> &nbsp;&nbsp;
+	<i title="run" class='bs-ico bootstrap-terminal ico-link-color' onclick="show_run_cmd()"></i> &nbsp;&nbsp;
 	<i title="compress" class='bs-ico bootstrap-box ico-link-color' onclick="show_compress_file()"></i> &nbsp;&nbsp;
 	<i title="extract" class='bs-ico bootstrap-file-zip ico-link-color' onclick="extract_paths()"></i> &nbsp;&nbsp;
 	<i title="upload" class='bs-ico bootstrap-cloud-arrow-up ico-link-color' onclick="show_upload_file()"></i> &nbsp;&nbsp;
@@ -33,6 +34,11 @@
 <div id="card-fetch-url" class="card border" style="display: none">
 	<input id="input-fetch-url" placeholder="url" style="width: 300px; max-width: 90%;">
 	<button class="btn" onclick="fetch_url()">fetch</button>
+</div>
+
+<div id="card-run-cmd" class="card border" style="display: none">
+	<input id="input-explorer-cmd" placeholder="cmd" style="width: 400px; max-width: 90%">
+	<button class="btn" onclick="explorer_run_cmd()">run</button>
 </div>
 
 <div id="card-input-name" class="card border" style="display: none">
@@ -61,8 +67,9 @@
 </div>
 
 <div id="card-input-rename" class="card border" style="display: none">
-	<input id="input-name-old" placeholder="path old">
-	<input id="input-name-new" placeholder="path new">
+	<input id="input-name-current" placeholder="current path" style="width: 300px"><br>
+	<input id="input-name-new" placeholder="new path" style="width: 300px"><br>
+	<button id="duplicate_path_button"  class="btn" onclick="duplicate_path()">duplicate</button>
 	<button id="rename_path_button"  class="btn" onclick="rename_path()">rename</button>
 </div>
 
@@ -72,7 +79,7 @@
 	<button  class="btn" onclick="mv_paths()">move</button>
 </div>
 
-<div class="card border" id="card-browser" style="max-width: 90%;">
+<div class="card border" id="card-browser" style="max-width: 90%; margin-bottom: 1em;">
 	<table id="table-files">
 		<tr>
 			<th><input type='checkbox' id='checkbox-all' onchange='select_all_event()' style='vertical-align: middle;'></th>
@@ -168,6 +175,7 @@
 
 	async function hide_input_cards() {
 		document.getElementById("card-fetch-url").style.display = "none";
+		document.getElementById("card-run-cmd").style.display = "none";
 		document.getElementById("card-input-upload").style.display = "none";
 		document.getElementById("card-input-mv").style.display = "none";
 		document.getElementById("card-input-rename").style.display = "none";
@@ -182,6 +190,17 @@
 			hide_input_cards();
 			document.getElementById("card-fetch-url").style.display = "block";
 			document.getElementById("input-fetch-url").focus();
+		}
+		else {
+			hide_input_cards();
+		}
+	}
+
+	async function show_run_cmd() {
+		if(document.getElementById("card-run-cmd").style.display == "none") {
+			hide_input_cards();
+			document.getElementById("card-run-cmd").style.display = "block";
+			document.getElementById("input-explorer-cmd").focus();
 		}
 		else {
 			hide_input_cards();
@@ -241,7 +260,7 @@
 		if(document.getElementById("card-input-rename").style.display == "none") {
 			hide_input_cards();
 			document.getElementById("card-input-rename").style.display = "block";
-			document.getElementById("input-name-old").focus();
+			document.getElementById("input-name-current").focus();
 		}
 		else {
 			hide_input_cards();
@@ -319,7 +338,7 @@
 				}
 				else {
 					++count;
-					await edit_file(explorer_files[f][1]);
+					await edit_file(bwd + "/" + explorer_files[f][1]);
 				}
 			}
 		}
@@ -484,6 +503,36 @@
 		document.getElementById("card-fetch-url").style.display = "none";
 	}
 
+	async function explorer_run_cmd() {
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		formData.append("command", "cd " + bwd + "; " + document.getElementById("input-explorer-cmd").value);
+
+
+		waiting_popup(document.getElementById("input-explorer-cmd").value);
+
+		response = await fetch("/api/run", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		result = await response.json();
+
+		resolve_waiting_popup();
+		get_dir(bwd);
+
+		document.getElementById("input-explorer-cmd").value = "";
+		document.getElementById("card-run-cmd").style.display = "none";
+
+		if(result["output"] != "") {
+			await mono_notify(result["output"]);
+		}
+	}
+
 	async function clear_downloads_table() {
 		const downloads_table = document.getElementById("table-downloads");
 
@@ -537,7 +586,7 @@
 		const date = new Date().getTime().toString();
 		const formData = new FormData();
 		formData.append("date", date);
-		formData.append("path-old", bwd + "/" + document.getElementById("input-name-old").value);
+		formData.append("path-old", bwd + "/" + document.getElementById("input-name-current").value);
 		formData.append("path-new", bwd + "/" + document.getElementById("input-name-new").value);
 
 		response = await fetch("/api/rename", {
@@ -552,7 +601,30 @@
 
 		get_dir(bwd);
 
-		document.getElementById("input-name-old").value = "";
+		document.getElementById("input-name-current").value = "";
+		document.getElementById("input-name-new").value = "";
+		document.getElementById("card-input-rename").style.display = "none";
+	}
+
+	async function duplicate_path() {
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		formData.append("command", "cd " + bwd + "; cp -rf " + document.getElementById("input-name-current").value + " " + document.getElementById("input-name-new").value);
+
+		response = await fetch("/api/run", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		result = await response.json();
+
+		get_dir(bwd);
+
+		document.getElementById("input-name-current").value = "";
 		document.getElementById("input-name-new").value = "";
 		document.getElementById("card-input-rename").style.display = "none";
 	}
@@ -643,6 +715,10 @@
 	}
 
 	async function rm_paths() {
+		if(!await confirm_("permanently delete files?")) {
+			return;
+		}
+
 		var paths = "";
 		var first = true;
 		var count = 0;

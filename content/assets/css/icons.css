@@ -86,6 +86,9 @@
 .bootstrap-activity:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-activity.svg)"); 
 }
+.bootstrap-arrow-down-square:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-arrow-down-square.svg)"); 
+}
 .bootstrap-arrow-down-up:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-arrow-down-up.svg)"); 
 }
@@ -97,6 +100,9 @@
 }
 .bootstrap-box-arrow-right:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-box-arrow-right.svg)"); 
+}
+.bootstrap-braces-asterisk:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-braces-asterisk.svg)"); 
 }
 .bootstrap-bricks:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-bricks.svg)"); 
@@ -151,6 +157,9 @@
 }
 .bootstrap-key:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-key.svg)"); 
+}
+.bootstrap-regex:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-regex.svg)"); 
 }
 .bootstrap-robot:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-robot.svg)"); 

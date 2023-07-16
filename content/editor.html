@@ -2,10 +2,13 @@
     <a onclick="show('index')">dash</a>/editor
 </div>
 
-<div class="card border">
+<div class="card border" style="overflow-x: scroll; white-space: nowrap; max-width: 90%;">
 	<i title="open" class='bs-ico bootstrap-folder-open ico-link-color' onclick="show_input_path_create()"></i> &nbsp;&nbsp;
 	<i title="save" class='bs-ico bootstrap-save ico-link-color' onclick="save_file()"></i> &nbsp;&nbsp;
+	<i title="save as" class='bs-ico bootstrap-arrow-down-square ico-link-color' onclick="show_save_as()"></i> &nbsp;&nbsp;
 	<i title="goto line" class='bs-ico bootstrap-arrow-down-up ico-link-color' onclick="show_goto_line_no()"></i> &nbsp;&nbsp;
+	<i title="replace" class='bs-ico bootstrap-braces-asterisk ico-link-color' onclick="show_find_and_replace()"></i> &nbsp;&nbsp;
+	<i title="regex" class='bs-ico bootstrap-regex ico-link-color' onclick="show_regex_replace()"></i> &nbsp;&nbsp;
 	<i title="close" class='bs-ico bootstrap-x-square ico-link-color' onclick="close_file()"></i>
 </div><br>
 
@@ -17,12 +20,30 @@
 
 <div id="card-input-path" class="card" style="display: none">
 	<input id="input-path" placeholder="path">
-	<button id="open_button" class="btn" onclick="open_file()" style="display: none">open</button>
+	<button class="btn" onclick="open_file()">open</button>
 </div>
 
-<div id="card-input-line-no" class="card" style="display: none; width: 8em">
+<div id="card-input-save-as" class="card border" style="display: none">
+	<input id="input-editor-save-as-path" placeholder="path">
+	<button class="btn" onclick="save_as()">save</button>
+</div>
+
+<div id="card-input-line-no" class="card border" style="display: none; width: 8em">
 	<input id="input-line-no" placeholder="line" style="width: 4em">
-	<button id="open_button" class="btn" onclick="jump_to_line()" style="display: inline">go</button>
+	<button class="btn" onclick="jump_to_line()" style="display: inline">go</button>
+</div>
+
+<div id="card-input-find-replace" class="card border" style="display: none">
+	<input id="input-editor-find" placeholder="find">
+	<input id="input-editor-replace" placeholder="replace">
+	<button class="btn" onclick="find_and_replace()">replace</button>
+</div>
+
+<div id="card-input-regex-replace" class="card border" style="display: none">
+	<input id="input-editor-regex-pattern" placeholder="pattern">
+	<input id="input-editor-regex-flags" placeholder="flags">
+	<input id="input-editor-regex-replace" placeholder="replace">
+	<button class="btn" onclick="regex_replace()">replace</button>
 </div>
 
 <select id="select-open-file" onchange="select_open_file_event()">
@@ -77,28 +98,68 @@
 		redraw_editor();
 	}
 
-	async function show_goto_line_no() {
-		if(document.getElementById("card-input-line-no").style.display == "none")
-			document.getElementById("card-input-line-no").style.display = "block";
+	async function editor_hide_input_cards() {
+		document.getElementById("card-input-save-as").style.display = "none";
+		document.getElementById("card-input-line-no").style.display = "none";
+		document.getElementById("card-input-find-replace").style.display = "none";
+		document.getElementById("card-input-regex-replace").style.display = "none";
+		document.getElementById("card-input-path").style.display = "none";
+	}
+
+	async function show_save_as() {
+		if(document.getElementById("card-input-save-as").style.display == "none") {
+			editor_hide_input_cards();
+			document.getElementById("card-input-save-as").style.display = "block";
+			document.getElementById("input-editor-save-as-path").focus();
+		}
 		else
-			document.getElementById("card-input-line-no").style.display = "none";
+			editor_hide_input_cards();
+	}
+
+	async function show_goto_line_no() {
+		if(document.getElementById("card-input-line-no").style.display == "none") {
+			editor_hide_input_cards();
+			document.getElementById("card-input-line-no").style.display = "block";
+			document.getElementById("input-line-no").focus();
+		}
+		else
+			editor_hide_input_cards();
+	}
+
+	async function show_find_and_replace() {
+		if(document.getElementById("card-input-find-replace").style.display == "none") {
+			editor_hide_input_cards();
+			document.getElementById("card-input-find-replace").style.display = "block";
+			document.getElementById("input-editor-find").focus();
+		}
+		else
+			editor_hide_input_cards();
+	}
+
+	async function show_regex_replace() {
+		if(document.getElementById("card-input-regex-replace").style.display == "none") {
+			editor_hide_input_cards();
+			document.getElementById("card-input-regex-replace").style.display = "block";
+			document.getElementById("input-editor-regex-pattern").focus();
+		}
+		else
+			editor_hide_input_cards();
 	}
 
 	async function show_input_path_create() {
 		if(document.getElementById("card-input-path").style.display == "none") {
-			var pwd = await get_pwd();
+			await get_pwd();
 
 			if(pwd.substring(0, home.length) == home)
 			    pwd = "~" + pwd.substring(home.length, pwd.length);
 
-			document.getElementById("card-input-path").style.display = "flex";
-			document.getElementById("open_button").style.display = "inline-flex";
+			editor_hide_input_cards();
+			document.getElementById("card-input-path").style.display = "block";
 			document.getElementById("input-path").value = pwd + "/";
 			document.getElementById("input-path").focus();
 		}
 		else {
-			document.getElementById("card-input-path").style.display = "none";
-			document.getElementById("open_button").style.display = "none";
+			editor_hide_input_cards();
 		}
 	}
 
@@ -110,7 +171,6 @@
 
 		edit_file(path);
 		document.getElementById("card-input-path").style.display = "none";
-		document.getElementById("open_button").style.display = "none";
 		editor.readOnly = false;
 	}
 
@@ -184,7 +244,7 @@
 	}
 
 	async function save_file() {
-		if(open_path == "") {
+		if(open_path == "" || open_path == "<nil>") {
 			alert("no file open");
 			return;
 		}
@@ -205,6 +265,47 @@
 	        body: formData
 		});
 		let result = await response.json();
+	}
+
+	async function save_as() {
+		if(open_path == "") {
+			alert("no file open");
+			return;
+		}
+		else if(document.getElementById("input-editor-save-as-path").value == "") {
+			alert("no path specified");
+			return;
+		}
+
+		const dir = open_path.substring(0, open_path.lastIndexOf('/')+1);
+		const path = document.getElementById("input-editor-save-as-path").value;
+
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		if(path[0] == '/' || path[0] == '~')
+			formData.append("path", path);
+		else
+			formData.append("path", dir + path);
+		formData.append("content", editor.value);
+
+		let response = await fetch("/api/file/write", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+		    	//"content-type": "application/x-www-form-urlencoded"
+		    	"signature": signature(date)
+		    },
+	        body: formData
+		});
+		let result = await response.json();
+
+		if(path[0] == '/' || path[0] == '~')
+			edit_file(path);
+		else
+			edit_file(dir + path);
+
+		document.getElementById("card-input-save-as").style.display = "none";
 	}
 </script>
 

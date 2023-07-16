@@ -10,7 +10,7 @@
 
 <script>
 	const hist_select = document.getElementById("select-hist");
-	var prev_cmd, cmd;
+	var prev_cmd, cmd, twd;
 	var hist_no = 0;
 
 	async function hist_event() {
@@ -49,9 +49,42 @@
 
 		if(cmd.split(" ")[0] == "edit") {
 			document.getElementById("textarea-terminal").innerHTML += "\n";
-			edit_file(cmd.split(" ")[1]);
+			var path = cmd.split(" ")[1];
+			if(path[0] == '/' || path[0] == '~')
+				edit_file(path);
+			else
+				edit_file(twd + "/" + cmd.split(" ")[1]);
 		}
 		else if(cmd.split(" ")[0] == "cd") {
+			var dir = cmd.split(" ")[1];
+
+			if(dir[0] == '~' && home.length)
+				dir = home + dir.substring(1, dir.length);
+
+			formData.append("command", "cd " + twd + "; " + cmd + " 2> /dev/null; pwd");
+
+			let response = await fetch("/api/run", {
+				method: "POST",
+				headers: {
+					//"content-type": "application/json"
+					"signature": signature(date)
+			    },
+		        body: formData
+			});
+			let result = await response.json();
+
+			var otwd = twd;
+			twd = result["output"].replaceAll("\n", "");
+
+			if(twd.substring(0, home.length) == home)
+				twd = "~" + twd.substring(home.length, twd.length);
+
+			if(twd == otwd && dir != "./") 
+				document.getElementById("textarea-terminal").innerHTML += "cd: " + dir + ": no such directory\n\n";
+			else
+				document.getElementById("textarea-terminal").innerHTML += "\n";
+		}
+		else if(cmd.split(" ")[0] == "CD") {
 			var dir = cmd.split(" ")[1];
 
 			if(dir[0] == '~' && home.length)
@@ -69,11 +102,17 @@
 			});
 			let result = await response.json();
 
+			await get_pwd();
+			twd = pwd;
+
+			if(twd.substring(0, home.length) == home)
+				twd = "~" + twd.substring(home.length, twd.length);
+
 			document.getElementById("textarea-terminal").innerHTML += result["output"] + "\n";
 		}
 		else {
 			try {
-				formData.append("command", cmd);
+				formData.append("command", "cd " + twd + "; " + cmd);
 
 				let response = await fetch("/api/run", {
 					method: "POST",
@@ -89,26 +128,22 @@
 				document.getElementById("textarea-terminal").innerHTML += remove_backspaces(result["output"]) + "\n";
 			}
 			catch(error) {
-				alert("error: " + error);
+				notify("error: " + error);
 			}
 		}
 
-		await get_pwd();
-
-		if(pwd.substring(0, home.length) == home)
-			pwd = "~" + pwd.substring(home.length, pwd.length);
-
-		document.getElementById("textarea-terminal").innerHTML += "<span style='color: var(--sorbet-pink)'>" + pwd + "</span>$ ";
+		document.getElementById("textarea-terminal").innerHTML += "<span style='color: var(--sorbet-pink)'>" + twd + "</span>$ ";
 		document.getElementById("textarea-terminal").scrollTop = document.getElementById("textarea-terminal").scrollHeight;
 	}
 
 	async function terminal_init() {
 		await get_pwd();
+		twd = pwd;
 
-		if(pwd.substring(0, home.length) == home)
-			pwd = "~" + pwd.substring(home.length, pwd.length);
+		if(twd.substring(0, home.length) == home)
+			twd = "~" + twd.substring(home.length, twd.length);
 
-		document.getElementById("textarea-terminal").innerHTML += "<span style='color: var(--sorbet-pink)'>" + pwd + "</span>$ ";
+		document.getElementById("textarea-terminal").innerHTML += "<span style='color: var(--sorbet-pink)'>" + twd + "</span>$ ";
 	}
 
 	function terminal_keypress(e) {
@@ -135,8 +170,9 @@
 				document.getElementById("input-terminal").value = "";
 			}
 		}
-		else if(name == 'Enter' || code == 'Enter')
+		else if(name == 'Enter' || code == 'Enter') {
 	  		run_cmd();
+		}
 	}
 </script>
 

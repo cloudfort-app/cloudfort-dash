@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html id="html" lang="en">
 	<head>
 		<title>Cloudfort Dash</title>
 		
@@ -23,6 +23,11 @@
 		<div id="div-notify-popup" class="card border popup popup-dash popup-middle">
 			<span id="span-notify-popup-msg">are you sure?</span><br>
 			<button class="btn" onclick="resolve_notify()">ok</button>
+		</div>
+		
+		<div id="div-mono-notify-popup" class="card border popup popup-dash popup-middle" style="width: 100%">
+			<textarea id="mono-notify-popup-textarea" style="text-align: left; font-family: 'ubuntu mono';"></textarea><br>
+			<button class="btn" onclick="document.getElementById('div-mono-notify-popup').style.display='none'">ok</button>
 		</div>
 		
 		<div id="div-waiting-popup" class="card border popup popup-dash popup-middle">
@@ -63,6 +68,22 @@
 					left: 3.5em;
 					max-width: calc(90% - 3.5em);
 				}
+			}
+		
+			#mono-notify-popup-textarea {
+				background: var(--secondary-dark);
+				border: 1px solid var(--light-black);
+				color: var(--white);
+				height: 300px; 
+				width: 90%;
+				font-family: "ubuntu mono";
+				font-size: 0.9em;
+				overflow-x:auto;
+				padding: 0.25em 0.25em;
+				margin: 0.25em 0;
+				resize: none;
+				text-align: left;
+				white-space: pre-wrap;
 			}
 		
 		</style>
@@ -152,6 +173,10 @@
 				await notify_color(result["response"], (result["successful"] ? "var(--primary-grey)" : "var(--primary-red)"));
 			}
 			
+			async function mono_notify(msg) {
+				document.getElementById("mono-notify-popup-textarea").innerHTML = msg;
+				document.getElementById("div-mono-notify-popup").style.display = "block";
+			}
 		</script>
 
 		<div align="center">
@@ -333,7 +358,7 @@
 						
 						<script>
 							const hist_select = document.getElementById("select-hist");
-							var prev_cmd, cmd;
+							var prev_cmd, cmd, twd;
 							var hist_no = 0;
 						
 							async function hist_event() {
@@ -372,9 +397,42 @@
 						
 								if(cmd.split(" ")[0] == "edit") {
 									document.getElementById("textarea-terminal").innerHTML += "\n";
-									edit_file(cmd.split(" ")[1]);
+									var path = cmd.split(" ")[1];
+									if(path[0] == '/' || path[0] == '~')
+										edit_file(path);
+									else
+										edit_file(twd + "/" + cmd.split(" ")[1]);
 								}
 								else if(cmd.split(" ")[0] == "cd") {
+									var dir = cmd.split(" ")[1];
+						
+									if(dir[0] == '~' && home.length)
+										dir = home + dir.substring(1, dir.length);
+						
+									formData.append("command", "cd " + twd + "; " + cmd + " 2> /dev/null; pwd");
+						
+									let response = await fetch("/api/run", {
+										method: "POST",
+										headers: {
+											//"content-type": "application/json"
+											"signature": signature(date)
+									    },
+								        body: formData
+									});
+									let result = await response.json();
+						
+									var otwd = twd;
+									twd = result["output"].replaceAll("\n", "");
+						
+									if(twd.substring(0, home.length) == home)
+										twd = "~" + twd.substring(home.length, twd.length);
+						
+									if(twd == otwd && dir != "./") 
+										document.getElementById("textarea-terminal").innerHTML += "cd: " + dir + ": no such directory\n\n";
+									else
+										document.getElementById("textarea-terminal").innerHTML += "\n";
+								}
+								else if(cmd.split(" ")[0] == "CD") {
 									var dir = cmd.split(" ")[1];
 						
 									if(dir[0] == '~' && home.length)
@@ -392,11 +450,17 @@
 									});
 									let result = await response.json();
 						
+									await get_pwd();
+									twd = pwd;
+						
+									if(twd.substring(0, home.length) == home)
+										twd = "~" + twd.substring(home.length, twd.length);
+						
 									document.getElementById("textarea-terminal").innerHTML += result["output"] + "\n";
 								}
 								else {
 									try {
-										formData.append("command", cmd);
+										formData.append("command", "cd " + twd + "; " + cmd);
 						
 										let response = await fetch("/api/run", {
 											method: "POST",
@@ -412,26 +476,22 @@
 										document.getElementById("textarea-terminal").innerHTML += remove_backspaces(result["output"]) + "\n";
 									}
 									catch(error) {
-										alert("error: " + error);
+										notify("error: " + error);
 									}
 								}
 						
-								await get_pwd();
-						
-								if(pwd.substring(0, home.length) == home)
-									pwd = "~" + pwd.substring(home.length, pwd.length);
-						
-								document.getElementById("textarea-terminal").innerHTML += "<span style='color: var(--sorbet-pink)'>" + pwd + "</span>$ ";
+								document.getElementById("textarea-terminal").innerHTML += "<span style='color: var(--sorbet-pink)'>" + twd + "</span>$ ";
 								document.getElementById("textarea-terminal").scrollTop = document.getElementById("textarea-terminal").scrollHeight;
 							}
 						
 							async function terminal_init() {
 								await get_pwd();
+								twd = pwd;
 						
-								if(pwd.substring(0, home.length) == home)
-									pwd = "~" + pwd.substring(home.length, pwd.length);
+								if(twd.substring(0, home.length) == home)
+									twd = "~" + twd.substring(home.length, twd.length);
 						
-								document.getElementById("textarea-terminal").innerHTML += "<span style='color: var(--sorbet-pink)'>" + pwd + "</span>$ ";
+								document.getElementById("textarea-terminal").innerHTML += "<span style='color: var(--sorbet-pink)'>" + twd + "</span>$ ";
 							}
 						
 							function terminal_keypress(e) {
@@ -458,8 +518,9 @@
 										document.getElementById("input-terminal").value = "";
 									}
 								}
-								else if(name == 'Enter' || code == 'Enter')
+								else if(name == 'Enter' || code == 'Enter') {
 							  		run_cmd();
+								}
 							}
 						</script>
 						
@@ -510,6 +571,7 @@
 							<i title="new directory" class='bs-ico bootstrap-folder-plus ico-link-color' onclick="show_create_dir()"></i> &nbsp;&nbsp;
 							<i title="new file" class='bs-ico bootstrap-file-earmark-plus ico-link-color' onclick="show_create_file()"></i> &nbsp;&nbsp;
 							<i title="edit" class='bs-ico bootstrap-code-square ico-link-color' onclick="edit_selected_files()"></i> &nbsp;&nbsp;
+							<i title="run" class='bs-ico bootstrap-terminal ico-link-color' onclick="show_run_cmd()"></i> &nbsp;&nbsp;
 							<i title="compress" class='bs-ico bootstrap-box ico-link-color' onclick="show_compress_file()"></i> &nbsp;&nbsp;
 							<i title="extract" class='bs-ico bootstrap-file-zip ico-link-color' onclick="extract_paths()"></i> &nbsp;&nbsp;
 							<i title="upload" class='bs-ico bootstrap-cloud-arrow-up ico-link-color' onclick="show_upload_file()"></i> &nbsp;&nbsp;
@@ -531,6 +593,11 @@
 						<div id="card-fetch-url" class="card border" style="display: none">
 							<input id="input-fetch-url" placeholder="url" style="width: 300px; max-width: 90%;">
 							<button class="btn" onclick="fetch_url()">fetch</button>
+						</div>
+						
+						<div id="card-run-cmd" class="card border" style="display: none">
+							<input id="input-explorer-cmd" placeholder="cmd" style="width: 400px; max-width: 90%">
+							<button class="btn" onclick="explorer_run_cmd()">run</button>
 						</div>
 						
 						<div id="card-input-name" class="card border" style="display: none">
@@ -559,8 +626,9 @@
 						</div>
 						
 						<div id="card-input-rename" class="card border" style="display: none">
-							<input id="input-name-old" placeholder="path old">
-							<input id="input-name-new" placeholder="path new">
+							<input id="input-name-current" placeholder="current path" style="width: 300px"><br>
+							<input id="input-name-new" placeholder="new path" style="width: 300px"><br>
+							<button id="duplicate_path_button"  class="btn" onclick="duplicate_path()">duplicate</button>
 							<button id="rename_path_button"  class="btn" onclick="rename_path()">rename</button>
 						</div>
 						
@@ -570,7 +638,7 @@
 							<button  class="btn" onclick="mv_paths()">move</button>
 						</div>
 						
-						<div class="card border" id="card-browser" style="max-width: 90%;">
+						<div class="card border" id="card-browser" style="max-width: 90%; margin-bottom: 1em;">
 							<table id="table-files">
 								<tr>
 									<th><input type='checkbox' id='checkbox-all' onchange='select_all_event()' style='vertical-align: middle;'></th>
@@ -666,6 +734,7 @@
 						
 							async function hide_input_cards() {
 								document.getElementById("card-fetch-url").style.display = "none";
+								document.getElementById("card-run-cmd").style.display = "none";
 								document.getElementById("card-input-upload").style.display = "none";
 								document.getElementById("card-input-mv").style.display = "none";
 								document.getElementById("card-input-rename").style.display = "none";
@@ -680,6 +749,17 @@
 									hide_input_cards();
 									document.getElementById("card-fetch-url").style.display = "block";
 									document.getElementById("input-fetch-url").focus();
+								}
+								else {
+									hide_input_cards();
+								}
+							}
+						
+							async function show_run_cmd() {
+								if(document.getElementById("card-run-cmd").style.display == "none") {
+									hide_input_cards();
+									document.getElementById("card-run-cmd").style.display = "block";
+									document.getElementById("input-explorer-cmd").focus();
 								}
 								else {
 									hide_input_cards();
@@ -739,7 +819,7 @@
 								if(document.getElementById("card-input-rename").style.display == "none") {
 									hide_input_cards();
 									document.getElementById("card-input-rename").style.display = "block";
-									document.getElementById("input-name-old").focus();
+									document.getElementById("input-name-current").focus();
 								}
 								else {
 									hide_input_cards();
@@ -817,7 +897,7 @@
 										}
 										else {
 											++count;
-											await edit_file(explorer_files[f][1]);
+											await edit_file(bwd + "/" + explorer_files[f][1]);
 										}
 									}
 								}
@@ -982,6 +1062,36 @@
 								document.getElementById("card-fetch-url").style.display = "none";
 							}
 						
+							async function explorer_run_cmd() {
+								const date = new Date().getTime().toString();
+								const formData = new FormData();
+								formData.append("date", date);
+								formData.append("command", "cd " + bwd + "; " + document.getElementById("input-explorer-cmd").value);
+						
+						
+								waiting_popup(document.getElementById("input-explorer-cmd").value);
+						
+								response = await fetch("/api/run", {
+									method: "POST",
+									headers: {
+										//"content-type": "application/json"
+										"signature": signature(date)
+								    },
+									body: formData
+								});
+								result = await response.json();
+						
+								resolve_waiting_popup();
+								get_dir(bwd);
+						
+								document.getElementById("input-explorer-cmd").value = "";
+								document.getElementById("card-run-cmd").style.display = "none";
+						
+								if(result["output"] != "") {
+									await mono_notify(result["output"]);
+								}
+							}
+						
 							async function clear_downloads_table() {
 								const downloads_table = document.getElementById("table-downloads");
 						
@@ -1035,7 +1145,7 @@
 								const date = new Date().getTime().toString();
 								const formData = new FormData();
 								formData.append("date", date);
-								formData.append("path-old", bwd + "/" + document.getElementById("input-name-old").value);
+								formData.append("path-old", bwd + "/" + document.getElementById("input-name-current").value);
 								formData.append("path-new", bwd + "/" + document.getElementById("input-name-new").value);
 						
 								response = await fetch("/api/rename", {
@@ -1050,7 +1160,30 @@
 						
 								get_dir(bwd);
 						
-								document.getElementById("input-name-old").value = "";
+								document.getElementById("input-name-current").value = "";
+								document.getElementById("input-name-new").value = "";
+								document.getElementById("card-input-rename").style.display = "none";
+							}
+						
+							async function duplicate_path() {
+								const date = new Date().getTime().toString();
+								const formData = new FormData();
+								formData.append("date", date);
+								formData.append("command", "cd " + bwd + "; cp -rf " + document.getElementById("input-name-current").value + " " + document.getElementById("input-name-new").value);
+						
+								response = await fetch("/api/run", {
+									method: "POST",
+									headers: {
+										//"content-type": "application/json"
+										"signature": signature(date)
+								    },
+									body: formData
+								});
+								result = await response.json();
+						
+								get_dir(bwd);
+						
+								document.getElementById("input-name-current").value = "";
 								document.getElementById("input-name-new").value = "";
 								document.getElementById("card-input-rename").style.display = "none";
 							}
@@ -1141,6 +1274,10 @@
 							}
 						
 							async function rm_paths() {
+								if(!await confirm_("permanently delete files?")) {
+									return;
+								}
+						
 								var paths = "";
 								var first = true;
 								var count = 0;
@@ -1293,10 +1430,13 @@
 						    <a onclick="show('index')">dash</a>/editor
 						</div>
 						
-						<div class="card border">
+						<div class="card border" style="overflow-x: scroll; white-space: nowrap; max-width: 90%;">
 							<i title="open" class='bs-ico bootstrap-folder-open ico-link-color' onclick="show_input_path_create()"></i> &nbsp;&nbsp;
 							<i title="save" class='bs-ico bootstrap-save ico-link-color' onclick="save_file()"></i> &nbsp;&nbsp;
+							<i title="save as" class='bs-ico bootstrap-arrow-down-square ico-link-color' onclick="show_save_as()"></i> &nbsp;&nbsp;
 							<i title="goto line" class='bs-ico bootstrap-arrow-down-up ico-link-color' onclick="show_goto_line_no()"></i> &nbsp;&nbsp;
+							<i title="replace" class='bs-ico bootstrap-braces-asterisk ico-link-color' onclick="show_find_and_replace()"></i> &nbsp;&nbsp;
+							<i title="regex" class='bs-ico bootstrap-regex ico-link-color' onclick="show_regex_replace()"></i> &nbsp;&nbsp;
 							<i title="close" class='bs-ico bootstrap-x-square ico-link-color' onclick="close_file()"></i>
 						</div><br>
 						
@@ -1308,12 +1448,30 @@
 						
 						<div id="card-input-path" class="card" style="display: none">
 							<input id="input-path" placeholder="path">
-							<button id="open_button" class="btn" onclick="open_file()" style="display: none">open</button>
+							<button class="btn" onclick="open_file()">open</button>
 						</div>
 						
-						<div id="card-input-line-no" class="card" style="display: none; width: 8em">
+						<div id="card-input-save-as" class="card border" style="display: none">
+							<input id="input-editor-save-as-path" placeholder="path">
+							<button class="btn" onclick="save_as()">save</button>
+						</div>
+						
+						<div id="card-input-line-no" class="card border" style="display: none; width: 8em">
 							<input id="input-line-no" placeholder="line" style="width: 4em">
-							<button id="open_button" class="btn" onclick="jump_to_line()" style="display: inline">go</button>
+							<button class="btn" onclick="jump_to_line()" style="display: inline">go</button>
+						</div>
+						
+						<div id="card-input-find-replace" class="card border" style="display: none">
+							<input id="input-editor-find" placeholder="find">
+							<input id="input-editor-replace" placeholder="replace">
+							<button class="btn" onclick="find_and_replace()">replace</button>
+						</div>
+						
+						<div id="card-input-regex-replace" class="card border" style="display: none">
+							<input id="input-editor-regex-pattern" placeholder="pattern">
+							<input id="input-editor-regex-flags" placeholder="flags">
+							<input id="input-editor-regex-replace" placeholder="replace">
+							<button class="btn" onclick="regex_replace()">replace</button>
 						</div>
 						
 						<select id="select-open-file" onchange="select_open_file_event()">
@@ -1368,28 +1526,68 @@
 								redraw_editor();
 							}
 						
-							async function show_goto_line_no() {
-								if(document.getElementById("card-input-line-no").style.display == "none")
-									document.getElementById("card-input-line-no").style.display = "block";
+							async function editor_hide_input_cards() {
+								document.getElementById("card-input-save-as").style.display = "none";
+								document.getElementById("card-input-line-no").style.display = "none";
+								document.getElementById("card-input-find-replace").style.display = "none";
+								document.getElementById("card-input-regex-replace").style.display = "none";
+								document.getElementById("card-input-path").style.display = "none";
+							}
+						
+							async function show_save_as() {
+								if(document.getElementById("card-input-save-as").style.display == "none") {
+									editor_hide_input_cards();
+									document.getElementById("card-input-save-as").style.display = "block";
+									document.getElementById("input-editor-save-as-path").focus();
+								}
 								else
-									document.getElementById("card-input-line-no").style.display = "none";
+									editor_hide_input_cards();
+							}
+						
+							async function show_goto_line_no() {
+								if(document.getElementById("card-input-line-no").style.display == "none") {
+									editor_hide_input_cards();
+									document.getElementById("card-input-line-no").style.display = "block";
+									document.getElementById("input-line-no").focus();
+								}
+								else
+									editor_hide_input_cards();
+							}
+						
+							async function show_find_and_replace() {
+								if(document.getElementById("card-input-find-replace").style.display == "none") {
+									editor_hide_input_cards();
+									document.getElementById("card-input-find-replace").style.display = "block";
+									document.getElementById("input-editor-find").focus();
+								}
+								else
+									editor_hide_input_cards();
+							}
+						
+							async function show_regex_replace() {
+								if(document.getElementById("card-input-regex-replace").style.display == "none") {
+									editor_hide_input_cards();
+									document.getElementById("card-input-regex-replace").style.display = "block";
+									document.getElementById("input-editor-regex-pattern").focus();
+								}
+								else
+									editor_hide_input_cards();
 							}
 						
 							async function show_input_path_create() {
 								if(document.getElementById("card-input-path").style.display == "none") {
-									var pwd = await get_pwd();
+									await get_pwd();
 						
 									if(pwd.substring(0, home.length) == home)
 									    pwd = "~" + pwd.substring(home.length, pwd.length);
 						
-									document.getElementById("card-input-path").style.display = "flex";
-									document.getElementById("open_button").style.display = "inline-flex";
+									editor_hide_input_cards();
+									document.getElementById("card-input-path").style.display = "block";
 									document.getElementById("input-path").value = pwd + "/";
 									document.getElementById("input-path").focus();
 								}
 								else {
-									document.getElementById("card-input-path").style.display = "none";
-									document.getElementById("open_button").style.display = "none";
+									editor_hide_input_cards();
 								}
 							}
 						
@@ -1401,7 +1599,6 @@
 						
 								edit_file(path);
 								document.getElementById("card-input-path").style.display = "none";
-								document.getElementById("open_button").style.display = "none";
 								editor.readOnly = false;
 							}
 						
@@ -1475,7 +1672,7 @@
 							}
 						
 							async function save_file() {
-								if(open_path == "") {
+								if(open_path == "" || open_path == "<nil>") {
 									alert("no file open");
 									return;
 								}
@@ -1496,6 +1693,47 @@
 							        body: formData
 								});
 								let result = await response.json();
+							}
+						
+							async function save_as() {
+								if(open_path == "") {
+									alert("no file open");
+									return;
+								}
+								else if(document.getElementById("input-editor-save-as-path").value == "") {
+									alert("no path specified");
+									return;
+								}
+						
+								const dir = open_path.substring(0, open_path.lastIndexOf('/')+1);
+								const path = document.getElementById("input-editor-save-as-path").value;
+						
+								const date = new Date().getTime().toString();
+								const formData = new FormData();
+								formData.append("date", date);
+								if(path[0] == '/' || path[0] == '~')
+									formData.append("path", path);
+								else
+									formData.append("path", dir + path);
+								formData.append("content", editor.value);
+						
+								let response = await fetch("/api/file/write", {
+									method: "POST",
+									headers: {
+										//"content-type": "application/json"
+								    	//"content-type": "application/x-www-form-urlencoded"
+								    	"signature": signature(date)
+								    },
+							        body: formData
+								});
+								let result = await response.json();
+						
+								if(path[0] == '/' || path[0] == '~')
+									edit_file(path);
+								else
+									edit_file(dir + path);
+						
+								document.getElementById("card-input-save-as").style.display = "none";
 							}
 						</script>
 						
@@ -2487,14 +2725,41 @@
 
 			document.body.onkeydown = function(e) {
 				if(e.altKey) {
-					if(e.shiftKey && e.key == 'E')
+					if(e.key == 'e') {
+						e.preventDefault();
 						show('editor');
-					else if(e.key == 'm')
+					}
+					else if(e.key == 'm') {
+						e.preventDefault();
 						show('monitor');
-					else if(e.key == 't')
+					}
+					else if(e.key == 't') {
+						e.preventDefault();
 						show('terminal');
-					else if(e.key == 'x')
+					}
+					else if(e.key == 'x') {
+						e.preventDefault();
 						show('explorer')
+					}
+					else if(e.key == "f" || e.key == "Enter") {
+						e.preventDefault();
+						if(document.fullscreenElement) {
+							document.exitFullscreen();
+						}
+						else {
+							if(document.getElementById("html").requestFullscreen)
+								document.getElementById("html").requestFullscreen();
+							else if(document.getElementById("html").webkitRequestFullscreen)
+								document.getElementById("html").webkitRequestFullscreen();
+							else if(document.getElementById("html").msRequestFullscreen)
+								document.getElementById("html").msRequestFullscreen();
+						}
+					}
+				}
+				else if(e.ctrlKey) {
+					/*if(e.key == "r") {
+						e.preventDefault();
+					}*/
 				}
 			}
 		</script>

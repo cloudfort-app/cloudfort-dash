@@ -427,6 +427,9 @@ ul li {
 .bootstrap-activity:before {
   content: url("../icons/bootstrap-activity.svg"); 
 }
+.bootstrap-arrow-down-square:before {
+  content: url("../icons/bootstrap-arrow-down-square.svg"); 
+}
 .bootstrap-arrow-down-up:before {
   content: url("../icons/bootstrap-arrow-down-up.svg"); 
 }
@@ -438,6 +441,9 @@ ul li {
 }
 .bootstrap-box-arrow-right:before {
   content: url("../icons/bootstrap-box-arrow-right.svg"); 
+}
+.bootstrap-braces-asterisk:before {
+  content: url("../icons/bootstrap-braces-asterisk.svg"); 
 }
 .bootstrap-bricks:before {
   content: url("../icons/bootstrap-bricks.svg"); 
@@ -492,6 +498,9 @@ ul li {
 }
 .bootstrap-key:before {
   content: url("../icons/bootstrap-key.svg"); 
+}
+.bootstrap-regex:before {
+  content: url("../icons/bootstrap-regex.svg"); 
 }
 .bootstrap-robot:before {
   content: url("../icons/bootstrap-robot.svg"); 
@@ -863,7 +872,7 @@ pre{
 	text-align:left;
 	tab-size: 4;
 	min-height: 200px;
-	height: calc(100vh - 13em); 
+	height: calc(100vh - 13.5em); 
 
 	font-size: 1em;
   line-height: 1em;

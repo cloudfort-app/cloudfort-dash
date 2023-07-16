@@ -31,7 +31,7 @@
 		const formData = new FormData();
 		formData.append("date", date);
 
-		let response = await fetch("/api/password/check", {
+		let response = await fetch("/api/sigcheck", {
 			method: "POST",
 			headers: {
 				//"content-type": "application/json"

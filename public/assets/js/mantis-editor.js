@@ -53,8 +53,7 @@ function setCaretToPos (input, pos) {
 	setSelectionRange(input, pos, pos);
 }
 
-function jump_to_line(line)
-{
+function jump_to_line() {
 	var line = document.getElementById("input-line-no").value;
 
 	var pos = 0;
@@ -70,6 +69,22 @@ function jump_to_line(line)
 	set_line_no();
 
 	document.getElementById("card-input-line-no").style.display = "none";
+}
+
+function find_and_replace() {
+	var find = document.getElementById("input-editor-find").value;
+	var replace = document.getElementById("input-editor-replace").value;
+	mantis_editor.value = mantis_editor.value.replaceAll(find, replace);
+	redraw_editor();
+}
+
+function regex_replace() {
+	var pattern = document.getElementById("input-editor-regex-pattern").value.replaceAll("\\", "\\\\");
+	var flags = document.getElementById("input-editor-regex-flags").value.replaceAll("\\", "\\\\");
+	var replace = document.getElementById("input-editor-regex-replace").value;
+	var re = new RegExp(pattern, flags);
+	mantis_editor.value = mantis_editor.value.replaceAll(re, replace);
+	redraw_editor();
 }
 
 hljs.highlightAll();
@@ -100,6 +115,7 @@ function redraw_editor() {
 			mantis_editor.value.replaceAll(
 				"&", "&amp;").replaceAll(
 				"<", "&lt;").replaceAll(
+				">", "&gt;").replaceAll(
 				"-", "&#8288;-&#8288;") + '\n';
 		if(one_newline(editor_content.innerHTML))
 			editor_content.innerHTML = editor_content.innerHTML + "\n";
@@ -116,8 +132,66 @@ mantis_editor.innerHTML = mantis_editor.innerText;
 
 //modified from https://stackoverflow.com/questions/6637341/use-tab-to-indent-in-textarea
 mantis_editor.onkeydown = function(e) {
-	// Tab key?
-	if(e.keyCode === 9 || e.which==9) {
+	var name = e.key;
+	var code = e.code;
+
+	if(e.altKey) {
+		if(name == 'w') {
+			e.preventDefault();
+			close_file();
+		}
+		else if(name == '-' || name == '_') {
+			e.preventDefault();
+
+			for(var i=1; i<file_select.length; ++i) {
+				if(file_select.options[i].value == open_path) {
+					if(i>1)
+						file_select.value = file_select.options[i-1].value;
+					else
+						file_select.value = file_select.options[file_select.length-1].value;
+
+					select_open_file_event();
+					break;
+				}
+			}
+		}
+		else if(name == '=' || name == '+') {
+			e.preventDefault();
+
+			for(var i=1; i<file_select.length; ++i) {
+				if(file_select.options[i].value == open_path) {
+					if(i + 1 < file_select.length) {
+						file_select.value = file_select.options[i+1].value;
+					}
+					else {
+						file_select.value = file_select.options[1].value;
+					}
+
+					select_open_file_event();
+					break;
+				}
+			}
+		}
+	}
+	if(e.ctrlKey) {
+		if(name == 's') {
+			e.preventDefault();
+			save_file();
+		}
+		else if(name == "S") {
+			e.preventDefault();
+			show_save_as();
+		}
+		else if(name == 'F') {
+			e.preventDefault();
+			show_find_and_replace();
+		}
+		else if(name == 'X') {
+			e.preventDefault();
+			show_regex_replace();
+		}
+	}
+	else if(e.keyCode === 9 || e.which==9) { // Tab key
 		e.preventDefault();
 
 		// selection?

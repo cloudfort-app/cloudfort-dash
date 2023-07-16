@@ -25,6 +25,11 @@
 			<button class="btn" onclick="resolve_notify()">ok</button>
 		</div>
 		
+		<div id="div-mono-notify-popup" class="card border popup popup-dash popup-middle" style="width: 100%">
+			<textarea id="mono-notify-popup-textarea" style="text-align: left; font-family: 'ubuntu mono';"></textarea><br>
+			<button class="btn" onclick="document.getElementById('div-mono-notify-popup').style.display='none'">ok</button>
+		</div>
+		
 		<div id="div-waiting-popup" class="card border popup popup-dash popup-middle">
 			<span id="span-waiting-popup-msg"></span><br>
 			<img src="../../assets/icons/loading-boxes.svg" class="width-2em spinner no-hover-ico" style="margin-top: 1em">
@@ -63,6 +68,22 @@
 					left: 3.5em;
 					max-width: calc(90% - 3.5em);
 				}
+			}
+		
+			#mono-notify-popup-textarea {
+				background: var(--secondary-dark);
+				border: 1px solid var(--light-black);
+				color: var(--white);
+				height: 300px; 
+				width: 90%;
+				font-family: "ubuntu mono";
+				font-size: 0.9em;
+				overflow-x:auto;
+				padding: 0.25em 0.25em;
+				margin: 0.25em 0;
+				resize: none;
+				text-align: left;
+				white-space: pre-wrap;
 			}
 		
 		</style>
@@ -152,6 +173,10 @@
 				await notify_color(result["response"], (result["successful"] ? "var(--primary-grey)" : "var(--primary-red)"));
 			}
 			
+			async function mono_notify(msg) {
+				document.getElementById("mono-notify-popup-textarea").innerHTML = msg;
+				document.getElementById("div-mono-notify-popup").style.display = "block";
+			}
 		</script>
 		
 		<div align="center">
@@ -188,7 +213,7 @@
 					const formData = new FormData();
 					formData.append("date", date);
 			
-					let response = await fetch("/api/password/check", {
+					let response = await fetch("/api/sigcheck", {
 						method: "POST",
 						headers: {
 							//"content-type": "application/json"
