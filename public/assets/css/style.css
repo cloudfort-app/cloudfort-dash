@@ -427,6 +427,12 @@ ul li {
 .bootstrap-activity:before {
   content: url("../icons/bootstrap-activity.svg"); 
 }
+.bootstrap-alt:before {
+  content: url("../icons/bootstrap-alt.svg"); 
+}
+.bootstrap-arrow-clockwise:before {
+  content: url("../icons/bootstrap-arrow-clockwise.svg"); 
+}
 .bootstrap-arrow-down-square:before {
   content: url("../icons/bootstrap-arrow-down-square.svg"); 
 }
@@ -442,6 +448,9 @@ ul li {
 .bootstrap-box-arrow-right:before {
   content: url("../icons/bootstrap-box-arrow-right.svg"); 
 }
+.bootstrap-boxes:before {
+  content: url("../icons/bootstrap-boxes.svg"); 
+}
 .bootstrap-braces-asterisk:before {
   content: url("../icons/bootstrap-braces-asterisk.svg"); 
 }
@@ -450,6 +459,9 @@ ul li {
 }
 .bootstrap-card-checklist:before {
   content: url("../icons/bootstrap-card-checklist.svg"); 
+}
+.bootstrap-clock:before {
+  content: url("../icons/bootstrap-clock.svg"); 
 }
 .bootstrap-cloud-arrow-down:before {
   content: url("../icons/bootstrap-cloud-arrow-down.svg"); 
@@ -490,6 +502,9 @@ ul li {
 .bootstrap-gear:before {
   content: url("../icons/bootstrap-gear.svg"); 
 }
+.bootstrap-globe:before {
+  content: url("../icons/bootstrap-globe.svg"); 
+}
 .bootstrap-house:before {
   content: url("../icons/bootstrap-house.svg"); 
 }
@@ -529,9 +544,13 @@ ul li {
 .bootstrap-trash:before {
   content: url("../icons/bootstrap-trash.svg"); 
 }
+.bootstrap-wrench-adjustable:before {
+  content: url("../icons/bootstrap-wrench-adjustable.svg"); 
+}
 .bootstrap-x-square:before {
   content: url("../icons/bootstrap-x-square.svg"); 
 }
+
 
 #menu-bars, #menu-cross {
   position: absolute;

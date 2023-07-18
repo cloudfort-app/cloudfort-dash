@@ -48,6 +48,8 @@
 				text-align: center;
 				width: 500px; 
 				max-width: 90%;
+				max-height: 66vh;
+				overflow-y: scroll;
 				z-index: 999;
 			}
 		
@@ -350,8 +352,12 @@
 						    <a onclick="show('index')">dash</a>/terminal
 						</div>
 						
+						<select id="select-terminal-interactive" style="margin: 0.25em 0 0; width: 300px">
+							<option value="interactive" selected>interactive</option>
+							<option value="non-interactive">non-interactive</option>
+						</select>
 						<div id="textarea-terminal" style="text-align: left; margin: 0.5em 0;"></div>
-						<input id="input-terminal" placeholder="cmd" onkeydown="terminal_keypress(event)"><br>
+						<input id="input-terminal" placeholder="cmd" spellcheck="false" onkeydown="terminal_keypress(event)"><br>
 						<select id="select-hist" onchange="hist_event()">
 							<option value="none" disabled hidden selected>history</option>
 						</select>
@@ -360,18 +366,43 @@
 							const hist_select = document.getElementById("select-hist");
 							var prev_cmd, cmd, twd;
 							var hist_no = 0;
+							var finished = true;
 						
-							async function hist_event() {
-								document.getElementById("input-terminal").value = hist_select.value;
-								document.getElementById("input-terminal").focus();
-								hist_select.value = "none";
-							}
+							var socket = new WebSocket("ws://" + window.location.host + "/api/socket/run");
 						
 							function remove_backspaces(str)
 							{
 							    while(str.indexOf("\b") != -1)
 							        str = str.replace(/.\x08/, "");
 							    return str;
+							}
+						
+							async function add_prompt() {
+								if(document.getElementById("textarea-terminal").innerHTML != "")
+									document.getElementById("textarea-terminal").innerHTML += "\n";
+								document.getElementById("textarea-terminal").innerHTML += "<span style='color: var(--sorbet-pink)'>" + twd + "</span>$ ";
+								document.getElementById("textarea-terminal").scrollTop = document.getElementById("textarea-terminal").scrollHeight;
+							}
+						
+							socket.onmessage = function (e) {
+								if(e.data == "[finished]") {
+									finished = true;
+									add_prompt();
+								}
+								else if(e.data == "invalid signature") {
+									document.getElementById("input-terminal").disabled = true;
+									document.getElementById("textarea-terminal").innerHTML = "websocket handshake failed";
+								}
+								else {
+									document.getElementById("textarea-terminal").innerHTML += e.data;
+									document.getElementById("textarea-terminal").scrollTop = document.getElementById("textarea-terminal").scrollHeight;
+								}
+						    };
+						
+							async function hist_event() {
+								document.getElementById("input-terminal").value = hist_select.value;
+								document.getElementById("input-terminal").focus();
+								hist_select.value = "none";
 							}
 						
 							async function run_cmd() {
@@ -384,7 +415,7 @@
 						
 								if(cmd.length && cmd[0] == ' ')
 									cmd = cmd.slice(1);
-								else if(cmd != prev_cmd) {
+								else if(cmd != prev_cmd && finished) {
 									var opt = document.createElement('option');
 								    opt.value = cmd;
 								    opt.innerHTML = cmd;
@@ -395,13 +426,19 @@
 								document.getElementById("textarea-terminal").innerHTML += document.getElementById("input-terminal").value + "\n";
 								document.getElementById("input-terminal").value = "";
 						
-								if(cmd.split(" ")[0] == "edit") {
-									document.getElementById("textarea-terminal").innerHTML += "\n";
+								if(cmd == "clear") {
+									document.getElementById("textarea-terminal").innerHTML = "";
+						
+									add_prompt();
+								}
+								else if(cmd.split(" ")[0] == "edit") {
 									var path = cmd.split(" ")[1];
 									if(path[0] == '/' || path[0] == '~')
 										edit_file(path);
 									else
 										edit_file(twd + "/" + cmd.split(" ")[1]);
+						
+									add_prompt();
 								}
 								else if(cmd.split(" ")[0] == "cd") {
 									var dir = cmd.split(" ")[1];
@@ -428,9 +465,9 @@
 										twd = "~" + twd.substring(home.length, twd.length);
 						
 									if(twd == otwd && dir != "./") 
-										document.getElementById("textarea-terminal").innerHTML += "cd: " + dir + ": no such directory\n\n";
-									else
-										document.getElementById("textarea-terminal").innerHTML += "\n";
+										document.getElementById("textarea-terminal").innerHTML += "cd: " + dir + ": no such directory\n";
+						
+									add_prompt();
 								}
 								else if(cmd.split(" ")[0] == "CD") {
 									var dir = cmd.split(" ")[1];
@@ -456,7 +493,16 @@
 									if(twd.substring(0, home.length) == home)
 										twd = "~" + twd.substring(home.length, twd.length);
 						
-									document.getElementById("textarea-terminal").innerHTML += result["output"] + "\n";
+									document.getElementById("textarea-terminal").innerHTML += result["output"];
+									add_prompt();
+								}
+								else if(document.getElementById("select-terminal-interactive").value == "interactive") {
+									if(!finished)
+										socket.send(cmd);
+									else {
+										finished = false;
+										socket.send("cd " + twd + "; " + cmd);
+									}
 								}
 								else {
 									try {
@@ -473,15 +519,15 @@
 										});
 										let result = await response.json();
 						
-										document.getElementById("textarea-terminal").innerHTML += remove_backspaces(result["output"]) + "\n";
+										document.getElementById("textarea-terminal").innerHTML += remove_backspaces(result["output"]);
+										add_prompt();
 									}
 									catch(error) {
 										notify("error: " + error);
 									}
 								}
 						
-								document.getElementById("textarea-terminal").innerHTML += "<span style='color: var(--sorbet-pink)'>" + twd + "</span>$ ";
-								document.getElementById("textarea-terminal").scrollTop = document.getElementById("textarea-terminal").scrollHeight;
+								//add_prompt();
 							}
 						
 							async function terminal_init() {
@@ -491,10 +537,15 @@
 								if(twd.substring(0, home.length) == home)
 									twd = "~" + twd.substring(home.length, twd.length);
 						
-								document.getElementById("textarea-terminal").innerHTML += "<span style='color: var(--sorbet-pink)'>" + twd + "</span>$ ";
+								//signature handshake
+								var date = new Date().getTime().toString();
+								socket.send(date);
+								socket.send(signature(date));
+						
+								add_prompt();
 							}
 						
-							function terminal_keypress(e) {
+							async function terminal_keypress(e) {
 								var name = e.key;
 								var code = e.code;
 						
@@ -520,6 +571,64 @@
 								}
 								else if(name == 'Enter' || code == 'Enter') {
 							  		run_cmd();
+								}
+								else if(e.altKey) {
+									if(e.key == 'c') {
+										document.getElementById("textarea-terminal").innerHTML += "kill\n";
+										socket.send("kill");
+									}
+								}
+								else if(name == 'Tab') {
+									e.preventDefault();
+						
+									var input = document.getElementById("input-terminal").value;
+									var pos = document.getElementById("input-terminal").selectionStart;
+						
+									var pspace = input.lastIndexOf(' ', pos-1);;
+									var pslash = input.lastIndexOf('/', pos);;
+						
+									var dir = "";
+									if(pslash > pspace)
+										dir = input.substring(pspace + 1, pslash + 1);
+									else
+										dir = twd;
+									var str;
+									if(pslash > pspace)
+										str = input.substring(pslash + 1, pos);
+									else
+										str = input.substring(pspace + 1, pos);
+						
+									//alert("'" + dir + "'\n'" + str + "'");
+						
+									const date = new Date().getTime().toString();
+									const formData = new FormData();
+									formData.append("date", date);
+									formData.append("dir", dir);
+									formData.append("str", str);
+						
+									response = await fetch("/api/tab", {
+										method: "POST",
+										headers: {
+											//"content-type": "application/json"
+											"signature": signature(date)
+									    },
+										body: formData
+									});
+									result = await response.json();
+						
+									var options = result["output"].split(" ");
+						
+									if(options.length == 1 && options[0] != "") {
+										document.getElementById("input-terminal").value = input.substring(0, pos) + options[0].substring(str.length, options[0].length) + input.substring(pos, input.length);
+						
+										setTimeout(function(){document.getElementById("input-terminal").selectionStart = document.getElementById("input-terminal").selectionEnd = pos + options[0].length - str.length; }, 0);
+									}
+									else if(options.length > 1) {
+										document.getElementById("textarea-terminal").innerHTML += "\n" + result["output"] + "\n";
+										add_prompt();
+									}
+						
+									//alert(result["output"]);
 								}
 							}
 						</script>
@@ -548,7 +657,7 @@
 						
 							#textarea-terminal {
 								resize: none;
-								height: calc(100vh - 8em); 
+								height: calc(100vh - 9.5em); 
 								white-space: pre-wrap;
 							}
 						</style>
@@ -571,7 +680,8 @@
 							<i title="new directory" class='bs-ico bootstrap-folder-plus ico-link-color' onclick="show_create_dir()"></i> &nbsp;&nbsp;
 							<i title="new file" class='bs-ico bootstrap-file-earmark-plus ico-link-color' onclick="show_create_file()"></i> &nbsp;&nbsp;
 							<i title="edit" class='bs-ico bootstrap-code-square ico-link-color' onclick="edit_selected_files()"></i> &nbsp;&nbsp;
-							<i title="run" class='bs-ico bootstrap-terminal ico-link-color' onclick="show_run_cmd()"></i> &nbsp;&nbsp;
+							<i title="open in terminal" class='bs-ico bootstrap-terminal ico-link-color' onclick="open_in_terminal()"></i> &nbsp;&nbsp;
+							<i title="run" class='bs-ico bootstrap-alt ico-link-color' onclick="show_run_cmd()"></i> &nbsp;&nbsp;
 							<i title="compress" class='bs-ico bootstrap-box ico-link-color' onclick="show_compress_file()"></i> &nbsp;&nbsp;
 							<i title="extract" class='bs-ico bootstrap-file-zip ico-link-color' onclick="extract_paths()"></i> &nbsp;&nbsp;
 							<i title="upload" class='bs-ico bootstrap-cloud-arrow-up ico-link-color' onclick="show_upload_file()"></i> &nbsp;&nbsp;
@@ -1062,6 +1172,13 @@
 								document.getElementById("card-fetch-url").style.display = "none";
 							}
 						
+							async function open_in_terminal() {
+								twd = bwd;
+								document.getElementById("textarea-terminal").innerHTML += "\n";
+								add_prompt();
+								show('terminal');
+							}
+						
 							async function explorer_run_cmd() {
 								const date = new Date().getTime().toString();
 								const formData = new FormData();
@@ -1418,7 +1535,6 @@
 						
 							async function explorer_init() {
 								bwd = pwd
-								get_dir(bwd);
 							}
 						</script>
 					</div>
@@ -1771,29 +1887,106 @@
 						
 						<h1 style="margin: 0.5em 0">Tools</h1>
 						
-						<div class="card border-hover" onclick="show('certs')" style="cursor: pointer; width: 10em">
-							<i class="bs-ico bootstrap-robot width-5em card-hover-filter"></i><br>
-							<hr>
-							<h2 class="card-hover-color">certificates</h2>
+						<div style="margin: 1em 0">
+							<div class="card border-hover" onclick="show('certs')" style="cursor: pointer; width: 10em">
+								<i class="bs-ico bootstrap-robot width-5em card-hover-filter"></i><br>
+								<hr>
+								<h2 class="card-hover-color">certificates</h2>
+							</div>
+						
+							<div class="card border-hover" onclick="show('cronjobs')" style="cursor: pointer; width: 10em">
+								<i class="bs-ico bootstrap-clock width-5em card-hover-filter"></i><br>
+								<hr>
+								<h2 class="card-hover-color">cronjobs</h2>
+							</div>
+						
+							<div class="card border-hover" onclick="show('docker')" style="cursor: pointer; width: 10em">
+								<i class="bs-ico bootstrap-boxes width-5em card-hover-filter"></i><br>
+								<hr>
+								<h2 class="card-hover-color">docker</h2>
+							</div>
+						
+							<div class="card border-hover" onclick="show('fail2ban')" style="cursor: pointer; width: 10em">
+								<i class="bs-ico bootstrap-shield-lock width-5em card-hover-filter"></i><br>
+								<hr>
+								<h2 class="card-hover-color">fail2ban</h2>
+							</div>
+						
+							<div class="card border-hover" onclick="show('firewall')" style="cursor: pointer; width: 10em">
+								<i class="bs-ico bootstrap-bricks width-5em card-hover-filter"></i><br>
+								<hr>
+								<h2 class="card-hover-color">firewall</h2>
+							</div>
+						
+							<div class="card border-hover" onclick="kill_dash()" style="cursor: pointer; width: 10em">
+								<i class="bs-ico bootstrap-x-square width-5em card-hover-filter"></i><br>
+								<hr>
+								<h2 class="card-hover-color">kill</h2>
+							</div>
+						
+							<div class="card border-hover" onclick="show('services')" style="cursor: pointer; width: 10em">
+								<i class="bs-ico bootstrap-wrench-adjustable width-5em card-hover-filter"></i><br>
+								<hr>
+								<h2 class="card-hover-color">services</h2>
+							</div>
+						
+							<div class="card border-hover" onclick="show('ssh')" style="cursor: pointer; width: 10em">
+								<i class="bs-ico bootstrap-safe width-5em card-hover-filter"></i><br>
+								<hr>
+								<h2 class="card-hover-color">ssh</h2>
+							</div>
+						
+							<div class="card border-hover" onclick="update_dash()" style="cursor: pointer; width: 10em">
+								<i class="bs-ico bootstrap-arrow-clockwise width-5em card-hover-filter"></i><br>
+								<hr>
+								<h2 class="card-hover-color">update</h2>
+							</div>
+						
+							<div class="card border-hover" onclick="bwd = '/var/www'; show('explorer')" style="cursor: pointer; width: 10em">
+								<i class="bs-ico bootstrap-globe width-5em card-hover-filter"></i><br>
+								<hr>
+								<h2 class="card-hover-color">websites</h2>
+							</div>
 						</div>
 						
-						<div class="card border-hover" onclick="show('fail2ban')" style="cursor: pointer; width: 10em">
-							<i class="bs-ico bootstrap-shield-lock width-5em card-hover-filter"></i><br>
-							<hr>
-							<h2 class="card-hover-color">fail2ban</h2>
-						</div>
+						<script>
+							async function kill_dash() {
+								if(await confirm_("kill dash")) {
+									const date = new Date().getTime().toString();
+									const formData = new FormData();
+									formData.append("date", date);
+									formData.append("command", "killall cloudfort-dash");
 						
-						<div class="card border-hover" onclick="show('firewall')" style="cursor: pointer; width: 10em">
-							<i class="bs-ico bootstrap-bricks width-5em card-hover-filter"></i><br>
-							<hr>
-							<h2 class="card-hover-color">firewall</h2>
-						</div>
+									let response = await fetch("/api/run", {
+										method: "POST",
+										headers: {
+									    	"signature": signature(date)
+									    },
+								        body: formData
+									});
+								}
+							}
 						
-						<div class="card border-hover" onclick="show('ssh')" style="cursor: pointer; width: 10em">
-							<i class="bs-ico bootstrap-safe width-5em card-hover-filter"></i><br>
-							<hr>
-							<h2 class="card-hover-color">ssh</h2>
-						</div>
+							async function update_dash() {
+								if(await confirm_("update dash")) {
+									const date = new Date().getTime().toString();
+									const formData = new FormData();
+									formData.append("date", date);
+									formData.append("command", "cloudfort-dash update");
+						
+									let response = await fetch("/api/run", {
+										method: "POST",
+										headers: {
+									    	"signature": signature(date)
+									    },
+								        body: formData
+									});
+									let result = await response.json();
+						
+									notify(result["output"]);
+								}
+							}
+						</script>
 					</div>
 				</div>
 
@@ -1970,6 +2163,255 @@
 								resize: none;
 								text-align: left;
 								white-space: pre-wrap;
+							}
+						</style>
+					</div>
+				</div>
+
+				<div id="cronjobs-div" class="main-div" style="display: none">
+					<div class="main-page">
+						<div id="dash-breadcrumb">
+						    <a onclick="show('index')">dash</a>/<a onclick="show('tools')">tools</a>/cronjobs
+						</div>
+						
+						<div id="textarea-cronjobs" spellcheck="false"></div>
+						
+						<button class="btn" onclick="bwd = '/var/spool/cron/crontabs'; show('explorer')">crontabs</button>
+						<button class="btn" onclick="restart_cron()">restart</button>
+						
+						<script>
+							const cronjobs_ta = document.getElementById("textarea-cronjobs");
+						
+							async function fetch_cronjobs() {
+								const date = new Date().getTime().toString();
+								const formData = new FormData();
+								formData.append("date", date);
+								formData.append("command", "crontab -l");
+							
+								let response = await fetch("/api/run", {
+									method: "POST",
+									headers: {
+										//"content-type": "application/json"
+										"signature": signature(date)
+								    },
+									body: formData
+								});
+								let result = await response.json();
+						
+								cronjobs_ta.innerHTML = result["output"];
+							}
+						
+							async function restart_cron() {
+								const date = new Date().getTime().toString();
+								const formData = new FormData();
+								formData.append("date", date);
+								formData.append("command", "service cron restart");
+							
+								let response = await fetch("/api/run", {
+									method: "POST",
+									headers: {
+										//"content-type": "application/json"
+										"signature": signature(date)
+								    },
+									body: formData
+								});
+								let result = await response.json();
+							}
+						
+						</script>
+						
+						<style>
+							#textarea-cronjobs {
+								background: var(--secondary-dark);
+								border: 1px solid var(--light-black);
+								color: var(--white);
+								height: calc(100vh - 7.5em); 
+								width: 100%;
+								font-family: "ubuntu mono";
+								font-size: 0.9em;
+								overflow-x:auto;
+								padding: 0.25em 0.25em;
+								margin: 0.25em 0;
+								resize: none;
+								text-align: left;
+								white-space: pre-wrap;
+							}
+						</style>
+					</div>
+				</div>
+
+				<div id="docker-div" class="main-div" style="display: none">
+					<div class="main-page">
+						<div id="dash-breadcrumb">
+						    <a onclick="show('index')">dash</a>/<a onclick="show('tools')">tools</a>/docker
+						</div>
+						
+						<div id="textarea-docker" spellcheck="false"></div>
+						
+						<div style="overflow-x: scroll; white-space: nowrap;">
+						<button class="btn" onclick="bwd = '/var/lib/docker'; show('explorer')">explore</button>
+						<button class="btn" onclick="fetch_docker_containers()">refresh</button>
+						<button class="btn" onclick="show_run_docker_container()">run</button>
+						<button class="btn" onclick="show_docker_action()">action</button>
+						</div>
+						
+						<div id="docker-run-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
+							<input style="margin: 0.25em 0"
+								id="input-run-container-name"
+								type="text"
+								placeholder="container name" 
+							>
+							<input style="margin: 0.25em 0"
+								id="input-run-docker-image"
+								type="text"
+								placeholder="docker image" 
+							>
+							<input style="margin: 0.25em 0"
+								id="input-run-host-port"
+								type="text"
+								placeholder="host port" 
+							>
+							<input style="margin: 0.25em 0"
+								id="input-run-container-port"
+								type="text"
+								placeholder="container port" 
+							>
+							<button class="btn" onclick="document.getElementById('docker-run-popup').style.display = 'none'">cancel</button>
+							<button class="btn" onclick="docker_run()">ok</button>
+						</div>
+						
+						<div id="docker-action-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
+							<select id="select-docker-action-type" style="margin: 0.25em 0">
+								<option value="none" disabled hidden selected>action</option>
+								<option value="start">start</option>
+								<option value="logs">logs</option>
+								<option value="top">top</option>
+								<option value="pause">pause</option>
+								<option value="unpause">unpause</option>
+								<option value="restart">restart</option>
+								<option value="stop">stop</option>
+								<option value="kill">kill</option>
+								<option value="rm">remove</option>
+							</select>
+							<input style="margin: 0.25em 0"
+								id="input-container-name"
+								type="text"
+								placeholder="container" 
+							>
+							<button class="btn" onclick="document.getElementById('docker-action-popup').style.display = 'none'">cancel</button>
+							<button class="btn" onclick="docker_container_action()">ok</button>
+						</div>
+						
+						<script>
+							const docker_ta = document.getElementById("textarea-docker");
+						
+							async function show_run_docker_container() {
+								document.getElementById("input-run-container-name").value = "";
+								document.getElementById("input-run-docker-image").value = "";
+								document.getElementById("input-run-host-port").value = "";
+								document.getElementById("input-run-container-port").value = "";
+								document.getElementById("docker-run-popup").style.display = "block";
+							}
+						
+							async function show_docker_action() {
+								document.getElementById("input-container-name").value = "";
+								document.getElementById("docker-action-popup").style.display = "block";
+							}
+						
+							async function fetch_docker_containers() {
+								const date = new Date().getTime().toString();
+								const formData = new FormData();
+								formData.append("date", date);
+								formData.append("command", "docker ps -a");
+							
+								let response = await fetch("/api/run", {
+									method: "POST",
+									headers: {
+										//"content-type": "application/json"
+										"signature": signature(date)
+								    },
+									body: formData
+								});
+								let result = await response.json();
+						
+								if(result["output"].search("not found") == -1)
+									docker_ta.innerHTML = result["output"];
+								else
+									docker_ta.innerHTML = "Docker not installed";
+							}
+						
+							async function docker_run() {
+								document.getElementById("docker-run-popup").style.display = "none";
+						
+								waiting_popup("attempting to run container");
+						
+								const date = new Date().getTime().toString();
+								const formData = new FormData();
+								formData.append("date", date);
+								formData.append("command", "docker run -d -p " + document.getElementById("input-run-host-port").value + ":" + document.getElementById("input-run-container-port").value + " --name " + document.getElementById("input-run-container-name").value + " " + document.getElementById("input-run-docker-image").value);
+							
+								let response = await fetch("/api/run", {
+									method: "POST",
+									headers: {
+										//"content-type": "application/json"
+										"signature": signature(date)
+								    },
+									body: formData
+								});
+								let result = await response.json();
+						
+								fetch_docker_containers();
+						
+								resolve_waiting_popup();
+						
+								if(result["output"] != "") {
+									notify(result["output"]);
+								}
+							}
+						
+							async function docker_action(action_type) {
+								document.getElementById("docker-action-popup").style.display = "none";
+						
+								const date = new Date().getTime().toString();
+								const formData = new FormData();
+								formData.append("date", date);
+								formData.append("command", "docker " + document.getElementById("select-docker-action-type").value + " " + document.getElementById("input-container-name").value);
+							
+								let response = await fetch("/api/run", {
+									method: "POST",
+									headers: {
+										//"content-type": "application/json"
+										"signature": signature(date)
+								    },
+									body: formData
+								});
+								let result = await response.json();
+						
+								fetch_docker_containers()
+						
+								if(document.getElementById("select-docker-action-type").value == "logs" || document.getElementById("select-docker-action-type").value == "top")
+									mono_notify(result["output"]);
+								else if(result["output"] != "") 
+									notify(result["output"]);
+							}
+						
+						</script>
+						
+						<style>
+							#textarea-docker {
+								background: var(--secondary-dark);
+								border: 1px solid var(--light-black);
+								color: var(--white);
+								height: calc(100vh - 7.5em); 
+								width: 100%;
+								font-family: "ubuntu mono";
+								font-size: 0.9em;
+								overflow-x:scroll;
+								padding: 0.25em 0.25em;
+								margin: 0.25em 0;
+								resize: none;
+								text-align: left;
+								white-space: pre;
 							}
 						</style>
 					</div>
@@ -2331,6 +2773,149 @@
 					</div>
 				</div>
 
+				<div id="services-div" class="main-div" style="display: none">
+					<div class="main-page">
+						<div id="dash-breadcrumb">
+						    <a onclick="show('index')">dash</a>/<a onclick="show('tools')">tools</a>/services
+						</div>
+						
+						<select id="select-service-types" onchange="fetch_services()" style="display: inline-flex; width: 100px; margin: 0.25em">
+							<option value="all" selected>all</option>
+							<option value="activating">activating</option>
+							<option value="active">active</option>
+							<option value="dead">dead</option>
+							<option value="exited">exited</option>
+							<option value="inactive">inactive</option>
+							<option value="running">running</option>
+						</select><br>
+						
+						<div id="textarea-services" spellcheck="false"></div>
+						
+						<div style="overflow-x: scroll; white-space: nowrap;">
+						<button class="btn" onclick="bwd = '/etc/systemd/system'; show('explorer')">explore</button>
+						<button class="btn" onclick="fetch_services()">refresh</button>
+						<button class="btn" onclick="reload_services()">reload</button>
+						<button class="btn" onclick="show_service_action()">action</button>
+						</div>
+						
+						<div id="service-action-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
+							<select id="select-service-action-type" style="margin: 0.25em 0">
+								<option value="enable">enable</option>
+								<option value="start">start</option>
+								<option value="reload">reload</option>
+								<option value="restart" selected>restart</option>
+								<option value="stop">stop</option>
+								<option value="disable">disable</option>
+							</select>
+							<input style="margin: 0.25em 0"
+								id="input-service"
+								type="text"
+								placeholder="service" 
+							>
+							<button class="btn" onclick="document.getElementById('service-action-popup').style.display = 'none'">cancel</button>
+							<button class="btn" onclick="service_action()">ok</button>
+						</div>
+						
+						<script>
+							const services_type = document.getElementById("select-service-types");
+							const services_ta = document.getElementById("textarea-services");
+						
+							async function show_service_action() {
+								document.getElementById("input-service").value = "";
+								document.getElementById("service-action-popup").style.display = "block";
+							}
+						
+							async function fetch_services() {
+								const date = new Date().getTime().toString();
+								const formData = new FormData();
+								formData.append("date", date);
+								if(services_type.value == "all")
+									formData.append("command", "systemctl list-units --all --type=service");
+								else
+									formData.append("command", "systemctl list-units --all --type=service --state=" + services_type.value);
+							
+								let response = await fetch("/api/run", {
+									method: "POST",
+									headers: {
+										//"content-type": "application/json"
+										"signature": signature(date)
+								    },
+									body: formData
+								});
+								let result = await response.json();
+						
+								services_ta.innerHTML = result["output"];
+							}
+						
+							async function reload_services() {
+								const date = new Date().getTime().toString();
+								const formData = new FormData();
+								formData.append("date", date);
+								formData.append("command", "systemctl daemon-reload");
+							
+								let response = await fetch("/api/run", {
+									method: "POST",
+									headers: {
+										//"content-type": "application/json"
+										"signature": signature(date)
+								    },
+									body: formData
+								});
+								let result = await response.json();
+						
+								fetch_services()
+						
+								if(result["output"] != "") {
+									notify(result["output"]);
+								}
+							}
+						
+							async function service_action(action_type) {
+								document.getElementById("service-action-popup").style.display = "none";
+						
+								const date = new Date().getTime().toString();
+								const formData = new FormData();
+								formData.append("date", date);
+								formData.append("command", "systemctl " + document.getElementById("select-service-action-type").value + " " + document.getElementById("input-service").value);
+							
+								let response = await fetch("/api/run", {
+									method: "POST",
+									headers: {
+										//"content-type": "application/json"
+										"signature": signature(date)
+								    },
+									body: formData
+								});
+								let result = await response.json();
+						
+								fetch_services()
+						
+								if(result["output"] != "") 
+									notify(result["output"]);
+							}
+						
+						</script>
+						
+						<style>
+							#textarea-services {
+								background: var(--secondary-dark);
+								border: 1px solid var(--light-black);
+								color: var(--white);
+								height: calc(100vh - 10em); 
+								width: 100%;
+								font-family: "ubuntu mono";
+								font-size: 0.9em;
+								overflow-x:scroll;
+								padding: 0.25em 0.25em;
+								margin: 0.25em 0;
+								resize: none;
+								text-align: left;
+								white-space: pre;
+							}
+						</style>
+					</div>
+				</div>
+
 				<div id="ssh-div" class="main-div" style="display: none">
 					<div class="main-page">
 						<div id="dash-breadcrumb">
@@ -2629,14 +3214,25 @@
 				document.getElementById("editor-div").style.display = "none";
 				document.getElementById("tools-div").style.display = "none";
 				document.getElementById("certs-div").style.display = "none";
+				document.getElementById("cronjobs-div").style.display = "none";
+				document.getElementById("docker-div").style.display = "none";
 				document.getElementById("fail2ban-div").style.display = "none";
 				document.getElementById("firewall-div").style.display = "none";
+				document.getElementById("services-div").style.display = "none";
 				document.getElementById("ssh-div").style.display = "none";
 
 				document.getElementById(name + "-div").style.display = "block";
 
-				if(name == "fail2ban")
+				if(name == "cronjobs")
+					fetch_cronjobs();
+				else if(name == "docker")
+					fetch_docker_containers();
+				else if(name == "fail2ban")
 					fetch_fail2ban_status();
+				else if(name == "services")
+					fetch_services();
+				else if(name == "explorer")
+					get_dir(bwd);
 				else if(name == "monitor")
 					fetch_top();
 				else if(name == "terminal")
@@ -2743,7 +3339,7 @@
 					}
 					else if(e.key == "f" || e.key == "Enter") {
 						e.preventDefault();
-						if(document.fullscreenElement) {
+						if(document.fullscreenElement || document.webkitIsFullScreen || document.mozFullScreen || document.msIsFullScreen) {
 							document.exitFullscreen();
 						}
 						else {
@@ -2751,6 +3347,8 @@
 								document.getElementById("html").requestFullscreen();
 							else if(document.getElementById("html").webkitRequestFullscreen)
 								document.getElementById("html").webkitRequestFullscreen();
+							else if(document.getElementById("html").mozRequestFullscreen)
+								document.getElementById("html").mozRequestFullscreen();
 							else if(document.getElementById("html").msRequestFullscreen)
 								document.getElementById("html").msRequestFullscreen();
 						}

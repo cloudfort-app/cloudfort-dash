@@ -1,0 +1,172 @@
+<div id="dash-breadcrumb">
+    <a onclick="show('index')">dash</a>/<a onclick="show('tools')">tools</a>/docker
+</div>
+
+<div id="textarea-docker" spellcheck="false"></div>
+
+<div style="overflow-x: scroll; white-space: nowrap;">
+<button class="btn" onclick="bwd = '/var/lib/docker'; show('explorer')">explore</button>
+<button class="btn" onclick="fetch_docker_containers()">refresh</button>
+<button class="btn" onclick="show_run_docker_container()">run</button>
+<button class="btn" onclick="show_docker_action()">action</button>
+</div>
+
+<div id="docker-run-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
+	<input style="margin: 0.25em 0"
+		id="input-run-container-name"
+		type="text"
+		placeholder="container name" 
+	>
+	<input style="margin: 0.25em 0"
+		id="input-run-docker-image"
+		type="text"
+		placeholder="docker image" 
+	>
+	<input style="margin: 0.25em 0"
+		id="input-run-host-port"
+		type="text"
+		placeholder="host port" 
+	>
+	<input style="margin: 0.25em 0"
+		id="input-run-container-port"
+		type="text"
+		placeholder="container port" 
+	>
+	<button class="btn" onclick="document.getElementById('docker-run-popup').style.display = 'none'">cancel</button>
+	<button class="btn" onclick="docker_run()">ok</button>
+</div>
+
+<div id="docker-action-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
+	<select id="select-docker-action-type" style="margin: 0.25em 0">
+		<option value="none" disabled hidden selected>action</option>
+		<option value="start">start</option>
+		<option value="logs">logs</option>
+		<option value="top">top</option>
+		<option value="pause">pause</option>
+		<option value="unpause">unpause</option>
+		<option value="restart">restart</option>
+		<option value="stop">stop</option>
+		<option value="kill">kill</option>
+		<option value="rm">remove</option>
+	</select>
+	<input style="margin: 0.25em 0"
+		id="input-container-name"
+		type="text"
+		placeholder="container" 
+	>
+	<button class="btn" onclick="document.getElementById('docker-action-popup').style.display = 'none'">cancel</button>
+	<button class="btn" onclick="docker_container_action()">ok</button>
+</div>
+
+<script>
+	const docker_ta = document.getElementById("textarea-docker");
+
+	async function show_run_docker_container() {
+		document.getElementById("input-run-container-name").value = "";
+		document.getElementById("input-run-docker-image").value = "";
+		document.getElementById("input-run-host-port").value = "";
+		document.getElementById("input-run-container-port").value = "";
+		document.getElementById("docker-run-popup").style.display = "block";
+	}
+
+	async function show_docker_action() {
+		document.getElementById("input-container-name").value = "";
+		document.getElementById("docker-action-popup").style.display = "block";
+	}
+
+	async function fetch_docker_containers() {
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		formData.append("command", "docker ps -a");
+	
+		let response = await fetch("/api/run", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		let result = await response.json();
+
+		if(result["output"].search("not found") == -1)
+			docker_ta.innerHTML = result["output"];
+		else
+			docker_ta.innerHTML = "Docker not installed";
+	}
+
+	async function docker_run() {
+		document.getElementById("docker-run-popup").style.display = "none";
+
+		waiting_popup("attempting to run container");
+
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		formData.append("command", "docker run -d -p " + document.getElementById("input-run-host-port").value + ":" + document.getElementById("input-run-container-port").value + " --name " + document.getElementById("input-run-container-name").value + " " + document.getElementById("input-run-docker-image").value);
+	
+		let response = await fetch("/api/run", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		let result = await response.json();
+
+		fetch_docker_containers();
+
+		resolve_waiting_popup();
+
+		if(result["output"] != "") {
+			notify(result["output"]);
+		}
+	}
+
+	async function docker_action(action_type) {
+		document.getElementById("docker-action-popup").style.display = "none";
+
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		formData.append("command", "docker " + document.getElementById("select-docker-action-type").value + " " + document.getElementById("input-container-name").value);
+	
+		let response = await fetch("/api/run", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		let result = await response.json();
+
+		fetch_docker_containers()
+
+		if(document.getElementById("select-docker-action-type").value == "logs" || document.getElementById("select-docker-action-type").value == "top")
+			mono_notify(result["output"]);
+		else if(result["output"] != "") 
+			notify(result["output"]);
+	}
+
+</script>
+
+<style>
+	#textarea-docker {
+		background: var(--secondary-dark);
+		border: 1px solid var(--light-black);
+		color: var(--white);
+		height: calc(100vh - 7.5em); 
+		width: 100%;
+		font-family: "ubuntu mono";
+		font-size: 0.9em;
+		overflow-x:scroll;
+		padding: 0.25em 0.25em;
+		margin: 0.25em 0;
+		resize: none;
+		text-align: left;
+		white-space: pre;
+	}
+</style>

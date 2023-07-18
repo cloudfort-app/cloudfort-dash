@@ -1,0 +1,138 @@
+<div id="dash-breadcrumb">
+    <a onclick="show('index')">dash</a>/<a onclick="show('tools')">tools</a>/services
+</div>
+
+<select id="select-service-types" onchange="fetch_services()" style="display: inline-flex; width: 100px; margin: 0.25em">
+	<option value="all" selected>all</option>
+	<option value="activating">activating</option>
+	<option value="active">active</option>
+	<option value="dead">dead</option>
+	<option value="exited">exited</option>
+	<option value="inactive">inactive</option>
+	<option value="running">running</option>
+</select><br>
+
+<div id="textarea-services" spellcheck="false"></div>
+
+<div style="overflow-x: scroll; white-space: nowrap;">
+<button class="btn" onclick="bwd = '/etc/systemd/system'; show('explorer')">explore</button>
+<button class="btn" onclick="fetch_services()">refresh</button>
+<button class="btn" onclick="reload_services()">reload</button>
+<button class="btn" onclick="show_service_action()">action</button>
+</div>
+
+<div id="service-action-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
+	<select id="select-service-action-type" style="margin: 0.25em 0">
+		<option value="enable">enable</option>
+		<option value="start">start</option>
+		<option value="reload">reload</option>
+		<option value="restart" selected>restart</option>
+		<option value="stop">stop</option>
+		<option value="disable">disable</option>
+	</select>
+	<input style="margin: 0.25em 0"
+		id="input-service"
+		type="text"
+		placeholder="service" 
+	>
+	<button class="btn" onclick="document.getElementById('service-action-popup').style.display = 'none'">cancel</button>
+	<button class="btn" onclick="service_action()">ok</button>
+</div>
+
+<script>
+	const services_type = document.getElementById("select-service-types");
+	const services_ta = document.getElementById("textarea-services");
+
+	async function show_service_action() {
+		document.getElementById("input-service").value = "";
+		document.getElementById("service-action-popup").style.display = "block";
+	}
+
+	async function fetch_services() {
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		if(services_type.value == "all")
+			formData.append("command", "systemctl list-units --all --type=service");
+		else
+			formData.append("command", "systemctl list-units --all --type=service --state=" + services_type.value);
+	
+		let response = await fetch("/api/run", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		let result = await response.json();
+
+		services_ta.innerHTML = result["output"];
+	}
+
+	async function reload_services() {
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		formData.append("command", "systemctl daemon-reload");
+	
+		let response = await fetch("/api/run", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		let result = await response.json();
+
+		fetch_services()
+
+		if(result["output"] != "") {
+			notify(result["output"]);
+		}
+	}
+
+	async function service_action(action_type) {
+		document.getElementById("service-action-popup").style.display = "none";
+
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		formData.append("command", "systemctl " + document.getElementById("select-service-action-type").value + " " + document.getElementById("input-service").value);
+	
+		let response = await fetch("/api/run", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		let result = await response.json();
+
+		fetch_services()
+
+		if(result["output"] != "") 
+			notify(result["output"]);
+	}
+
+</script>
+
+<style>
+	#textarea-services {
+		background: var(--secondary-dark);
+		border: 1px solid var(--light-black);
+		color: var(--white);
+		height: calc(100vh - 10em); 
+		width: 100%;
+		font-family: "ubuntu mono";
+		font-size: 0.9em;
+		overflow-x:scroll;
+		padding: 0.25em 0.25em;
+		margin: 0.25em 0;
+		resize: none;
+		text-align: left;
+		white-space: pre;
+	}
+</style>

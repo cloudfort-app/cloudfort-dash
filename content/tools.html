@@ -4,26 +4,103 @@
 
 <h1 style="margin: 0.5em 0">Tools</h1>
 
-<div class="card border-hover" onclick="show('certs')" style="cursor: pointer; width: 10em">
-	<i class="bs-ico bootstrap-robot width-5em card-hover-filter"></i><br>
-	<hr>
-	<h2 class="card-hover-color">certificates</h2>
+<div style="margin: 1em 0">
+	<div class="card border-hover" onclick="show('certs')" style="cursor: pointer; width: 10em">
+		<i class="bs-ico bootstrap-robot width-5em card-hover-filter"></i><br>
+		<hr>
+		<h2 class="card-hover-color">certificates</h2>
+	</div>
+
+	<div class="card border-hover" onclick="show('cronjobs')" style="cursor: pointer; width: 10em">
+		<i class="bs-ico bootstrap-clock width-5em card-hover-filter"></i><br>
+		<hr>
+		<h2 class="card-hover-color">cronjobs</h2>
+	</div>
+
+	<div class="card border-hover" onclick="show('docker')" style="cursor: pointer; width: 10em">
+		<i class="bs-ico bootstrap-boxes width-5em card-hover-filter"></i><br>
+		<hr>
+		<h2 class="card-hover-color">docker</h2>
+	</div>
+
+	<div class="card border-hover" onclick="show('fail2ban')" style="cursor: pointer; width: 10em">
+		<i class="bs-ico bootstrap-shield-lock width-5em card-hover-filter"></i><br>
+		<hr>
+		<h2 class="card-hover-color">fail2ban</h2>
+	</div>
+
+	<div class="card border-hover" onclick="show('firewall')" style="cursor: pointer; width: 10em">
+		<i class="bs-ico bootstrap-bricks width-5em card-hover-filter"></i><br>
+		<hr>
+		<h2 class="card-hover-color">firewall</h2>
+	</div>
+
+	<div class="card border-hover" onclick="kill_dash()" style="cursor: pointer; width: 10em">
+		<i class="bs-ico bootstrap-x-square width-5em card-hover-filter"></i><br>
+		<hr>
+		<h2 class="card-hover-color">kill</h2>
+	</div>
+
+	<div class="card border-hover" onclick="show('services')" style="cursor: pointer; width: 10em">
+		<i class="bs-ico bootstrap-wrench-adjustable width-5em card-hover-filter"></i><br>
+		<hr>
+		<h2 class="card-hover-color">services</h2>
+	</div>
+
+	<div class="card border-hover" onclick="show('ssh')" style="cursor: pointer; width: 10em">
+		<i class="bs-ico bootstrap-safe width-5em card-hover-filter"></i><br>
+		<hr>
+		<h2 class="card-hover-color">ssh</h2>
+	</div>
+
+	<div class="card border-hover" onclick="update_dash()" style="cursor: pointer; width: 10em">
+		<i class="bs-ico bootstrap-arrow-clockwise width-5em card-hover-filter"></i><br>
+		<hr>
+		<h2 class="card-hover-color">update</h2>
+	</div>
+
+	<div class="card border-hover" onclick="bwd = '/var/www'; show('explorer')" style="cursor: pointer; width: 10em">
+		<i class="bs-ico bootstrap-globe width-5em card-hover-filter"></i><br>
+		<hr>
+		<h2 class="card-hover-color">websites</h2>
+	</div>
 </div>
 
-<div class="card border-hover" onclick="show('fail2ban')" style="cursor: pointer; width: 10em">
-	<i class="bs-ico bootstrap-shield-lock width-5em card-hover-filter"></i><br>
-	<hr>
-	<h2 class="card-hover-color">fail2ban</h2>
-</div>
+<script>
+	async function kill_dash() {
+		if(await confirm_("kill dash")) {
+			const date = new Date().getTime().toString();
+			const formData = new FormData();
+			formData.append("date", date);
+			formData.append("command", "killall cloudfort-dash");
 
-<div class="card border-hover" onclick="show('firewall')" style="cursor: pointer; width: 10em">
-	<i class="bs-ico bootstrap-bricks width-5em card-hover-filter"></i><br>
-	<hr>
-	<h2 class="card-hover-color">firewall</h2>
-</div>
+			let response = await fetch("/api/run", {
+				method: "POST",
+				headers: {
+			    	"signature": signature(date)
+			    },
+		        body: formData
+			});
+		}
+	}
 
-<div class="card border-hover" onclick="show('ssh')" style="cursor: pointer; width: 10em">
-	<i class="bs-ico bootstrap-safe width-5em card-hover-filter"></i><br>
-	<hr>
-	<h2 class="card-hover-color">ssh</h2>
-</div>
+	async function update_dash() {
+		if(await confirm_("update dash")) {
+			const date = new Date().getTime().toString();
+			const formData = new FormData();
+			formData.append("date", date);
+			formData.append("command", "cloudfort-dash update");
+
+			let response = await fetch("/api/run", {
+				method: "POST",
+				headers: {
+			    	"signature": signature(date)
+			    },
+		        body: formData
+			});
+			let result = await response.json();
+
+			notify(result["output"]);
+		}
+	}
+</script>

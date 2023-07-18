@@ -1,0 +1,67 @@
+<div id="dash-breadcrumb">
+    <a onclick="show('index')">dash</a>/<a onclick="show('tools')">tools</a>/cronjobs
+</div>
+
+<div id="textarea-cronjobs" spellcheck="false"></div>
+
+<button class="btn" onclick="bwd = '/var/spool/cron/crontabs'; show('explorer')">crontabs</button>
+<button class="btn" onclick="restart_cron()">restart</button>
+
+<script>
+	const cronjobs_ta = document.getElementById("textarea-cronjobs");
+
+	async function fetch_cronjobs() {
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		formData.append("command", "crontab -l");
+	
+		let response = await fetch("/api/run", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		let result = await response.json();
+
+		cronjobs_ta.innerHTML = result["output"];
+	}
+
+	async function restart_cron() {
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		formData.append("command", "service cron restart");
+	
+		let response = await fetch("/api/run", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		let result = await response.json();
+	}
+
+</script>
+
+<style>
+	#textarea-cronjobs {
+		background: var(--secondary-dark);
+		border: 1px solid var(--light-black);
+		color: var(--white);
+		height: calc(100vh - 7.5em); 
+		width: 100%;
+		font-family: "ubuntu mono";
+		font-size: 0.9em;
+		overflow-x:auto;
+		padding: 0.25em 0.25em;
+		margin: 0.25em 0;
+		resize: none;
+		text-align: left;
+		white-space: pre-wrap;
+	}
+</style>

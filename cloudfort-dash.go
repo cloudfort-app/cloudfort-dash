@@ -1,6 +1,7 @@
 package main
 
 import (
+    "bufio"
     "crypto/hmac"
     "crypto/sha256"
     "encoding/hex"
@@ -17,6 +18,8 @@ import (
     "time"
 
     "github.com/Jeffail/gabs/v2"
+
+    "github.com/gorilla/websocket"
 )
 
 var config *gabs.Container
@@ -25,6 +28,8 @@ var home string
 var port string
 var password []byte
 var version = "v0.1.14"
+
+var upgrader = websocket.Upgrader{}
 
 /*func check_referer(req *http.Request) bool {
     return (req.Referer() == "" || req.Referer()[0:len(domain)] != domain)
@@ -48,6 +53,39 @@ func hasValidWebhookSignature(w *http.ResponseWriter, req *http.Request, msg []b
         (*w).Write([]byte("invalid signature"))
 
         return false;
+    }
+}
+
+func signatureHandshake(conn *websocket.Conn) bool {
+    _, date, _ := conn.ReadMessage()
+    _, signature, _ := conn.ReadMessage()
+
+    mac := hmac.New(sha256.New, password)
+    mac.Write([]byte(date))
+
+    req_date, _ := strconv.Atoi(string(date))
+
+    if(req_date > int(time.Now().UnixMilli())) {
+        fmt.Println("handshake is from the future")
+        conn.WriteMessage(websocket.TextMessage, []byte("invalid signature"))
+        conn.Close()
+
+        return false;
+    } else if(int(time.Now().UnixMilli()) - req_date > 5000) {
+        fmt.Println("handshake is older than 5 seconds")
+        conn.WriteMessage(websocket.TextMessage, []byte("invalid signature"))
+        conn.Close()
+
+        return false;
+    } else if(hex.EncodeToString(mac.Sum(nil)) != string(signature)) {
+        fmt.Println("handshake has invalid signature")
+        conn.WriteMessage(websocket.TextMessage, []byte("invalid signature"))
+        conn.Close()
+
+        return false;
+    } else {
+        //fmt.Println("valid request")
+        return true;
     }
 }
 
@@ -201,7 +239,7 @@ func routeFileCreate(w http.ResponseWriter, req *http.Request) {
     file, err := os.Create(req.PostFormValue("path"))
     if(err != nil) {
         log.Println(err)
-        output = err.Error() + "\\n"
+        output = sanitize(err.Error() + "\\n")
     } else {
         defer file.Close()
     }
@@ -364,10 +402,10 @@ func routeLs(w http.ResponseWriter, req *http.Request) {
 
     files, err := ioutil.ReadDir(req.PostFormValue("dir"))
     if(err != nil) {
-        log.Println(err);
+        log.Println(err)
     }
 
-    json := "{\"files\": [";
+    json := "{\"files\": ["
 
     for i, file := range files {
         if(i > 0) {
@@ -382,7 +420,9 @@ func routeLs(w http.ResponseWriter, req *http.Request) {
         json += "]"
 
     }
-    json += "]}\n";
+    json += "]}\n"
+
+    json = strings.ReplaceAll(json, "\\x2d", "\x2d")
 
     w.Header().Set("Content-Type", "text/plain")
     w.Write([]byte(json))
@@ -404,6 +444,55 @@ func routePwd(w http.ResponseWriter, req *http.Request) {
     w.Write([]byte("{\"pwd\": \"" + output + "\"}"))
 }
 
+func routeTab(w http.ResponseWriter, req *http.Request) {
+    if(!hasValidSignature(&w, req)) {
+        return
+    }
+
+    output := ""
+    first := true
+    files, _ := ioutil.ReadDir(req.PostFormValue("dir"))
+
+    for _, file := range files {
+        if(len(file.Name()) >= len(req.PostFormValue("str")) && file.Name()[0:len(req.PostFormValue("str"))] == req.PostFormValue("str")) {
+            if(first) {
+                first = false
+            } else {
+                output += " "
+            }
+
+            output += file.Name()
+        }
+    }
+
+    paths := strings.Split(os.Getenv("PATH"), ":")
+    programs := make(map[string]bool)
+
+    for i:=0; i<len(paths); i++ {
+        files, _ = ioutil.ReadDir(paths[i])
+
+        for _, file := range files {
+            if(len(file.Name()) >= len(req.PostFormValue("str")) && 
+                file.Name()[0:len(req.PostFormValue("str"))] == req.PostFormValue("str")) {
+                programs[file.Name()] = true;
+            }
+        }
+    }
+
+    for k := range programs {
+        if(first) {
+            first = false
+        } else {
+            output += " "
+        }
+
+        output += k
+    }
+
+    w.Header().Set("Content-Type", "text/plain")
+    w.Write([]byte("{\"output\": \"" + output + "\"}"))
+}
+
 func routeRun(w http.ResponseWriter, req *http.Request) {
     if(!hasValidSignature(&w, req)) {
         return
@@ -414,7 +503,7 @@ func routeRun(w http.ResponseWriter, req *http.Request) {
     out, err := exec.Command("/bin/sh", "-c", cmd).CombinedOutput()
 
     if(err != nil) {
-        log.Println(err)
+        //log.Println(err)
         //output = sanitize(err.Error() + "\n")
     }
 
@@ -422,6 +511,82 @@ func routeRun(w http.ResponseWriter, req *http.Request) {
 
     w.Header().Set("Content-Type", "text/plain")
     w.Write([]byte("{\"output\": \"" + output + "\"}"))
+}
+
+func readExecOutput(stdout, stderr *io.ReadCloser, conn *websocket.Conn, ticker *time.Ticker, finished *bool) {
+    run_output := ""
+    pos_sent := 0
+    ticker = time.NewTicker(100 * time.Millisecond)
+
+    go func() {
+        for _ = range (*ticker).C {
+            var old_pos_sent = pos_sent
+            pos_sent = len(run_output)
+            if(pos_sent > old_pos_sent) {
+                conn.WriteMessage(websocket.TextMessage, []byte(run_output[old_pos_sent:pos_sent]))
+            }
+        }
+    }()
+
+    scanner := bufio.NewScanner(io.MultiReader(*stdout, *stderr))
+    scanner.Split(bufio.ScanRunes)
+    //scanner.Split(bufio.ScanBytes)
+    for scanner.Scan() && *finished == false {
+        //conn.WriteMessage(websocket.TextMessage, []byte(scanner.Text()))
+        run_output += scanner.Text()
+    }
+    time.Sleep(150 * time.Millisecond)
+    ticker.Stop()
+    *finished = true
+    conn.WriteMessage(websocket.TextMessage, []byte("[finished]"))
+}
+
+func routeSocketRun(w http.ResponseWriter, req *http.Request) {
+    finished := true
+    conn, _ := upgrader.Upgrade(w, req, nil)
+    defer conn.Close()
+
+    if(!signatureHandshake(conn)) {
+        return
+    }
+
+    var stdin io.WriteCloser
+    var stdout, stderr io.ReadCloser
+    var process *exec.Cmd
+    var ticker *time.Ticker
+
+    for true {
+        _, cmd, err := conn.ReadMessage()
+
+        if err != nil { //handles page refreshes
+            break
+        }
+
+        if(string(cmd) == "kill") {
+            if(finished == false) {
+                finished = true
+                process.Process.Kill()
+                stdout.Close()
+                stderr.Close()
+            }
+        } else if(!finished) {
+            io.WriteString(stdin, string(cmd) + "\n")
+        } else if(string(cmd) != "")  {
+            finished = false
+            process = exec.Command("/bin/sh", "-c", string(cmd))
+
+            stdin, _ = process.StdinPipe()
+            stdout, _ = process.StdoutPipe()
+            stderr, _ = process.StderrPipe()
+
+            defer stdin.Close()
+            defer stdout.Close()
+
+            process.Start()
+
+            go readExecOutput(&stdout, &stderr, conn, ticker, &finished)
+        }
+    }
 }
 
 func routeDownload(w http.ResponseWriter, req *http.Request) {
@@ -499,7 +664,9 @@ func main() {
         mux.HandleFunc("/api/rm",          routeRm)
         mux.HandleFunc("/api/ls",          routeLs)
         mux.HandleFunc("/api/pwd",         routePwd)
+        mux.HandleFunc("/api/tab",         routeTab)
         mux.HandleFunc("/api/run",         routeRun)
+        mux.HandleFunc("/api/socket/run",  routeSocketRun)
         mux.HandleFunc("/api/download",    routeDownload)
         mux.HandleFunc("/api/upload",      routeUpload)
         mux.HandleFunc("/api/sigcheck",    routeVerifySignature)
@@ -542,7 +709,7 @@ func main() {
                 log.Println("ListenAndServeTLS: ", err)
             }
         }
-    } else if(cmd == "update") {
+    } else if(cmd == "update" || cmd == "upgrade") {
         cmd := "curl -s https://raw.githubusercontent.com/cloudfort-app/cloudfort-dash/main/version.md"
         latestVersion, err := exec.Command("/bin/sh", "-c", cmd).CombinedOutput()
 
@@ -572,7 +739,7 @@ func main() {
         }
 
         fmt.Println(string(out))
-        fmt.Println("cloudfort-dash updated successfully")
+        fmt.Println("cloudfort-dash " + cmd + "d successfully")
 
     } else if(cmd == "--version") {
         fmt.Println(version)

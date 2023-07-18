@@ -72,6 +72,18 @@
 					</div>
 				</div>
 
+				<div id="cronjobs-div" class="main-div" style="display: none">
+					<div class="main-page">
+						@input("content/cronjobs.html")
+					</div>
+				</div>
+
+				<div id="docker-div" class="main-div" style="display: none">
+					<div class="main-page">
+						@input("content/docker.html")
+					</div>
+				</div>
+
 				<div id="fail2ban-div" class="main-div" style="display: none">
 					<div class="main-page">
 						@input("content/fail2ban.html")
@@ -81,6 +93,12 @@
 				<div id="firewall-div" class="main-div" style="display: none">
 					<div class="main-page">
 						@input("content/firewall.html")
+					</div>
+				</div>
+
+				<div id="services-div" class="main-div" style="display: none">
+					<div class="main-page">
+						@input("content/services.html")
 					</div>
 				</div>
 
@@ -229,14 +247,25 @@
 				document.getElementById("editor-div").style.display = "none";
 				document.getElementById("tools-div").style.display = "none";
 				document.getElementById("certs-div").style.display = "none";
+				document.getElementById("cronjobs-div").style.display = "none";
+				document.getElementById("docker-div").style.display = "none";
 				document.getElementById("fail2ban-div").style.display = "none";
 				document.getElementById("firewall-div").style.display = "none";
+				document.getElementById("services-div").style.display = "none";
 				document.getElementById("ssh-div").style.display = "none";
 
 				document.getElementById(name + "-div").style.display = "block";
 
-				if(name == "fail2ban")
+				if(name == "cronjobs")
+					fetch_cronjobs();
+				else if(name == "docker")
+					fetch_docker_containers();
+				else if(name == "fail2ban")
 					fetch_fail2ban_status();
+				else if(name == "services")
+					fetch_services();
+				else if(name == "explorer")
+					get_dir(bwd);
 				else if(name == "monitor")
 					fetch_top();
 				else if(name == "terminal")
@@ -343,7 +372,7 @@
 					}
 					else if(e.key == "f" || e.key == "Enter") {
 						e.preventDefault();
-						if(document.fullscreenElement) {
+						if(document.fullscreenElement || document.webkitIsFullScreen || document.mozFullScreen || document.msIsFullScreen) {
 							document.exitFullscreen();
 						}
 						else {
@@ -351,6 +380,8 @@
 								document.getElementById("html").requestFullscreen();
 							else if(document.getElementById("html").webkitRequestFullscreen)
 								document.getElementById("html").webkitRequestFullscreen();
+							else if(document.getElementById("html").mozRequestFullscreen)
+								document.getElementById("html").mozRequestFullscreen();
 							else if(document.getElementById("html").msRequestFullscreen)
 								document.getElementById("html").msRequestFullscreen();
 						}
