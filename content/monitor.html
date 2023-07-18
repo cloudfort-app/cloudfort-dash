@@ -38,6 +38,12 @@
 			setTimeout(function(){fetch_top()}, 3000);
 		}
 	}
+
+	async function monitor_init() {
+		if(config["monitor"]["sort-by"] == "cpu") {
+			document.getElementById("select-monitor-sort").value = "cpu";
+		}
+	}
 </script>
 
 <style>

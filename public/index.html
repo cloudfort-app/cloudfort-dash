@@ -324,6 +324,12 @@
 									setTimeout(function(){fetch_top()}, 3000);
 								}
 							}
+						
+							async function monitor_init() {
+								if(config["monitor"]["sort-by"] == "cpu") {
+									document.getElementById("select-monitor-sort").value = "cpu";
+								}
+							}
 						</script>
 						
 						<style>
@@ -395,6 +401,7 @@
 								}
 								else {
 									document.getElementById("textarea-terminal").innerHTML += e.data;
+									document.getElementById("textarea-terminal").innerHTML = remove_backspaces(document.getElementById("textarea-terminal").innerHTML);
 									document.getElementById("textarea-terminal").scrollTop = document.getElementById("textarea-terminal").scrollHeight;
 								}
 						    };
@@ -519,19 +526,17 @@
 										});
 										let result = await response.json();
 						
-										document.getElementById("textarea-terminal").innerHTML += remove_backspaces(result["output"]);
+										document.getElementById("textarea-terminal").innerHTML += result["output"];
+										document.getElementById("textarea-terminal").innerHTML = remove_backspaces(document.getElementById("textarea-terminal").innerHTML);
 										add_prompt();
 									}
 									catch(error) {
 										notify("error: " + error);
 									}
 								}
-						
-								//add_prompt();
 							}
 						
 							async function terminal_init() {
-								await get_pwd();
 								twd = pwd;
 						
 								if(twd.substring(0, home.length) == home)
@@ -543,6 +548,10 @@
 								socket.send(signature(date));
 						
 								add_prompt();
+						
+								if(config["terminal"]["mode"] == "non-interactive") {
+									document.getElementById("select-terminal-interactive").value = "non-interactive";
+								}
 							}
 						
 							async function terminal_keypress(e) {
@@ -552,6 +561,8 @@
 								//alert(name)
 						
 								if(name == 'ArrowUp' || code == 'ArrowUp') {
+									e.preventDefault();
+						
 									if(hist_no > 1) {
 										document.getElementById("input-terminal").value = hist_select.options[--hist_no].value;
 									}
@@ -559,6 +570,8 @@
 									setTimeout(function(){ document.getElementById("input-terminal").selectionStart = document.getElementById("input-terminal").selectionEnd = 1000; }, 0);
 								}
 								else if(name == 'ArrowDown' || code == 'ArrowDown') {
+									e.preventDefault();
+						
 									if(hist_no + 1 < hist_select.options.length) {
 										document.getElementById("input-terminal").value = hist_select.options[++hist_no].value;
 						
@@ -570,10 +583,13 @@
 									}
 								}
 								else if(name == 'Enter' || code == 'Enter') {
+									e.preventDefault();
+						
 							  		run_cmd();
 								}
 								else if(e.altKey) {
 									if(e.key == 'c') {
+										e.preventDefault();
 										document.getElementById("textarea-terminal").innerHTML += "kill\n";
 										socket.send("kill");
 									}
@@ -624,7 +640,8 @@
 										setTimeout(function(){document.getElementById("input-terminal").selectionStart = document.getElementById("input-terminal").selectionEnd = pos + options[0].length - str.length; }, 0);
 									}
 									else if(options.length > 1) {
-										document.getElementById("textarea-terminal").innerHTML += "\n" + result["output"] + "\n";
+										document.getElementById("textarea-terminal").innerHTML += document.getElementById("input-terminal").value + "\n";
+										document.getElementById("textarea-terminal").innerHTML += result["output"] + "\n";
 										add_prompt();
 									}
 						
@@ -647,6 +664,13 @@
 								-moz-box-sizing:border-box;
 								-webkit-box-sizing:border-box; 
 								box-sizing:border-box;
+							}
+						
+							#select-terminal-interactive {
+								background: var(--secondary-dark);
+								border: 1px solid var(--light-black);
+								color: var(--white);
+								font-family: "ubuntu mono";
 							}
 						
 							#select-hist {
@@ -1595,7 +1619,7 @@
 						</select><br>
 						
 						<div id="editor-container" align="center">
-						<div id="editor-content" class="noselect" spellcheck="false" aria-hidden="true" onscroll="scroll_editor()"></div><textarea id="editor" title="line " class="" spellcheck="false" readonly oninput="redraw_editor()" onscroll="scroll_editor_content()" onclick="set_line_no()"></textarea></div><br>
+						<div id="editor-content" class="noselect" spellcheck="false" aria-hidden="true" onscroll="scroll_editor()"></div><textarea id="editor" class="" spellcheck="false" readonly oninput="mark_edited(); redraw_editor()" onscroll="scroll_editor_content()" onclick="set_line_no()"></textarea></div><br>
 						
 						<style>
 						/* for block of numbers */
@@ -1640,6 +1664,15 @@
 								open_path = file_select.value;
 								editor.value = file_content[open_path];
 								redraw_editor();
+							}
+						
+							async function mark_edited() {
+								for(var i=0; i<file_select.length; ++i) {
+									if(file_select.options[i].value == open_path) {
+										if(file_select.options[i].innerHTML[file_select.options[i].innerHTML.length-1] != '*')
+											file_select.options[i].innerHTML += "*";
+									}
+								}
 							}
 						
 							async function editor_hide_input_cards() {
@@ -1809,6 +1842,13 @@
 							        body: formData
 								});
 								let result = await response.json();
+						
+								for(var i=0; i<file_select.length; ++i) {
+									if(file_select.options[i].value == open_path) {
+										if(file_select.options[i].innerHTML[file_select.options[i].innerHTML.length-1] == '*')
+											file_select.options[i].innerHTML = file_select.options[i].innerHTML.substring(0, file_select.options[i].innerHTML.length-1);
+									}
+								}
 							}
 						
 							async function save_as() {
@@ -1850,6 +1890,13 @@
 									edit_file(dir + path);
 						
 								document.getElementById("card-input-save-as").style.display = "none";
+							}
+						
+							async function editor_init() {
+								if(config["editor"]["highlight"] == false) {
+									document.getElementById("select-highlight").value = "false";
+									select_highlight_event();
+								}
 							}
 						</script>
 						
@@ -3196,6 +3243,7 @@
 		<script>
 			var home = "nil";
 			var pwd = "~/";
+			var config;
 
 			const CLOUDFORT_DASH_PW = localStorage.getItem("CLOUDFORT_DASH_PW");
 			function signature(msg) {
@@ -3268,13 +3316,14 @@
 				}
 			}
 
-			async function get_pwd() {
+			async function get_config() {
 				const date = new Date().getTime().toString();
 
 				const formData = new FormData();
 				formData.append("date", date);
+				formData.append("path", home + "/.cloudfort/config.json");
 
-				let response = await fetch("/api/pwd", {
+				let response = await fetch("/api/file/read", {
 					method: "POST",
 					headers: {
 						//"content-type": "application/json"
@@ -3284,7 +3333,7 @@
 				});
 				let result = await response.json();
 
-				pwd = result["pwd"];
+				config = JSON.parse(result["content"]);
 			}
 
 			async function get_home() {
@@ -3306,13 +3355,35 @@
 				home = result["home"];
 			}
 
+			async function get_pwd() {
+				const date = new Date().getTime().toString();
+
+				const formData = new FormData();
+				formData.append("date", date);
+
+				let response = await fetch("/api/pwd", {
+					method: "POST",
+					headers: {
+						//"content-type": "application/json"
+						"signature": signature(date)
+				    },
+			        body: formData
+				});
+				let result = await response.json();
+
+				pwd = result["pwd"];
+			}
+
 			async function dash_init() {
 				await check_signed_in();
 
 				await get_home();
+				await get_config();
 				await get_pwd();
 
+				await editor_init();
 				await explorer_init();
+				await monitor_init();
 				await terminal_init();
 				await certs_init();
 				await firewall_init();

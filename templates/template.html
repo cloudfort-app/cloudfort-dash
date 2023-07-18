@@ -229,6 +229,7 @@
 		<script>
 			var home = "nil";
 			var pwd = "~/";
+			var config;
 
 			const CLOUDFORT_DASH_PW = localStorage.getItem("CLOUDFORT_DASH_PW");
 			function signature(msg) {
@@ -301,13 +302,14 @@
 				}
 			}
 
-			async function get_pwd() {
+			async function get_config() {
 				const date = new Date().getTime().toString();
 
 				const formData = new FormData();
 				formData.append("date", date);
+				formData.append("path", home + "/.cloudfort/config.json");
 
-				let response = await fetch("/api/pwd", {
+				let response = await fetch("/api/file/read", {
 					method: "POST",
 					headers: {
 						//"content-type": "application/json"
@@ -317,7 +319,7 @@
 				});
 				let result = await response.json();
 
-				pwd = result["pwd"];
+				config = JSON.parse(result["content"]);
 			}
 
 			async function get_home() {
@@ -339,13 +341,35 @@
 				home = result["home"];
 			}
 
+			async function get_pwd() {
+				const date = new Date().getTime().toString();
+
+				const formData = new FormData();
+				formData.append("date", date);
+
+				let response = await fetch("/api/pwd", {
+					method: "POST",
+					headers: {
+						//"content-type": "application/json"
+						"signature": signature(date)
+				    },
+			        body: formData
+				});
+				let result = await response.json();
+
+				pwd = result["pwd"];
+			}
+
 			async function dash_init() {
 				await check_signed_in();
 
 				await get_home();
+				await get_config();
 				await get_pwd();
 
+				await editor_init();
 				await explorer_init();
+				await monitor_init();
 				await terminal_init();
 				await certs_init();
 				await firewall_init();

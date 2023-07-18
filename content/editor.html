@@ -51,7 +51,7 @@
 </select><br>
 
 <div id="editor-container" align="center">
-<div id="editor-content" class="noselect" spellcheck="false" aria-hidden="true" onscroll="scroll_editor()"></div><textarea id="editor" title="line " class="" spellcheck="false" readonly oninput="redraw_editor()" onscroll="scroll_editor_content()" onclick="set_line_no()"></textarea></div><br>
+<div id="editor-content" class="noselect" spellcheck="false" aria-hidden="true" onscroll="scroll_editor()"></div><textarea id="editor" class="" spellcheck="false" readonly oninput="mark_edited(); redraw_editor()" onscroll="scroll_editor_content()" onclick="set_line_no()"></textarea></div><br>
 
 <style>
 /* for block of numbers */
@@ -96,6 +96,15 @@
 		open_path = file_select.value;
 		editor.value = file_content[open_path];
 		redraw_editor();
+	}
+
+	async function mark_edited() {
+		for(var i=0; i<file_select.length; ++i) {
+			if(file_select.options[i].value == open_path) {
+				if(file_select.options[i].innerHTML[file_select.options[i].innerHTML.length-1] != '*')
+					file_select.options[i].innerHTML += "*";
+			}
+		}
 	}
 
 	async function editor_hide_input_cards() {
@@ -265,6 +274,13 @@
 	        body: formData
 		});
 		let result = await response.json();
+
+		for(var i=0; i<file_select.length; ++i) {
+			if(file_select.options[i].value == open_path) {
+				if(file_select.options[i].innerHTML[file_select.options[i].innerHTML.length-1] == '*')
+					file_select.options[i].innerHTML = file_select.options[i].innerHTML.substring(0, file_select.options[i].innerHTML.length-1);
+			}
+		}
 	}
 
 	async function save_as() {
@@ -306,6 +322,13 @@
 			edit_file(dir + path);
 
 		document.getElementById("card-input-save-as").style.display = "none";
+	}
+
+	async function editor_init() {
+		if(config["editor"]["highlight"] == false) {
+			document.getElementById("select-highlight").value = "false";
+			select_highlight_event();
+		}
 	}
 </script>
 

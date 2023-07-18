@@ -32,7 +32,8 @@ function getLineHeight(el) {
 }
 
 function set_line_no() {
-	mantis_editor.title = "line " + mantis_editor.value.substr(0, mantis_editor.selectionStart).split("\n").length;
+	//mantis_editor.title = "line " + mantis_editor.value.substr(0, mantis_editor.selectionStart).split("\n").length;
+	document.getElementById("select-open-file").title = "line " + mantis_editor.value.substr(0, mantis_editor.selectionStart).split("\n").length;
 }
 
 function setSelectionRange(input, selectionStart, selectionEnd) {

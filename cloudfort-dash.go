@@ -468,25 +468,27 @@ func routeTab(w http.ResponseWriter, req *http.Request) {
     paths := strings.Split(os.Getenv("PATH"), ":")
     programs := make(map[string]bool)
 
-    for i:=0; i<len(paths); i++ {
-        files, _ = ioutil.ReadDir(paths[i])
+    if(len(req.PostFormValue("str")) > 0) {
+        for i:=0; i<len(paths); i++ {
+            files, _ = ioutil.ReadDir(paths[i])
 
-        for _, file := range files {
-            if(len(file.Name()) >= len(req.PostFormValue("str")) && 
-                file.Name()[0:len(req.PostFormValue("str"))] == req.PostFormValue("str")) {
-                programs[file.Name()] = true;
+            for _, file := range files {
+                if(len(file.Name()) >= len(req.PostFormValue("str")) && 
+                    file.Name()[0:len(req.PostFormValue("str"))] == req.PostFormValue("str")) {
+                    programs[file.Name()] = true;
+                }
             }
         }
-    }
 
-    for k := range programs {
-        if(first) {
-            first = false
-        } else {
-            output += " "
+        for k := range programs {
+            if(first) {
+                first = false
+            } else {
+                output += " "
+            }
+
+            output += k
         }
-
-        output += k
     }
 
     w.Header().Set("Content-Type", "text/plain")
@@ -638,7 +640,23 @@ func createConfig() {
 
     err := os.WriteFile(home + "/.cloudfort/config.json", []byte(
 `{
-    "repositories": {}
+    "app": {
+    },
+
+    "editor": {
+        "highlight": true
+    },
+
+    "monitor": {
+        "sort-by": "memory"
+    },
+
+    "terminal": {
+        "mode": "interactive"
+    },
+
+    "repositories": {
+    }
 }`), 0644);
 
     if(err != nil) {
