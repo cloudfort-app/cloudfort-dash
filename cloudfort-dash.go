@@ -27,7 +27,7 @@ var domain string
 var home string
 var port string
 var password []byte
-var version = "v0.1.18"
+var version = "v0.1.19"
 
 var upgrader = websocket.Upgrader{}
 
@@ -708,9 +708,15 @@ func main() {
         mux.HandleFunc("/api/upload",      routeUpload)
         mux.HandleFunc("/api/sigcheck",    routeVerifySignature)
 
-        domain = os.Args[2]
-        port = os.Args[3]
-        password = []byte(os.Args[4])
+        if(os.Args[2] != "http" && os.Args[2] != "https") {
+            fmt.Println("second parameter should be 'http' or 'https'")
+            return
+        }
+
+        https := (os.Args[2] == "https")
+        domain = os.Args[3]
+        port = os.Args[4]
+        password = []byte(os.Args[5])
 
         home, _ = os.UserHomeDir()
 
@@ -738,14 +744,8 @@ func main() {
         
         mux.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("/var/www/cloudfort-dash/public"))))
 
-        if(port == "80" || port == "8000" || port == "8080") {
-            fmt.Println("Serving Cloudfort Dash (http) on port " + port)
-            err := http.ListenAndServe(":" + port, mux)
-            if err != nil {
-                log.Println("ListenAndServe: ", err)
-            }
-        } else {
-            fmt.Println("Serving Cloudfort Dash (https) on port " + port)
+        if(https) {
+            fmt.Println("Serving Cloudfort Dash over https on port " + port)
             err := http.ListenAndServeTLS(":" + port, 
                 "/etc/letsencrypt/live/" + domain + "/fullchain.pem", 
                 "/etc/letsencrypt/live/" + domain + "/privkey.pem", 
@@ -753,7 +753,13 @@ func main() {
             if err != nil {
                 log.Println("ListenAndServeTLS: ", err)
             }
-        }
+        } else {
+            fmt.Println("Serving Cloudfort Dash over http on port " + port)
+            err := http.ListenAndServe(":" + port, mux)
+            if err != nil {
+                log.Println("ListenAndServe: ", err)
+            }
+        } 
     } else if(cmd == "update" || cmd == "upgrade") {
         cmd := "curl -s https://raw.githubusercontent.com/cloudfort-app/cloudfort-dash/main/version.md"
         latestVersion, err := exec.Command("/bin/sh", "-c", cmd).CombinedOutput()
