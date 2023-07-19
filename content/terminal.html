@@ -20,6 +20,18 @@
 
 	var socket = new WebSocket("ws://" + window.location.host + "/api/socket/run");
 
+	function desanitize(str) {
+	    str = str.replaceAll("\\n", "\n");
+
+		var re = /\n.*\\r/g
+		str = str.replaceAll(re, "\n");
+
+		while(str.indexOf("\\b") != -1)
+	        str = str.replace(/.\\b/, "");
+
+	    return str;
+	}
+
 	function remove_backspaces(str)
 	{
 	    while(str.indexOf("\b") != -1)
@@ -45,7 +57,7 @@
 		}
 		else {
 			document.getElementById("textarea-terminal").innerHTML += e.data;
-			document.getElementById("textarea-terminal").innerHTML = remove_backspaces(document.getElementById("textarea-terminal").innerHTML);
+			document.getElementById("textarea-terminal").innerHTML = desanitize(document.getElementById("textarea-terminal").innerHTML);
 			document.getElementById("textarea-terminal").scrollTop = document.getElementById("textarea-terminal").scrollHeight;
 		}
     };
@@ -66,13 +78,13 @@
 
 		if(cmd.length && cmd[0] == ' ')
 			cmd = cmd.slice(1);
-		else if(cmd != prev_cmd && finished) {
+		else if(cmd.length && cmd != prev_cmd && finished) {
 			var opt = document.createElement('option');
 		    opt.value = cmd;
 		    opt.innerHTML = cmd;
 		    hist_select.appendChild(opt);
-		    hist_no = hist_select.options.length;
 		}
+		hist_no = hist_select.options.length;
 
 		document.getElementById("textarea-terminal").innerHTML += document.getElementById("input-terminal").value + "\n";
 		document.getElementById("input-terminal").value = "";

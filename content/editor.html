@@ -12,7 +12,7 @@
 	<i title="close" class='bs-ico bootstrap-x-square ico-link-color' onclick="close_file()"></i>
 </div><br>
 
-<select id="select-highlight" class="noselect" onchange="select_highlight_event()" style="display: inline-flex; width: 100px">
+<select id="select-highlight" class="noselect secondary-select" onchange="select_highlight_event()" style="display: inline-flex; width: 100px">
 	<option value="none" disabled hidden selected>highlight</option>
 	<option value="true">yes</option>
 	<option value="false">no</option>
@@ -54,29 +54,29 @@
 <div id="editor-content" class="noselect" spellcheck="false" aria-hidden="true" onscroll="scroll_editor()"></div><textarea id="editor" class="" spellcheck="false" readonly oninput="mark_edited(); redraw_editor()" onscroll="scroll_editor_content()" onclick="set_line_no()"></textarea></div><br>
 
 <style>
-/* for block of numbers */
-.hljs-ln-numbers {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
+	/* for block of numbers */
+	.hljs-ln-numbers {
+	    -webkit-touch-callout: none;
+	    -webkit-user-select: none;
+	    -khtml-user-select: none;
+	    -moz-user-select: none;
+	    -ms-user-select: none;
+	    user-select: none;
 
-    text-align: center;
-    color: grey;
-    vertical-align: top;
-    border-right: 1px solid grey;
-    padding-right: 0.5em !important;
-    min-width: 2.5em !important;
+	    text-align: center;
+	    color: grey;
+	    vertical-align: top;
+	    border-right: 1px solid grey;
+	    padding-right: 0.5em !important;
+	    min-width: 2.5em !important;
 
-    /* your custom style here */
-}
+	    /* your custom style here */
+	}
 
-/* for block of code */
-.hljs-ln-code {
-    padding-left: 0.5em !important;
-}
+	/* for block of code */
+	.hljs-ln-code {
+	    padding-left: 0.5em !important;
+	}
 </style>
 
 <script>

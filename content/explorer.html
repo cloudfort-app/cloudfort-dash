@@ -480,9 +480,8 @@
 		const date = new Date().getTime().toString();
 		const formData = new FormData();
 		formData.append("date", date);
-		formData.append("command", "wget -q -O " + bwd + "/" + document.getElementById("input-fetch-url").value.split('?')[0].split('/').pop() + " " + document.getElementById("input-fetch-url").value);
-
-		//alert("wget -q -O " + bwd + "/" + document.getElementById("input-fetch-url").value.split('?')[0].split('/').pop() + " " + document.getElementById("input-fetch-url").value);
+		//formData.append("command", "wget -q -O " + bwd + "/" + document.getElementById("input-fetch-url").value.split('?')[0].split('/').pop() + " " + document.getElementById("input-fetch-url").value);
+		formData.append("command", "cd " + bwd + "; wget " + document.getElementById("input-fetch-url").value);
 
 		waiting_popup("downloading " + document.getElementById("input-fetch-url").value);
 

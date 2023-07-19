@@ -250,6 +250,12 @@ input:-internal-autofill-previewed { /*prevent bg-col change in chrome*/
   font-size: inherit;
 }
 
+.secondary-select {
+  background: var(--secondary-dark);
+  border: 1px solid var(--light-black);
+  color: var(--white);
+}
+
 .noselect, br, button, .fa
 {
   -webkit-user-select: none; /* Chrome/Safari */

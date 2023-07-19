@@ -6,6 +6,7 @@
 
 <div>
 	<button class="btn" onclick="document.getElementById('add-user-popup').style.display = 'block'">add</button>
+	<button class="btn" onclick="document.getElementById('modify-user-popup').style.display = 'block'">modify</button>
 	<button class="btn" onclick="document.getElementById('delete-user-popup').style.display = 'block'">delete</button>
 </div>
 
@@ -19,12 +20,32 @@
 	<button class="btn" onclick="add_user()">add</button>
 </div>
 
+<div id="modify-user-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
+	<input style="margin: 0.25em 0"
+		id="input-modify-user-current-username"
+		type="text"
+		placeholder="current username" 
+	>
+	<input style="margin: 0.25em 0"
+		id="input-modify-user-new-username"
+		type="text"
+		placeholder="new username" 
+	>
+	<button class="btn" onclick="document.getElementById('modify-user-popup').style.display = 'none'">cancel</button>
+	<button class="btn" onclick="modify_user()">modify</button>
+</div>
+
 <div id="delete-user-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
 	<input style="margin: 0.25em 0"
 		id="input-delete-user-username"
 		type="text"
 		placeholder="username" 
 	>
+	<select id="select-remove-home" style="margin: 0.25em 0">
+		<option value="none" hidden disabled selected>remove home</option>
+		<option value="true">yes</option>
+		<option value="false">no</option>
+	</select>
 	<button class="btn" onclick="document.getElementById('delete-user-popup').style.display = 'none'">cancel</button>
 	<button class="btn" onclick="delete_user()">delete</button>
 </div>
@@ -48,16 +69,16 @@
 		});
 		let result = await response.json();
 
-		users_ta.innerHTML = result["output"];
+		users_ta.innerHTML = "Users:\n" + result["output"];
 	}
 
-	async function ban_ip() {
-		document.getElementById("ban-ip-popup").style.display = "none";
+	async function add_user() {
+		document.getElementById("add-user-popup").style.display = "none";
 
 		const date = new Date().getTime().toString();
 		const formData = new FormData();
 		formData.append("date", date);
-		formData.append("command", "fail2ban-client set sshd banip " + document.getElementById("input-ban-ip").value);
+		formData.append("command", "useradd " + document.getElementById("input-add-user-username").value);
 	
 		let response = await fetch("/api/run", {
 			method: "POST",
@@ -69,17 +90,18 @@
 		});
 		let result = await response.json();
 		
+		document.getElementById("input-add-user-username").value = "";
+		await fetch_users();
 		//await notify(result["output"].replaceAll("\n", "<br>"));
-		await fetch_fail2ban_status();
 	}
 
-	async function unban_ip() {
-		document.getElementById("unban-ip-popup").style.display = "none";
+	async function modify_user() {
+		document.getElementById("modify-user-popup").style.display = "none";
 
 		const date = new Date().getTime().toString();
 		const formData = new FormData();
 		formData.append("date", date);
-		formData.append("command", "fail2ban-client set sshd unbanip " + document.getElementById("input-unban-ip").value);
+		formData.append("command", "usermod -l " + document.getElementById("input-modify-user-new-username").value + " " + document.getElementById("input-modify-user-current-username").value);
 	
 		let response = await fetch("/api/run", {
 			method: "POST",
@@ -91,13 +113,41 @@
 		});
 		let result = await response.json();
 		
+		document.getElementById("input-modify-user-current-username").value = "";
+		document.getElementById("input-modify-user-new-username").value = "";
+		await fetch_users();
 		//await notify(result["output"].replaceAll("\n", "<br>"));
-		await fetch_fail2ban_status();
+	}
+
+	async function delete_user() {
+		document.getElementById("delete-user-popup").style.display = "none";
+
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		if(document.getElementById("select-remove-home").value == "true")
+			formData.append("command", "deluser --remove-home " + document.getElementById("input-delete-user-username").value);
+		else
+			formData.append("command", "deluser " + document.getElementById("input-delete-user-username").value);
+	
+		let response = await fetch("/api/run", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		let result = await response.json();
+		
+		document.getElementById("input-delete-user-username").value = "";
+		await fetch_users();
+		await notify(result["output"].replaceAll("\n", "<br>"));
 	}
 </script>
 
 <style>
-	#textarea-fail2ban {
+	#textarea-users {
 		background: var(--secondary-dark);
 		border: 1px solid var(--light-black);
 		color: var(--white);

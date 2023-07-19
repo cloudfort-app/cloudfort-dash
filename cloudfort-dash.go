@@ -101,8 +101,8 @@ func hasValidSignature(w *http.ResponseWriter, req *http.Request) bool {
         (*w).Write([]byte("{\"msg\": \"invalid signature\"}"))
 
         return false;
-    } else if(int(time.Now().UnixMilli()) - req_date > 5000) {
-        fmt.Println("request is older than 5 seconds")
+    } else if(int(time.Now().UnixMilli()) - req_date > 30*1000) {
+        fmt.Println("request is older than 30 seconds")
         (*w).Header().Set("Content-Type", "text/plain")
         (*w).Write([]byte("{\"msg\": \"invalid signature\"}"))
 
@@ -528,7 +528,7 @@ func readExecOutput(stdout, stderr *io.ReadCloser, conn *websocket.Conn, ticker 
             var old_pos_sent = pos_sent
             pos_sent = len(run_output)
             if(pos_sent > old_pos_sent) {
-                conn.WriteMessage(websocket.TextMessage, []byte(run_output[old_pos_sent:pos_sent]))
+                conn.WriteMessage(websocket.TextMessage, []byte(sanitize(run_output[old_pos_sent:pos_sent])))
             }
         }
     }()
