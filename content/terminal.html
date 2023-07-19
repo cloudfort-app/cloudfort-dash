@@ -296,9 +296,31 @@
 				setTimeout(function(){document.getElementById("input-terminal").selectionStart = document.getElementById("input-terminal").selectionEnd = pos + options[0].length - str.length; }, 0);
 			}
 			else if(options.length > 1) {
-				document.getElementById("textarea-terminal").innerHTML += document.getElementById("input-terminal").value + "\n";
-				document.getElementById("textarea-terminal").innerHTML += result["output"] + "\n";
-				add_prompt();
+				var substr = options[0];
+				for(var i=1; i<options.length; i++) {
+					if(options[i].length < substr.length)
+						substr = substr.substring(0, options[i].length)
+
+					for(var j=0; j<substr.length; j++) {
+						if(substr[j] != options[i][j]) {
+							substr = substr.substring(0, j);
+							break;
+						}
+					}
+				}
+
+				if(substr != str) {
+					document.getElementById("input-terminal").value = input.substring(0, pos) + substr.substring(str.length, substr.length) + input.substring(pos, input.length);
+
+					setTimeout(function(){document.getElementById("input-terminal").selectionStart = document.getElementById("input-terminal").selectionEnd = pos + substr.length - str.length; }, 0);
+				}
+				else {
+					document.getElementById("textarea-terminal").innerHTML += document.getElementById("input-terminal").value + "\n";
+					document.getElementById("textarea-terminal").innerHTML += result["output"] + "\n";
+					add_prompt();
+				}
+
+					
 			}
 
 			//alert(result["output"]);

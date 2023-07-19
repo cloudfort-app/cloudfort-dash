@@ -27,7 +27,7 @@ var domain string
 var home string
 var port string
 var password []byte
-var version = "v0.1.17"
+var version = "v0.1.18"
 
 var upgrader = websocket.Upgrader{}
 
@@ -64,9 +64,8 @@ func signatureHandshake(conn *websocket.Conn) bool {
     mac.Write([]byte(date))
 
     req_date, _ := strconv.Atoi(string(date))
-    req_date -= 1000
 
-    if(req_date > int(time.Now().UnixMilli())) {
+    if(req_date - int(time.Now().UnixMilli()) > 10*1000) {
         fmt.Println("handshake is from the future")
         conn.WriteMessage(websocket.TextMessage, []byte("invalid signature"))
         conn.Close()
@@ -95,9 +94,8 @@ func hasValidSignature(w *http.ResponseWriter, req *http.Request) bool {
     mac.Write([]byte(req.PostFormValue("date")))
 
     req_date, _ := strconv.Atoi(req.PostFormValue("date"))
-    req_date -= 1000
 
-    if(req_date > int(time.Now().UnixMilli())) {
+    if(req_date - int(time.Now().UnixMilli()) > 10*1000) {
         fmt.Println("request is from the future")
         (*w).Header().Set("Content-Type", "text/plain")
         (*w).Write([]byte("{\"msg\": \"invalid signature\"}"))
