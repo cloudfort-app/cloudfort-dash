@@ -1970,6 +1970,12 @@
 								<h2 class="card-hover-color">update</h2>
 							</div>
 						
+							<div class="card border-hover" onclick="show('users')" style="cursor: pointer; width: 10em">
+								<i class="bs-ico bootstrap-people width-5em card-hover-filter"></i><br>
+								<hr>
+								<h2 class="card-hover-color">users</h2>
+							</div>
+						
 							<div class="card border-hover" onclick="bwd = '/var/www'; show('explorer')" style="cursor: pointer; width: 10em">
 								<i class="bs-ico bootstrap-globe width-5em card-hover-filter"></i><br>
 								<hr>
@@ -3201,6 +3207,126 @@
 					</div>
 				</div>
 
+				<div id="users-div" class="main-div" style="display: none">
+					<div class="main-page">
+						<div id="dash-breadcrumb">
+						    <a onclick="show('index')">dash</a>/<a onclick="show('tools')">tools</a>/users
+						</div>
+						
+						<div id="textarea-users" spellcheck="false"></div>
+						
+						<div>
+							<button class="btn" onclick="document.getElementById('add-user-popup').style.display = 'block'">add</button>
+							<button class="btn" onclick="document.getElementById('delete-user-popup').style.display = 'block'">delete</button>
+						</div>
+						
+						<div id="add-user-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
+							<input style="margin: 0.25em 0"
+								id="input-add-user-username"
+								type="text"
+								placeholder="username" 
+							>
+							<button class="btn" onclick="document.getElementById('add-user-popup').style.display = 'none'">cancel</button>
+							<button class="btn" onclick="add_user()">add</button>
+						</div>
+						
+						<div id="delete-user-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
+							<input style="margin: 0.25em 0"
+								id="input-delete-user-username"
+								type="text"
+								placeholder="username" 
+							>
+							<button class="btn" onclick="document.getElementById('delete-user-popup').style.display = 'none'">cancel</button>
+							<button class="btn" onclick="delete_user()">delete</button>
+						</div>
+						
+						<script>
+							const users_ta = document.getElementById("textarea-users");
+						
+							async function fetch_users() {
+								const date = new Date().getTime().toString();
+								const formData = new FormData();
+								formData.append("date", date);
+								formData.append("command", "cat /etc/passwd | grep -vE '(/bin/false|/sbin/nologin|/bin/sync)' | cut -d: -f1");
+							
+								let response = await fetch("/api/run", {
+									method: "POST",
+									headers: {
+										//"content-type": "application/json"
+										"signature": signature(date)
+								    },
+									body: formData
+								});
+								let result = await response.json();
+						
+								users_ta.innerHTML = result["output"];
+							}
+						
+							async function ban_ip() {
+								document.getElementById("ban-ip-popup").style.display = "none";
+						
+								const date = new Date().getTime().toString();
+								const formData = new FormData();
+								formData.append("date", date);
+								formData.append("command", "fail2ban-client set sshd banip " + document.getElementById("input-ban-ip").value);
+							
+								let response = await fetch("/api/run", {
+									method: "POST",
+									headers: {
+										//"content-type": "application/json"
+										"signature": signature(date)
+								    },
+									body: formData
+								});
+								let result = await response.json();
+								
+								//await notify(result["output"].replaceAll("\n", "<br>"));
+								await fetch_fail2ban_status();
+							}
+						
+							async function unban_ip() {
+								document.getElementById("unban-ip-popup").style.display = "none";
+						
+								const date = new Date().getTime().toString();
+								const formData = new FormData();
+								formData.append("date", date);
+								formData.append("command", "fail2ban-client set sshd unbanip " + document.getElementById("input-unban-ip").value);
+							
+								let response = await fetch("/api/run", {
+									method: "POST",
+									headers: {
+										//"content-type": "application/json"
+										"signature": signature(date)
+								    },
+									body: formData
+								});
+								let result = await response.json();
+								
+								//await notify(result["output"].replaceAll("\n", "<br>"));
+								await fetch_fail2ban_status();
+							}
+						</script>
+						
+						<style>
+							#textarea-fail2ban {
+								background: var(--secondary-dark);
+								border: 1px solid var(--light-black);
+								color: var(--white);
+								height: calc(100vh - 7.5em); 
+								width: 100%;
+								font-family: "ubuntu mono";
+								font-size: 0.9em;
+								overflow-x:auto;
+								padding: 0.25em 0.25em;
+								margin: 0.25em 0;
+								resize: none;
+								text-align: left;
+								white-space: pre-wrap;
+							}
+						</style>
+					</div>
+				</div>
+
 				<div id="tos-div" class="main-div" style="display: none">
 					<div class="main-page">
 						<h2>Terms of Service</h2>
@@ -3458,6 +3584,7 @@
 				document.getElementById("repos-div").style.display = "none";
 				document.getElementById("services-div").style.display = "none";
 				document.getElementById("ssh-div").style.display = "none";
+				document.getElementById("users-div").style.display = "none";
 
 				document.getElementById(name + "-div").style.display = "block";
 
@@ -3471,6 +3598,8 @@
 					fetch_repos();
 				else if(name == "services")
 					fetch_services();
+				else if(name == "users")
+					fetch_users();
 				else if(name == "explorer")
 					get_dir(bwd);
 				else if(name == "monitor")

@@ -114,6 +114,12 @@
 					</div>
 				</div>
 
+				<div id="users-div" class="main-div" style="display: none">
+					<div class="main-page">
+						@input("content/users.html")
+					</div>
+				</div>
+
 				<div id="tos-div" class="main-div" style="display: none">
 					<div class="main-page">
 						@input("content/tos.html")
@@ -261,6 +267,7 @@
 				document.getElementById("repos-div").style.display = "none";
 				document.getElementById("services-div").style.display = "none";
 				document.getElementById("ssh-div").style.display = "none";
+				document.getElementById("users-div").style.display = "none";
 
 				document.getElementById(name + "-div").style.display = "block";
 
@@ -274,6 +281,8 @@
 					fetch_repos();
 				else if(name == "services")
 					fetch_services();
+				else if(name == "users")
+					fetch_users();
 				else if(name == "explorer")
 					get_dir(bwd);
 				else if(name == "monitor")

@@ -517,6 +517,9 @@ ul li {
 .bootstrap-key:before {
   content: url("../icons/bootstrap-key.svg"); 
 }
+.bootstrap-people:before {
+  content: url("../icons/bootstrap-people.svg"); 
+}
 .bootstrap-regex:before {
   content: url("../icons/bootstrap-regex.svg"); 
 }

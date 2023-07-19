@@ -176,6 +176,9 @@
 .bootstrap-key:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-key.svg)"); 
 }
+.bootstrap-people:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-people.svg)"); 
+}
 .bootstrap-regex:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-regex.svg)"); 
 }
