@@ -27,7 +27,7 @@ var domain string
 var home string
 var port string
 var password []byte
-var version = "v0.1.15"
+var version = "v0.1.16"
 
 var upgrader = websocket.Upgrader{}
 
@@ -784,7 +784,7 @@ func main() {
         }
 
         fmt.Println(string(out))
-        fmt.Println("cloudfort-dash " + cmd + "d successfully")
+        fmt.Println("cloudfort-dash updated successfully")
 
     } else if(cmd == "--version") {
         fmt.Println(version)
