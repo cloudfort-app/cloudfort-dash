@@ -203,8 +203,7 @@
 			          <li class="subitem"><a href="#" onclick="show('terminal'); close_menu()">terminal</a></li>
 			          <li class="subitem"><a href="#" onclick="show('browser'); close_menu()">browser</a></li>
 			          <li class="subitem"><a href="#" onclick="show('editor'); close_menu()">editor</a></li>
-			          <li class="subitem"><a href="#" onclick="show('certs'); close_menu()">certificates</a></li>
-			          <li class="subitem"><a href="#" onclick="show('firewall'); close_menu()">firewall</a></li>
+			          <li class="subitem"><a href="#" onclick="show('tools'); close_menu()">tools</a></li>
 			        </ul>
 			      </li>
 			
@@ -222,7 +221,7 @@
 			  <button id="sign-out-button" class="btn" onclick="sign_out()">sign out</button>
 			</div>
 
-			<div id="content">
+			<div id="content" style="display: none;">
 				<div id="menu-div">
 					<div style="margin: 0 auto">
 						<i id="open-menu-icon" class="fa fa-bars menu-ico" onclick="show_menu()"></i><br><br>
@@ -288,7 +287,7 @@
 						    <a onclick="show('index')">dash</a>/monitor
 						</div>
 						
-						<select id="select-monitor-sort" onchange="fetch_top()" style="margin: 0.25em; width: 300px">
+						<select id="select-monitor-sort" class="noselect" onchange="fetch_top()" style="margin: 0.25em; width: 300px">
 							<option value="cpu">cpu</option>
 							<option value="memory" selected>memory</option>
 						</select>
@@ -326,7 +325,7 @@
 							}
 						
 							async function monitor_init() {
-								if(config["monitor"]["sort-by"] == "cpu") {
+								if(config["monitor"] && config["monitor"]["sort-by"] == "cpu") {
 									document.getElementById("select-monitor-sort").value = "cpu";
 								}
 							}
@@ -358,13 +357,13 @@
 						    <a onclick="show('index')">dash</a>/terminal
 						</div>
 						
-						<select id="select-terminal-interactive" style="margin: 0.25em 0 0; width: 300px">
+						<select id="select-terminal-interactive" class="noselect" style="margin: 0.25em 0 0; width: 300px">
 							<option value="interactive" selected>interactive</option>
 							<option value="non-interactive">non-interactive</option>
 						</select>
 						<div id="textarea-terminal" style="text-align: left; margin: 0.5em 0;"></div>
 						<input id="input-terminal" placeholder="cmd" spellcheck="false" onkeydown="terminal_keypress(event)"><br>
-						<select id="select-hist" onchange="hist_event()">
+						<select id="select-hist" class="noselect" onchange="hist_event()">
 							<option value="none" disabled hidden selected>history</option>
 						</select>
 						
@@ -471,7 +470,7 @@
 									if(twd.substring(0, home.length) == home)
 										twd = "~" + twd.substring(home.length, twd.length);
 						
-									if(twd == otwd && dir != "./") 
+									if(twd == otwd && dir != "./" && dir != twd) 
 										document.getElementById("textarea-terminal").innerHTML += "cd: " + dir + ": no such directory\n";
 						
 									add_prompt();
@@ -549,7 +548,7 @@
 						
 								add_prompt();
 						
-								if(config["terminal"]["mode"] == "non-interactive") {
+								if(config["terminal"] && config["terminal"]["mode"] == "non-interactive") {
 									document.getElementById("select-terminal-interactive").value = "non-interactive";
 								}
 							}
@@ -698,7 +697,7 @@
 							<span id="span-pwd"></span>
 						</div><br>
 						
-						<div class="card border" style="overflow-x: scroll; white-space: nowrap; max-width: 90%;">
+						<div class="card border noselect" style="overflow-x: scroll; white-space: nowrap; max-width: 90%;">
 							<i title="home" class='bs-ico bootstrap-house ico-link-color' onclick="get_dir(home)"></i> &nbsp;&nbsp;
 							<i title="refresh" class='bs-ico bootstrap-arrow-repeat ico-link-color' onclick="get_dir(bwd)"></i> &nbsp;&nbsp;
 							<i title="new directory" class='bs-ico bootstrap-folder-plus ico-link-color' onclick="show_create_dir()"></i> &nbsp;&nbsp;
@@ -753,7 +752,7 @@
 						
 						<div id="card-input-upload" class="card border" style="display: none">
 							<div class="dropzone">
-								<div id="span-dropzone" style="padding: 0.25em 0">drop or select</div>
+								<div id="span-dropzone" style="padding: 0.25em 0; overflow-x: hidden; white-space: nowrap; font-size: 1em">drop or select</div>
 								<input id="input-file" type="file" class="upload-input" onchange="display_filename()" />
 							</div>
 							<button id="upload_button"  class="btn" onclick="upload_file()">upload</button>
@@ -1570,7 +1569,7 @@
 						    <a onclick="show('index')">dash</a>/editor
 						</div>
 						
-						<div class="card border" style="overflow-x: scroll; white-space: nowrap; max-width: 90%;">
+						<div class="card border noselect" style="overflow-x: scroll; white-space: nowrap; max-width: 90%;">
 							<i title="open" class='bs-ico bootstrap-folder-open ico-link-color' onclick="show_input_path_create()"></i> &nbsp;&nbsp;
 							<i title="save" class='bs-ico bootstrap-save ico-link-color' onclick="save_file()"></i> &nbsp;&nbsp;
 							<i title="save as" class='bs-ico bootstrap-arrow-down-square ico-link-color' onclick="show_save_as()"></i> &nbsp;&nbsp;
@@ -1580,7 +1579,7 @@
 							<i title="close" class='bs-ico bootstrap-x-square ico-link-color' onclick="close_file()"></i>
 						</div><br>
 						
-						<select id="select-highlight" onchange="select_highlight_event()" style="display: inline-flex; width: 100px">
+						<select id="select-highlight" class="noselect" onchange="select_highlight_event()" style="display: inline-flex; width: 100px">
 							<option value="none" disabled hidden selected>highlight</option>
 							<option value="true">yes</option>
 							<option value="false">no</option>
@@ -1614,7 +1613,7 @@
 							<button class="btn" onclick="regex_replace()">replace</button>
 						</div>
 						
-						<select id="select-open-file" onchange="select_open_file_event()">
+						<select id="select-open-file" class="noselect" onchange="select_open_file_event()">
 							<option value="none" disabled hidden selected>open files</option>
 						</select><br>
 						
@@ -1756,6 +1755,12 @@
 						
 								for(var i=0; i<file_select.length; ++i) {
 									if(file_select.options[i].value == open_path) {
+										if(file_select.options[i].innerHTML[file_select.options[i].innerHTML.length-1] == '*') {
+											if(await confirm_("save changes")) {
+												save_file();
+											}
+										}
+						
 										file_select.remove(i);
 						
 										if(i == 1 && file_select.length == 1) {
@@ -1893,7 +1898,7 @@
 							}
 						
 							async function editor_init() {
-								if(config["editor"]["highlight"] == false) {
+								if(config["editor"] && config["editor"]["highlight"] == false) {
 									document.getElementById("select-highlight").value = "false";
 									select_highlight_event();
 								}
@@ -1969,6 +1974,12 @@
 								<i class="bs-ico bootstrap-x-square width-5em card-hover-filter"></i><br>
 								<hr>
 								<h2 class="card-hover-color">kill</h2>
+							</div>
+						
+							<div class="card border-hover" onclick="show('repos')" style="cursor: pointer; width: 10em">
+								<i class="bs-ico bootstrap-git width-5em card-hover-filter"></i><br>
+								<hr>
+								<h2 class="card-hover-color">repositories</h2>
 							</div>
 						
 							<div class="card border-hover" onclick="show('services')" style="cursor: pointer; width: 10em">
@@ -2820,6 +2831,214 @@
 					</div>
 				</div>
 
+				<div id="repos-div" class="main-div" style="display: none">
+					<div class="main-page">
+						<div id="dash-breadcrumb">
+						    <a onclick="show('index')">dash</a>/<a onclick="show('tools')">tools</a>/repositories
+						</div>
+						
+						<h2 style="margin: 0.5em 0">Repositories</h2>
+						
+						<div class="card border" style="max-width: 90%; margin-bottom: 1em;">
+							<table id="table-repos" style="text-align: center;">
+								<tr>
+									<th>org</th>
+									<th>repository</th>
+									<th>explore</th>
+								</tr>
+							</table>
+						</div>
+						
+						<div id="div-repo-btns">
+							<button class="btn" onclick="document.getElementById('add-repo-popup').style.display = 'block'">add</button>
+							<button class="btn" onclick="document.getElementById('deploy-repo-popup').style.display = 'block'">deploy</button>
+							<button class="btn" onclick="document.getElementById('remove-repo-popup').style.display = 'block'">remove</button>
+							<button class="btn" onclick="edit_file(home + '/.cloudfort/repositories.json')">config</button>
+						</div>
+						
+						<div id="add-repo-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
+							<input style="margin: 0.25em 0"
+								id="input-add-repo-org"
+								type="text"
+								placeholder="org" 
+								spellcheck="false"
+							>
+							<input style="margin: 0.25em 0"
+								id="input-add-repo-name"
+								type="text"
+								placeholder="repository" 
+								spellcheck="false"
+							>
+							<input style="margin: 0.25em 0"
+								id="input-add-repo-path"
+								type="text"
+								placeholder="path" 
+								spellcheck="false"
+							>
+							<input style="margin: 0.25em 0"
+								id="input-add-repo-deploy-script"
+								type="text"
+								placeholder="deploy" 
+								spellcheck="false"
+							>
+							<button class="btn" onclick="document.getElementById('add-repo-popup').style.display = 'none'">cancel</button>
+							<button class="btn" onclick="add_repo()">add</button>
+						</div>
+						
+						<div id="deploy-repo-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
+							<input style="margin: 0.25em 0"
+								id="input-deploy-repo-org"
+								type="text"
+								placeholder="org" 
+								spellcheck="false"
+							>
+							<input style="margin: 0.25em 0"
+								id="input-deploy-repo-name"
+								type="text"
+								placeholder="repository" 
+								spellcheck="false"
+							>
+							<button class="btn" onclick="document.getElementById('deploy-repo-popup').style.display = 'none'">cancel</button>
+							<button class="btn" onclick="deploy_repo()">deploy</button>
+						</div>
+						
+						<div id="remove-repo-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
+							<input style="margin: 0.25em 0"
+								id="input-remove-repo-org"
+								type="text"
+								placeholder="org" 
+								spellcheck="false"
+							>
+							<input style="margin: 0.25em 0"
+								id="input-remove-repo-name"
+								type="text"
+								placeholder="repository" 
+								spellcheck="false"
+							>
+							<button class="btn" onclick="document.getElementById('remove-repo-popup').style.display = 'none'">cancel</button>
+							<button class="btn" onclick="remove_repo()">remove</button>
+						</div>
+						
+						<script>
+							const repos_table = document.getElementById("table-repos");
+							var repos;
+						
+							async function clear_repos_table() {
+								while(repos_table.rows.length > 1)
+									repos_table.deleteRow(1);
+							}
+						
+							async function fetch_repos() {
+								const date = new Date().getTime().toString();
+								const formData = new FormData();
+								formData.append("date", date);
+								formData.append("path", home + "/.cloudfort/repositories.json");
+							
+								let response = await fetch("/api/file/read", {
+									method: "POST",
+									headers: {
+										//"content-type": "application/json"
+										"signature": signature(date)
+								    },
+									body: formData
+								});
+								let result = await response.json();
+						
+								repos = JSON.parse(result["content"]);
+						
+								//alert(JSON.stringify(repos));
+						
+								clear_repos_table();
+						
+								var r = 1;
+								for(const org in repos["repositories"]) {
+									for(const name in repos["repositories"][org]) {
+										var row = repos_table.insertRow(r++);
+										row.insertCell(0).innerHTML = org;
+										row.insertCell(1).innerHTML = name;
+										row.insertCell(2).innerHTML = "<a onclick='bwd = \"" + repos["repositories"][org][name]["path"] + "\"; show(\"explorer\")'>explore</a>";
+									}
+								}
+							}
+						
+							async function add_repo() {
+								if(repos["repositories"][document.getElementById("input-add-repo-org").value] == undefined)
+									repos["repositories"][document.getElementById("input-add-repo-org").value] = {};
+								repos["repositories"][document.getElementById("input-add-repo-org").value][document.getElementById("input-add-repo-name").value] = {};
+								repos["repositories"][document.getElementById("input-add-repo-org").value][document.getElementById("input-add-repo-name").value]["path"] = document.getElementById("input-add-repo-path").value;
+								repos["repositories"][document.getElementById("input-add-repo-org").value][document.getElementById("input-add-repo-name").value]["deploy"] = document.getElementById("input-add-repo-deploy-script").value;
+						
+								const date = new Date().getTime().toString();
+								const formData = new FormData();
+								formData.append("date", date);
+								formData.append("path", home + "/.cloudfort/repositories.json");
+								formData.append("content", JSON.stringify(repos, null, "\t"));
+							
+								let response = await fetch("/api/file/write", {
+									method: "POST",
+									headers: {
+										//"content-type": "application/json"
+										"signature": signature(date)
+								    },
+									body: formData
+								});
+								let result = await response.json();
+						
+								fetch_repos();
+								document.getElementById('add-repo-popup').style.display = 'none'
+							}
+						
+							async function deploy_repo() {
+								document.getElementById('input-terminal').value = "cd " + repos["repositories"][document.getElementById("input-deploy-repo-org").value][document.getElementById("input-deploy-repo-name").value]["path"];
+								await run_cmd();
+						
+								document.getElementById('deploy-repo-popup').style.display = 'none';
+								show('terminal');
+						
+								document.getElementById('input-terminal').value = repos["repositories"][document.getElementById("input-deploy-repo-org").value][document.getElementById("input-deploy-repo-name").value]["deploy"];
+								run_cmd();
+							}
+						
+							async function remove_repo() {
+								delete repos["repositories"][document.getElementById("input-remove-repo-org").value][document.getElementById("input-remove-repo-name").value];
+						
+								if(Object.keys(repos["repositories"][document.getElementById("input-remove-repo-org").value]).length == 0) {
+									delete repos["repositories"][document.getElementById("input-remove-repo-org").value];
+								}
+						
+								const date = new Date().getTime().toString();
+								const formData = new FormData();
+								formData.append("date", date);
+								formData.append("path", home + "/.cloudfort/repositories.json");
+								formData.append("content", JSON.stringify(repos, null, "\t"));
+							
+								let response = await fetch("/api/file/write", {
+									method: "POST",
+									headers: {
+										//"content-type": "application/json"
+										"signature": signature(date)
+								    },
+									body: formData
+								});
+								let result = await response.json();
+						
+								fetch_repos();
+								document.getElementById('remove-repo-popup').style.display = 'none'
+							}
+						</script>
+						
+						<style>
+							#table-repos {
+								margin: 0 auto; 
+								text-align: left;
+						
+								display: block;
+								overflow-x: scroll;
+							}
+						</style>
+					</div>
+				</div>
+
 				<div id="services-div" class="main-div" style="display: none">
 					<div class="main-page">
 						<div id="dash-breadcrumb">
@@ -3266,6 +3485,7 @@
 				document.getElementById("docker-div").style.display = "none";
 				document.getElementById("fail2ban-div").style.display = "none";
 				document.getElementById("firewall-div").style.display = "none";
+				document.getElementById("repos-div").style.display = "none";
 				document.getElementById("services-div").style.display = "none";
 				document.getElementById("ssh-div").style.display = "none";
 
@@ -3277,6 +3497,8 @@
 					fetch_docker_containers();
 				else if(name == "fail2ban")
 					fetch_fail2ban_status();
+				else if(name == "repos")
+					fetch_repos();
 				else if(name == "services")
 					fetch_services();
 				else if(name == "explorer")
@@ -3376,6 +3598,8 @@
 
 			async function dash_init() {
 				await check_signed_in();
+
+				document.getElementById("content").style.display = "block";
 
 				await get_home();
 				await get_config();

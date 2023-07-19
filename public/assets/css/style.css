@@ -208,7 +208,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h1 {
-  color: var(--sherb-blue);
+  color: var(--sherb-purple);
 }
 h2 {
   color: var(--sherb-pink);
@@ -501,6 +501,9 @@ ul li {
 }
 .bootstrap-gear:before {
   content: url("../icons/bootstrap-gear.svg"); 
+}
+.bootstrap-git:before {
+  content: url("../icons/bootstrap-git.svg"); 
 }
 .bootstrap-globe:before {
   content: url("../icons/bootstrap-globe.svg"); 

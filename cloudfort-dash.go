@@ -22,12 +22,12 @@ import (
     "github.com/gorilla/websocket"
 )
 
-var config *gabs.Container
+var config, repos *gabs.Container
 var domain string
 var home string
 var port string
 var password []byte
-var version = "v0.1.14"
+var version = "v0.1.15"
 
 var upgrader = websocket.Upgrader{}
 
@@ -215,9 +215,12 @@ func routeDeploy(w http.ResponseWriter, req *http.Request) {
     }
     
     body, _ := gabs.ParseJSON(body_bytes)
-    name, _ := body.Path("repository.full_name").Data().(string)
-    deploy_cmd, _ := config.Path("repositories." + name + ".deploy").Data().(string)
-    out, err := exec.Command("/bin/sh", "-c", deploy_cmd).CombinedOutput()
+    full_name, _ := body.Path("repository.full_name").Data().(string)
+    org := strings.Split(full_name, "/")[0]
+    name := strings.Split(full_name, "/")[1]
+    repo_path, _ := repos.Path("repositories." + org + "." + name + ".path").Data().(string)
+    deploy_cmd, _ := repos.Path("repositories." + org + "." + name + ".deploy").Data().(string)
+    out, err := exec.Command("/bin/sh", "-c", "cd " + repo_path + "; " + deploy_cmd).CombinedOutput()
 
     if(err != nil) {
         log.Println(err)
@@ -653,8 +656,24 @@ func createConfig() {
 
     "terminal": {
         "mode": "interactive"
-    },
+    }
+}`), 0644);
 
+    if(err != nil) {
+        log.Fatal(err)
+    }
+}
+
+func createReposConfig() {
+    if(!fileExists(home + "/.cloudfort/")) {
+        err := os.Mkdir(home + "/.cloudfort/", 0755)
+        if(err != nil) {
+            log.Fatal(err)
+        } 
+    }
+
+    err := os.WriteFile(home + "/.cloudfort/repositories.json", []byte(
+`{
     "repositories": {
     }
 }`), 0644);
@@ -699,10 +718,18 @@ func main() {
             createConfig()
         }
 
+        if(!fileExists(home + "/.cloudfort/repositories.json")) {
+            createReposConfig()
+        }
+
         config_bytes, _ := os.ReadFile(home + "/.cloudfort/config.json");
         config, _ = gabs.ParseJSON(config_bytes)
 
+        repos_bytes, _ := os.ReadFile(home + "/.cloudfort/repositories.json");
+        repos, _ = gabs.ParseJSON(repos_bytes)
+
         //fmt.Println(config); 
+        //fmt.Println(repos); 
         
         pwd, _ := os.Getwd()
         if(pwd == "/") {
@@ -712,13 +739,13 @@ func main() {
         mux.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("/var/www/cloudfort-dash/public"))))
 
         if(port == "80" || port == "8000" || port == "8080") {
-            fmt.Println("Hosting Cloudfort Dash (http) on port " + port)
+            fmt.Println("Serving Cloudfort Dash (http) on port " + port)
             err := http.ListenAndServe(":" + port, mux)
             if err != nil {
                 log.Println("ListenAndServe: ", err)
             }
         } else {
-            fmt.Println("Hosting Cloudfort Dash (https) on port " + port)
+            fmt.Println("Serving Cloudfort Dash (https) on port " + port)
             err := http.ListenAndServeTLS(":" + port, 
                 "/etc/letsencrypt/live/" + domain + "/fullchain.pem", 
                 "/etc/letsencrypt/live/" + domain + "/privkey.pem", 

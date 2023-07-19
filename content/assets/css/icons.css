@@ -161,6 +161,9 @@
 .bootstrap-gear:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-gear.svg)"); 
 }
+.bootstrap-git:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-git.svg)"); 
+}
 .bootstrap-globe:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-globe.svg)"); 
 }

@@ -1,0 +1,203 @@
+<div id="dash-breadcrumb">
+    <a onclick="show('index')">dash</a>/<a onclick="show('tools')">tools</a>/repositories
+</div>
+
+<h2 style="margin: 0.5em 0">Repositories</h2>
+
+<div class="card border" style="max-width: 90%; margin-bottom: 1em;">
+	<table id="table-repos" style="text-align: center;">
+		<tr>
+			<th>org</th>
+			<th>repository</th>
+			<th>explore</th>
+		</tr>
+	</table>
+</div>
+
+<div id="div-repo-btns">
+	<button class="btn" onclick="document.getElementById('add-repo-popup').style.display = 'block'">add</button>
+	<button class="btn" onclick="document.getElementById('deploy-repo-popup').style.display = 'block'">deploy</button>
+	<button class="btn" onclick="document.getElementById('remove-repo-popup').style.display = 'block'">remove</button>
+	<button class="btn" onclick="edit_file(home + '/.cloudfort/repositories.json')">config</button>
+</div>
+
+<div id="add-repo-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
+	<input style="margin: 0.25em 0"
+		id="input-add-repo-org"
+		type="text"
+		placeholder="org" 
+		spellcheck="false"
+	>
+	<input style="margin: 0.25em 0"
+		id="input-add-repo-name"
+		type="text"
+		placeholder="repository" 
+		spellcheck="false"
+	>
+	<input style="margin: 0.25em 0"
+		id="input-add-repo-path"
+		type="text"
+		placeholder="path" 
+		spellcheck="false"
+	>
+	<input style="margin: 0.25em 0"
+		id="input-add-repo-deploy-script"
+		type="text"
+		placeholder="deploy" 
+		spellcheck="false"
+	>
+	<button class="btn" onclick="document.getElementById('add-repo-popup').style.display = 'none'">cancel</button>
+	<button class="btn" onclick="add_repo()">add</button>
+</div>
+
+<div id="deploy-repo-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
+	<input style="margin: 0.25em 0"
+		id="input-deploy-repo-org"
+		type="text"
+		placeholder="org" 
+		spellcheck="false"
+	>
+	<input style="margin: 0.25em 0"
+		id="input-deploy-repo-name"
+		type="text"
+		placeholder="repository" 
+		spellcheck="false"
+	>
+	<button class="btn" onclick="document.getElementById('deploy-repo-popup').style.display = 'none'">cancel</button>
+	<button class="btn" onclick="deploy_repo()">deploy</button>
+</div>
+
+<div id="remove-repo-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
+	<input style="margin: 0.25em 0"
+		id="input-remove-repo-org"
+		type="text"
+		placeholder="org" 
+		spellcheck="false"
+	>
+	<input style="margin: 0.25em 0"
+		id="input-remove-repo-name"
+		type="text"
+		placeholder="repository" 
+		spellcheck="false"
+	>
+	<button class="btn" onclick="document.getElementById('remove-repo-popup').style.display = 'none'">cancel</button>
+	<button class="btn" onclick="remove_repo()">remove</button>
+</div>
+
+<script>
+	const repos_table = document.getElementById("table-repos");
+	var repos;
+
+	async function clear_repos_table() {
+		while(repos_table.rows.length > 1)
+			repos_table.deleteRow(1);
+	}
+
+	async function fetch_repos() {
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		formData.append("path", home + "/.cloudfort/repositories.json");
+	
+		let response = await fetch("/api/file/read", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		let result = await response.json();
+
+		repos = JSON.parse(result["content"]);
+
+		//alert(JSON.stringify(repos));
+
+		clear_repos_table();
+
+		var r = 1;
+		for(const org in repos["repositories"]) {
+			for(const name in repos["repositories"][org]) {
+				var row = repos_table.insertRow(r++);
+				row.insertCell(0).innerHTML = org;
+				row.insertCell(1).innerHTML = name;
+				row.insertCell(2).innerHTML = "<a onclick='bwd = \"" + repos["repositories"][org][name]["path"] + "\"; show(\"explorer\")'>explore</a>";
+			}
+		}
+	}
+
+	async function add_repo() {
+		if(repos["repositories"][document.getElementById("input-add-repo-org").value] == undefined)
+			repos["repositories"][document.getElementById("input-add-repo-org").value] = {};
+		repos["repositories"][document.getElementById("input-add-repo-org").value][document.getElementById("input-add-repo-name").value] = {};
+		repos["repositories"][document.getElementById("input-add-repo-org").value][document.getElementById("input-add-repo-name").value]["path"] = document.getElementById("input-add-repo-path").value;
+		repos["repositories"][document.getElementById("input-add-repo-org").value][document.getElementById("input-add-repo-name").value]["deploy"] = document.getElementById("input-add-repo-deploy-script").value;
+
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		formData.append("path", home + "/.cloudfort/repositories.json");
+		formData.append("content", JSON.stringify(repos, null, "\t"));
+	
+		let response = await fetch("/api/file/write", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		let result = await response.json();
+
+		fetch_repos();
+		document.getElementById('add-repo-popup').style.display = 'none'
+	}
+
+	async function deploy_repo() {
+		document.getElementById('input-terminal').value = "cd " + repos["repositories"][document.getElementById("input-deploy-repo-org").value][document.getElementById("input-deploy-repo-name").value]["path"];
+		await run_cmd();
+
+		document.getElementById('deploy-repo-popup').style.display = 'none';
+		show('terminal');
+
+		document.getElementById('input-terminal').value = repos["repositories"][document.getElementById("input-deploy-repo-org").value][document.getElementById("input-deploy-repo-name").value]["deploy"];
+		run_cmd();
+	}
+
+	async function remove_repo() {
+		delete repos["repositories"][document.getElementById("input-remove-repo-org").value][document.getElementById("input-remove-repo-name").value];
+
+		if(Object.keys(repos["repositories"][document.getElementById("input-remove-repo-org").value]).length == 0) {
+			delete repos["repositories"][document.getElementById("input-remove-repo-org").value];
+		}
+
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		formData.append("path", home + "/.cloudfort/repositories.json");
+		formData.append("content", JSON.stringify(repos, null, "\t"));
+	
+		let response = await fetch("/api/file/write", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		let result = await response.json();
+
+		fetch_repos();
+		document.getElementById('remove-repo-popup').style.display = 'none'
+	}
+</script>
+
+<style>
+	#table-repos {
+		margin: 0 auto; 
+		text-align: left;
+
+		display: block;
+		overflow-x: scroll;
+	}
+</style>

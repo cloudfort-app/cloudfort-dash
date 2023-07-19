@@ -10,7 +10,7 @@
 		<div align="center">
 			@input("templates/menu.html")
 
-			<div id="content">
+			<div id="content" style="display: none;">
 				<div id="menu-div">
 					<div style="margin: 0 auto">
 						<i id="open-menu-icon" class="fa fa-bars menu-ico" onclick="show_menu()"></i><br><br>
@@ -93,6 +93,12 @@
 				<div id="firewall-div" class="main-div" style="display: none">
 					<div class="main-page">
 						@input("content/firewall.html")
+					</div>
+				</div>
+
+				<div id="repos-div" class="main-div" style="display: none">
+					<div class="main-page">
+						@input("content/repositories.html")
 					</div>
 				</div>
 
@@ -252,6 +258,7 @@
 				document.getElementById("docker-div").style.display = "none";
 				document.getElementById("fail2ban-div").style.display = "none";
 				document.getElementById("firewall-div").style.display = "none";
+				document.getElementById("repos-div").style.display = "none";
 				document.getElementById("services-div").style.display = "none";
 				document.getElementById("ssh-div").style.display = "none";
 
@@ -263,6 +270,8 @@
 					fetch_docker_containers();
 				else if(name == "fail2ban")
 					fetch_fail2ban_status();
+				else if(name == "repos")
+					fetch_repos();
 				else if(name == "services")
 					fetch_services();
 				else if(name == "explorer")
@@ -362,6 +371,8 @@
 
 			async function dash_init() {
 				await check_signed_in();
+
+				document.getElementById("content").style.display = "block";
 
 				await get_home();
 				await get_config();

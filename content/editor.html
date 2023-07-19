@@ -2,7 +2,7 @@
     <a onclick="show('index')">dash</a>/editor
 </div>
 
-<div class="card border" style="overflow-x: scroll; white-space: nowrap; max-width: 90%;">
+<div class="card border noselect" style="overflow-x: scroll; white-space: nowrap; max-width: 90%;">
 	<i title="open" class='bs-ico bootstrap-folder-open ico-link-color' onclick="show_input_path_create()"></i> &nbsp;&nbsp;
 	<i title="save" class='bs-ico bootstrap-save ico-link-color' onclick="save_file()"></i> &nbsp;&nbsp;
 	<i title="save as" class='bs-ico bootstrap-arrow-down-square ico-link-color' onclick="show_save_as()"></i> &nbsp;&nbsp;
@@ -12,7 +12,7 @@
 	<i title="close" class='bs-ico bootstrap-x-square ico-link-color' onclick="close_file()"></i>
 </div><br>
 
-<select id="select-highlight" onchange="select_highlight_event()" style="display: inline-flex; width: 100px">
+<select id="select-highlight" class="noselect" onchange="select_highlight_event()" style="display: inline-flex; width: 100px">
 	<option value="none" disabled hidden selected>highlight</option>
 	<option value="true">yes</option>
 	<option value="false">no</option>
@@ -46,7 +46,7 @@
 	<button class="btn" onclick="regex_replace()">replace</button>
 </div>
 
-<select id="select-open-file" onchange="select_open_file_event()">
+<select id="select-open-file" class="noselect" onchange="select_open_file_event()">
 	<option value="none" disabled hidden selected>open files</option>
 </select><br>
 
@@ -188,6 +188,12 @@
 
 		for(var i=0; i<file_select.length; ++i) {
 			if(file_select.options[i].value == open_path) {
+				if(file_select.options[i].innerHTML[file_select.options[i].innerHTML.length-1] == '*') {
+					if(await confirm_("save changes")) {
+						save_file();
+					}
+				}
+
 				file_select.remove(i);
 
 				if(i == 1 && file_select.length == 1) {
@@ -325,7 +331,7 @@
 	}
 
 	async function editor_init() {
-		if(config["editor"]["highlight"] == false) {
+		if(config["editor"] && config["editor"]["highlight"] == false) {
 			document.getElementById("select-highlight").value = "false";
 			select_highlight_event();
 		}

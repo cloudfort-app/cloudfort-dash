@@ -2,13 +2,13 @@
     <a onclick="show('index')">dash</a>/terminal
 </div>
 
-<select id="select-terminal-interactive" style="margin: 0.25em 0 0; width: 300px">
+<select id="select-terminal-interactive" class="noselect" style="margin: 0.25em 0 0; width: 300px">
 	<option value="interactive" selected>interactive</option>
 	<option value="non-interactive">non-interactive</option>
 </select>
 <div id="textarea-terminal" style="text-align: left; margin: 0.5em 0;"></div>
 <input id="input-terminal" placeholder="cmd" spellcheck="false" onkeydown="terminal_keypress(event)"><br>
-<select id="select-hist" onchange="hist_event()">
+<select id="select-hist" class="noselect" onchange="hist_event()">
 	<option value="none" disabled hidden selected>history</option>
 </select>
 
@@ -115,7 +115,7 @@
 			if(twd.substring(0, home.length) == home)
 				twd = "~" + twd.substring(home.length, twd.length);
 
-			if(twd == otwd && dir != "./") 
+			if(twd == otwd && dir != "./" && dir != twd) 
 				document.getElementById("textarea-terminal").innerHTML += "cd: " + dir + ": no such directory\n";
 
 			add_prompt();
@@ -193,7 +193,7 @@
 
 		add_prompt();
 
-		if(config["terminal"]["mode"] == "non-interactive") {
+		if(config["terminal"] && config["terminal"]["mode"] == "non-interactive") {
 			document.getElementById("select-terminal-interactive").value = "non-interactive";
 		}
 	}
