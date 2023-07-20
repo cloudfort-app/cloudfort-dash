@@ -29,7 +29,7 @@ var domain string
 var home string
 var port string
 var password []byte
-var version = "v0.1.20"
+var version = "v0.1.21"
 
 var upgrader = websocket.Upgrader{}
 
@@ -100,19 +100,19 @@ func hasValidSignature(w *http.ResponseWriter, req *http.Request) bool {
     if(req_date - int(time.Now().UnixMilli()) > 10*1000) {
         fmt.Println("request is from the future")
         (*w).Header().Set("Content-Type", "text/plain")
-        (*w).Write([]byte("{\"msg\": \"invalid signature\"}"))
+        (*w).Write([]byte("invalid signature"))
 
         return false;
     } else if(int(time.Now().UnixMilli()) - req_date > 10*1000) {
         fmt.Println("request is older than 10 seconds")
         (*w).Header().Set("Content-Type", "text/plain")
-        (*w).Write([]byte("{\"msg\": \"invalid signature\"}"))
+        (*w).Write([]byte("invalid signature"))
 
         return false;
     } else if(hex.EncodeToString(mac.Sum(nil)) != req.Header.Get("signature")) {
         fmt.Println("request has invalid signature")
         (*w).Header().Set("Content-Type", "text/plain")
-        (*w).Write([]byte("{\"msg\": \"invalid signature\"}"))
+        (*w).Write([]byte("invalid signature"))
 
         return false;
     } else {
@@ -188,7 +188,7 @@ func routeCd(w http.ResponseWriter, req *http.Request) {
     }
 
     w.Header().Set("Content-Type", "text/plain")
-    w.Write([]byte("{\"output\": \"" + output + "\"}"))
+    w.Write([]byte(output))
 }
 
 func routeDirCreate(w http.ResponseWriter, req *http.Request) {
@@ -205,7 +205,7 @@ func routeDirCreate(w http.ResponseWriter, req *http.Request) {
     } 
 
     w.Header().Set("Content-Type", "text/plain")
-    w.Write([]byte("{\"output\": \"" + output + "\"}"))
+    w.Write([]byte(output))
 }
 
 func routeDeploy(w http.ResponseWriter, req *http.Request) {
@@ -251,7 +251,7 @@ func routeFileCreate(w http.ResponseWriter, req *http.Request) {
     }
 
     w.Header().Set("Content-Type", "text/plain")
-    w.Write([]byte("{\"output\": \"" + output + "\"}"))
+    w.Write([]byte(output))
 }
 
 func routeFileRead(w http.ResponseWriter, req *http.Request) {
@@ -264,10 +264,12 @@ func routeFileRead(w http.ResponseWriter, req *http.Request) {
         log.Println(err)
     }
 
-    str := sanitize(string(b));
+    //str := sanitize(string(b));
+    str := string(b);
 
     w.Header().Set("Content-Type", "text/plain")
-    w.Write([]byte("{\"content\": \"" + str + "\"}"))
+    //w.Write([]byte("{\"content\": \"" + str + "\"}"))
+    w.Write([]byte(str))
     //DO NOT USE fmt (causes problems with % characters)
 }
 
@@ -285,7 +287,7 @@ func routeFileWrite(w http.ResponseWriter, req *http.Request) {
     }
 
     w.Header().Set("Content-Type", "text/plain")
-    w.Write([]byte("{\"output\": \"" + output + "\"}"))
+    w.Write([]byte(output))
 }
 
 func routeHome(w http.ResponseWriter, req *http.Request) {
@@ -294,7 +296,7 @@ func routeHome(w http.ResponseWriter, req *http.Request) {
     }
 
     w.Header().Set("Content-Type", "text/plain")
-    w.Write([]byte("{\"home\": \"" + home + "\"}"))
+    w.Write([]byte(home))
 }
 
 func routeRename(w http.ResponseWriter, req *http.Request) {
@@ -310,7 +312,7 @@ func routeRename(w http.ResponseWriter, req *http.Request) {
     }
 
     w.Header().Set("Content-Type", "text/plain")
-    w.Write([]byte("{\"output\": \"" + output + "\"}"))
+    w.Write([]byte(output))
 }
 
 func routeMv(w http.ResponseWriter, req *http.Request) {
@@ -331,7 +333,7 @@ func routeMv(w http.ResponseWriter, req *http.Request) {
     }
 
     w.Header().Set("Content-Type", "text/plain")
-    w.Write([]byte("{\"output\": \"" + output + "\"}"))
+    w.Write([]byte(output))
 }
 
 func Copy(srcpath, dstpath string) (err error) {
@@ -377,7 +379,7 @@ func routeCp(w http.ResponseWriter, req *http.Request) {
     }
 
     w.Header().Set("Content-Type", "text/plain")
-    w.Write([]byte("{\"output\": \"" + output + "\"}"))
+    w.Write([]byte(output))
 }
 
 func routeRm(w http.ResponseWriter, req *http.Request) {
@@ -398,7 +400,7 @@ func routeRm(w http.ResponseWriter, req *http.Request) {
     }
 
     w.Header().Set("Content-Type", "text/plain")
-    w.Write([]byte("{\"output\": \"" + output + "\"}"))
+    w.Write([]byte(output))
 }
 
 func routeLs(w http.ResponseWriter, req *http.Request) {
@@ -447,7 +449,7 @@ func routePwd(w http.ResponseWriter, req *http.Request) {
     }
 
     w.Header().Set("Content-Type", "text/plain")
-    w.Write([]byte("{\"pwd\": \"" + output + "\"}"))
+    w.Write([]byte(output))
 }
 
 func routeTab(w http.ResponseWriter, req *http.Request) {
@@ -498,7 +500,7 @@ func routeTab(w http.ResponseWriter, req *http.Request) {
     }
 
     w.Header().Set("Content-Type", "text/plain")
-    w.Write([]byte("{\"output\": \"" + output + "\"}"))
+    w.Write([]byte(output))
 }
 
 func routeRun(w http.ResponseWriter, req *http.Request) {
@@ -515,10 +517,12 @@ func routeRun(w http.ResponseWriter, req *http.Request) {
         //output = sanitize(err.Error() + "\n")
     }
 
-    output = sanitize(string(out))
+    //output = sanitize(string(out))
+    output = string(out)
 
     w.Header().Set("Content-Type", "text/plain")
-    w.Write([]byte("{\"output\": \"" + output + "\"}"))
+    //w.Write([]byte("{\"output\": \"" + output + "\"}"))
+    w.Write([]byte(output))
 }
 
 func readExecOutput(stdout, stderr *io.ReadCloser, conn *websocket.Conn, ticker *time.Ticker, finished *bool) {
@@ -600,7 +604,7 @@ func routeSocketRun(w http.ResponseWriter, req *http.Request) {
 func readExecOutputPty(ptmx *os.File, conn *websocket.Conn, ticker *time.Ticker, finished *bool) {
     run_output := ""
     pos_sent := 0
-    ticker = time.NewTicker(100 * time.Millisecond)
+    ticker = time.NewTicker(200 * time.Millisecond)
 
     go func() {
         for _ = range (*ticker).C {
@@ -619,7 +623,7 @@ func readExecOutputPty(ptmx *os.File, conn *websocket.Conn, ticker *time.Ticker,
         //conn.WriteMessage(websocket.TextMessage, []byte(scanner.Text()))
         run_output += scanner.Text()
     }
-    time.Sleep(150 * time.Millisecond)
+    time.Sleep(250 * time.Millisecond)
     ticker.Stop()
     *finished = true
     conn.WriteMessage(websocket.TextMessage, []byte("[finished]"))
@@ -698,7 +702,7 @@ func routeUpload(w http.ResponseWriter, req *http.Request) {
     io.Copy(f, file)
 
     w.Header().Set("Content-Type", "text/plain")
-    w.Write([]byte("{\"output\": \"upload successful\"}"))
+    w.Write([]byte("upload successful"))
 }
 
 func routeVerifySignature(w http.ResponseWriter, req *http.Request) {
@@ -707,7 +711,7 @@ func routeVerifySignature(w http.ResponseWriter, req *http.Request) {
     }
 
     w.Header().Set("Content-Type", "text/plain")
-    w.Write([]byte("{\"valid\": true}"))
+    w.Write([]byte("true"))
 }
 
 func createConfig() {
@@ -732,7 +736,7 @@ func createConfig() {
     },
 
     "terminal": {
-        "mode": "interactive"
+        "mode": "pty"
     }
 }`), 0644);
 

@@ -48,10 +48,10 @@
 		    },
 			body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 
-		if(result["output"].search("not found") == -1)
-			fail2ban_ta.innerHTML = result["output"];
+		if(result.search("not found") == -1)
+			fail2ban_ta.innerHTML = result;
 		else {
 			fail2ban_ta.innerHTML = "fail2ban not installed";
 			document.getElementById("div-fail2ban-btns").style.display = "none";
@@ -72,9 +72,9 @@
 		    },
 			body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 
-		await notify(result["output"].replaceAll("\n", "<br>"));
+		await notify(result.replaceAll("\n", "<br>"));
 		await fetch_fail2ban_status();
 	}
 
@@ -94,9 +94,9 @@
 		    },
 			body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 		
-		//await notify(result["output"].replaceAll("\n", "<br>"));
+		//await notify(result.replaceAll("\n", "<br>"));
 		await fetch_fail2ban_status();
 	}
 
@@ -116,9 +116,9 @@
 		    },
 			body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 		
-		//await notify(result["output"].replaceAll("\n", "<br>"));
+		//await notify(result.replaceAll("\n", "<br>"));
 		await fetch_fail2ban_status();
 	}
 </script>

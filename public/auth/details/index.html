@@ -49,6 +49,13 @@
 				z-index: 999;
 			}
 		
+			.popup-top {
+				left: 0;
+				right: 0;
+				top: 0;
+				max-height: 95vh;
+			}
+		
 			.popup-middle {
 				left: 0;
 				right: 0;
@@ -285,10 +292,10 @@
 									    },
 										body: formData
 									});
-									let result = await response.json();
+									let result = await response.text();
 						
 									//monitor.innerHTML = result["output"];
-									monitor.innerHTML = hljs.highlightAuto(result["output"]).value;
+									monitor.innerHTML = hljs.highlightAuto(result).value;
 						
 									setTimeout(function(){fetch_top()}, 3000);
 								}
@@ -327,7 +334,7 @@
 						    <a onclick="show('index')">dash</a>/terminal
 						</div>
 						
-						<select id="select-terminal-interactive" class="noselect" onchange="select_terminal_mode_event()" style="margin: 0.25em 0 0; width: 300px">
+						<select id="select-terminal-interactive" class="noselect" onchange="select_terminal_mode_event()" style="margin: 0.25em 0 0; width: 300px; max-width: 90%">
 							<option value="pty" selected>pty</option>
 							<option value="interactive">interactive</option>
 							<option value="non-interactive">non-interactive</option>
@@ -346,7 +353,7 @@
 						
 							var socket;
 						
-							function desanitize(str) {
+							function desanitize_terminal(str) {
 							    str = str.replaceAll("\\n", "\n");
 							    str = str.replaceAll("\\t", "\t");
 						
@@ -427,7 +434,7 @@
 							}
 						
 							async function add_prompt() {
-								if(document.getElementById("textarea-terminal").innerHTML != "")
+								if(document.getElementById("textarea-terminal").innerHTML != "" && document.getElementById("textarea-terminal").innerHTML[document.getElementById("textarea-terminal").innerHTML.length-1] != '\n')
 									document.getElementById("textarea-terminal").innerHTML += "\n";
 								document.getElementById("textarea-terminal").innerHTML += "<span style='color: var(--sorbet-pink)'>" + twd + "</span>$ ";
 								document.getElementById("textarea-terminal").scrollTop = document.getElementById("textarea-terminal").scrollHeight;
@@ -497,10 +504,10 @@
 									    },
 								        body: formData
 									});
-									let result = await response.json();
+									let result = await response.text();
 						
 									var otwd = twd;
-									twd = result["output"].replaceAll("\n", "");
+									twd = result.replaceAll("\n", "");
 						
 									if(twd.substring(0, home.length) == home)
 										twd = "~" + twd.substring(home.length, twd.length);
@@ -526,7 +533,7 @@
 									    },
 								        body: formData
 									});
-									let result = await response.json();
+									let result = await response.text();
 						
 									await get_pwd();
 									twd = pwd;
@@ -534,7 +541,7 @@
 									if(twd.substring(0, home.length) == home)
 										twd = "~" + twd.substring(home.length, twd.length);
 						
-									document.getElementById("textarea-terminal").innerHTML += result["output"];
+									document.getElementById("textarea-terminal").innerHTML += result;
 									add_prompt();
 								}
 								else if(document.getElementById("select-terminal-interactive").value != "non-interactive") {
@@ -558,9 +565,9 @@
 										    },
 									        body: formData
 										});
-										let result = await response.json();
+										let result = await response.text();
 						
-										document.getElementById("textarea-terminal").innerHTML += result["output"];
+										document.getElementById("textarea-terminal").innerHTML += result;
 										document.getElementById("textarea-terminal").innerHTML = remove_backspaces(document.getElementById("textarea-terminal").innerHTML);
 										add_prompt();
 									}
@@ -588,7 +595,7 @@
 										}
 										else {
 											document.getElementById("textarea-terminal").innerHTML += e.data;
-											document.getElementById("textarea-terminal").innerHTML = desanitize(document.getElementById("textarea-terminal").innerHTML);
+											document.getElementById("textarea-terminal").innerHTML = desanitize_terminal(document.getElementById("textarea-terminal").innerHTML);
 											document.getElementById("textarea-terminal").scrollTop = document.getElementById("textarea-terminal").scrollHeight;
 										}
 								    };
@@ -699,9 +706,9 @@
 									    },
 										body: formData
 									});
-									result = await response.json();
+									result = await response.text();
 						
-									var options = result["output"].split(" ");
+									var options = result.split(" ");
 						
 									if(options.length == 1 && options[0] != "") {
 										document.getElementById("input-terminal").value = input.substring(0, pos) + options[0].substring(str.length, options[0].length) + input.substring(pos, input.length);
@@ -807,12 +814,25 @@
 							<i title="delete" class='bs-ico bootstrap-trash ico-link-color' onclick="rm_paths()"></i>
 						</div><br>
 						
-						
 						<div id="download-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
 							<table id="table-downloads">
 							</table><br>
 						
 							<button class="btn" onclick="document.getElementById('download-popup').style.display = 'none'" style="width: 100px; margin: 0 auto">close</button>
+						</div>
+						
+						<div id="serve-img-popup" class="card card-shadow-no-hover popup popup-dash popup-top" style="width: 100%; height: 100%">
+							<img id="img-serve" style="max-width: 100%; max-height: 93%"><br>
+						
+							<button class="btn" onclick="document.getElementById('serve-img-popup').style.display = 'none'" style="width: 100px; margin: 0 auto">close</button>
+							<a id="serve-img-download-btn"><button class="btn" style="width: 100px; margin: 0 auto">download</button></a>
+						</div>
+						
+						<div id="serve-video-popup" class="card card-shadow-no-hover popup popup-dash popup-top" style="width: 100%; height: 100%">
+							<video id="video-serve" controls loop playsinline style="width: 100%; height: 93%"><source id="serve-video-source" type="video/mp4"></video><br>
+						
+							<button class="btn" onclick="document.getElementById('video-serve').pause(); document.getElementById('serve-video-popup').style.display = 'none'" style="width: 100px; margin: 0 auto">close</button>
+							<a id="serve-video-download-btn"><button class="btn" style="width: 100px; margin: 0 auto">download</button></a>
 						</div>
 						
 						<div id="card-fetch-url" class="card border" style="display: none">
@@ -864,13 +884,13 @@
 						</div>
 						
 						<div class="card border" id="card-browser" style="max-width: 90%; margin-bottom: 1em;">
-							<table id="table-files">
+							<table id="table-files" style="white-space: nowrap">
 								<tr>
 									<th><input type='checkbox' id='checkbox-all' onchange='select_all_event()' style='vertical-align: middle;'></th>
 									<th></th>
-									<th style="margin-right:100px">name</th>
-									<th>size</th>
-									<th>modified</th>
+									<th onclick='toggle_sort(1)' style="margin-right:100px; cursor: pointer;">name</th>
+									<th onclick='toggle_sort(2)' style="cursor: pointer;">size</th>
+									<th onclick='toggle_sort(3)' style="cursor: pointer;">modified</th>
 								</tr>
 							</table>
 						</div>
@@ -936,12 +956,12 @@
 						
 								display: block;
 								overflow-x: scroll;
-								/*height: calc(100vh - 16em);
-								overflow-y: scroll;*/
+								max-height: calc(100vh - 14.5em);
+								overflow-y: scroll;
 							}
 						
 							#card-browser {
-								/*height: calc(100vh - 15em);*/
+								/*height: calc(100vh - 14em);*/
 							}
 						</style>
 						
@@ -949,6 +969,9 @@
 							const files_table = document.getElementById("table-files");
 							var bwd = "nil"; //browser working directory
 							var explorer_files;
+						
+							var sort_indx = 1;
+							var sort_dir = 1;
 						
 							async function select_all_event() {
 								//document.getElementById('checkbox-parent').checked = document.getElementById('checkbox-all').checked;
@@ -1078,7 +1101,7 @@
 								    },
 									body: formData
 								});
-								result = await response.json();
+								result = await response.text();
 						
 								get_dir(bwd);
 						
@@ -1103,7 +1126,7 @@
 								    },
 									body: formData
 								});
-								result = await response.json();
+								result = await response.text();
 						
 								get_dir(bwd);
 						
@@ -1132,6 +1155,37 @@
 								}
 							}
 						
+							async function extract_path(path) {
+								if(await confirm_("extract file?")) {
+									const date = new Date().getTime().toString();
+									const formData = new FormData();
+									formData.append("date", date);
+						
+									var ext = path.substring(path.indexOf('.'), path.length);
+						
+									if(ext == ".zip") 
+										formData.append("command", "cd " + bwd + "; unzip " + path);
+									else 
+										formData.append("command", "cd " + bwd + "; tar -xf " + path);
+						
+									response = await fetch("/api/run", {
+										method: "POST",
+										headers: {
+											//"content-type": "application/json"
+											"signature": signature(date)
+									    },
+										body: formData
+									});
+									result = await response.text();
+						
+									if(result != "") {
+										await notify(result.replaceAll("\n", "<br>"));
+									}
+								}
+						
+								get_dir(bwd);
+							}
+						
 							async function extract_paths() {
 								var paths = "";
 								var count = 0;
@@ -1157,10 +1211,10 @@
 										    },
 											body: formData
 										});
-										result = await response.json();
+										result = await response.text();
 						
-										if(result["output"] != "") {
-											notify(result["output"].replaceAll("\n", "<br>"));
+										if(result != "") {
+											notify(result.replaceAll("\n", "<br>"));
 										}
 									}
 								}
@@ -1214,7 +1268,7 @@
 									    },
 										body: formData
 									});
-									result = await response.json();
+									result = await response.text();
 						
 									get_dir(bwd);
 								}
@@ -1250,7 +1304,7 @@
 								    },
 									body: formData
 								});
-								result = await response.json();
+								result = await response.text();
 						
 								resolve_waiting_popup();
 						
@@ -1276,7 +1330,7 @@
 								    },
 									body: formData
 								});
-								result = await response.json();
+								result = await response.text();
 						
 								resolve_waiting_popup();
 						
@@ -1310,7 +1364,7 @@
 								    },
 									body: formData
 								});
-								result = await response.json();
+								result = await response.text();
 						
 								resolve_waiting_popup();
 								get_dir(bwd);
@@ -1318,8 +1372,8 @@
 								document.getElementById("input-explorer-cmd").value = "";
 								document.getElementById("card-run-cmd").style.display = "none";
 						
-								if(result["output"] != "") {
-									await mono_notify(result["output"]);
+								if(result != "") {
+									await mono_notify(result);
 								}
 							}
 						
@@ -1372,6 +1426,65 @@
 								}
 							}
 						
+							async function serve_image(filename, path) {
+								const date = new Date().getTime().toString();
+								const formData = new FormData();
+								formData.append("date", date);
+								formData.append("path", path);
+						
+								response = await fetch("/api/download", {
+									method: "POST",
+									headers: {
+										//"content-type": "application/json"
+										"signature": signature(date)
+								    },
+									body: formData
+								});
+								var blob = await response.blob();
+						
+								var file = window.URL.createObjectURL(blob);
+								//window.location.assign(file);
+						
+								document.getElementById("serve-img-download-btn").href = file;
+								document.getElementById("serve-img-download-btn").download = filename;
+						
+								document.getElementById('img-serve').src = file;
+								document.getElementById('serve-img-popup').style.display = "block";
+							}
+						
+							async function serve_video(filename, path, ext) {
+								const date = new Date().getTime().toString();
+								const formData = new FormData();
+								formData.append("date", date);
+								formData.append("path", path);
+						
+								response = await fetch("/api/download", {
+									method: "POST",
+									headers: {
+										//"content-type": "application/json"
+										"signature": signature(date)
+								    },
+									body: formData
+								});
+								var blob = await response.blob();
+						
+								var file = window.URL.createObjectURL(blob);
+								//window.location.assign(file);
+						
+								document.getElementById('serve-video-popup').style.display = "block";
+								if(ext == ".mp4")
+									document.getElementById('serve-video-source').type = "video/mp4";
+								else if(ext == ".ogg")
+									document.getElementById('serve-video-source').type = "video/ogg";
+								else if(ext == ".webm")
+									document.getElementById('serve-video-source').type = "video/webm";
+								document.getElementById('video-serve').src = file;
+								document.getElementById('video-serve').play();
+						
+								document.getElementById("serve-video-download-btn").href = file;
+								document.getElementById("serve-video-download-btn").download = filename;
+							}
+						
 							async function rename_path() {
 								const date = new Date().getTime().toString();
 								const formData = new FormData();
@@ -1387,7 +1500,7 @@
 								    },
 									body: formData
 								});
-								result = await response.json();
+								result = await response.text();
 						
 								get_dir(bwd);
 						
@@ -1410,7 +1523,7 @@
 								    },
 									body: formData
 								});
-								result = await response.json();
+								result = await response.text();
 						
 								get_dir(bwd);
 						
@@ -1450,7 +1563,7 @@
 									    },
 										body: formData
 									});
-									result = await response.json();
+									result = await response.text();
 						
 									get_dir(bwd);
 								}
@@ -1492,7 +1605,7 @@
 									    },
 										body: formData
 									});
-									result = await response.json();
+									result = await response.text();
 						
 									get_dir(bwd);
 								}
@@ -1538,7 +1651,7 @@
 									    },
 										body: formData
 									});
-									result = await response.json();
+									result = await response.text();
 						
 									get_dir(bwd);
 								}
@@ -1550,6 +1663,41 @@
 							async function clear_explorer_table() {
 								while(files_table.rows.length > 1)
 									files_table.deleteRow(1);
+							}
+						
+							function sort_data()
+							{
+								if(sort_indx == 1 || sort_indx == 3)
+								{
+									explorer_files.sort(function(obj1, obj2) {
+										if(obj1[sort_indx].toLowerCase() > obj2[sort_indx].toLowerCase())
+											return sort_dir*1;
+										else if(obj1[sort_indx] == obj2[sort_indx])
+											return 0;
+										else return sort_dir*-1;
+									});
+								}
+								else
+								{
+									explorer_files.sort(function(obj1, obj2) {
+										return sort_dir*(obj1[sort_indx] - obj2[sort_indx]);
+									});
+								}
+						
+								//draw_table();
+							}
+						
+							function toggle_sort(indx)
+							{
+								if(sort_indx == indx)
+									sort_dir *= -1;
+								else
+								{
+									sort_indx = indx;
+									sort_dir = 1;
+								}
+						
+								get_dir(bwd);
 							}
 						
 							async function get_dir(dir) {
@@ -1576,12 +1724,12 @@
 								}
 						
 								if(cwd == '~')
-									document.getElementById("span-pwd").innerHTML += "<a href='#' onclick='get_dir(\"" + home + "\")'>~</a>/"
+									document.getElementById("span-pwd").innerHTML += "<a onclick='get_dir(\"" + home + "\")'>~</a>/"
 								else
 									document.getElementById("span-pwd").innerHTML += "/"
 						
 								for(var i=dirs.length-1; i>=0; --i) {
-									document.getElementById("span-pwd").innerHTML += "<a href='#' onclick='get_dir(\"" + dirs[i].replace("~", home) + "\")'>" + files[i] + "</a>/"
+									document.getElementById("span-pwd").innerHTML += "<a onclick='get_dir(\"" + dirs[i].replace("~", home) + "\")'>" + files[i] + "</a>/"
 								}
 						
 								if(dir[0] == '~' && home.length)
@@ -1601,29 +1749,52 @@
 								result = await response.json();
 								explorer_files = result["files"];
 						
+								//sorts files
+								sort_data();
+						
 								for(var f=result["files"].length-1; f>=0; --f) {
 									var row = files_table.insertRow(1);
+						
+									var ext = result["files"][f][1].substring(result["files"][f][1].lastIndexOf('.'), result["files"][f][1].length).toLowerCase();
 						
 									row.insertCell(0).innerHTML = "<input type='checkbox' id='checkbox-" + f + "' style='vertical-align: middle;'>"
 						
 									if(result["files"][f][0])
 										row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-folder no-hover-ico' style='padding-top: 3px'></i>";
-									else 
-										row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-file-earmark no-hover-ico' style='padding-top: 3px'></i>";
+									else {
+										if(ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".webp" || ext == ".svg" || ext == ".gif")
+											row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-file-earmark-image no-hover-ico' style='padding-top: 3px'></i>";
+										else if(ext == ".mp4" || ext == ".ogg" || ext == ".webm")
+											row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-film no-hover-ico' style='padding-top: 3px'></i>";
+										else if(ext == ".zip" || ext == ".xz" || ext == ".bz2" || ext == ".gz")
+											row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-file-zip no-hover-ico' style='padding-top: 3px'></i>";
+										else
+											row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-file-earmark no-hover-ico' style='padding-top: 3px'></i>";
+									}
 						
 									if(result["files"][f][0]) {
-										row.insertCell(2).innerHTML = "<a href='#' onclick='get_dir(\"" + bwd + "/" + result["files"][f][1] +  "\")'>" + result["files"][f][1] + "/</a>";
+										row.insertCell(2).innerHTML = "<a onclick='get_dir(\"" + bwd + "/" + result["files"][f][1] +  "\")'>" + result["files"][f][1] + "/</a>";
 									}
 									else {
-										row.insertCell(2).innerHTML = "<a href='#' onclick='edit_file(\"" + bwd + "/" + result["files"][f][1] +  "\")'>" + result["files"][f][1] + "</a>";
-										//row.insertCell(1).innerHTML = result["files"][f][1];
+										
+						
+										if(ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".webp" || ext == ".svg" || ext == ".gif")
+											row.insertCell(2).innerHTML = "<a onclick='serve_image(\"" + result["files"][f][1] + "\", \"" + bwd + "/" + result["files"][f][1] +  "\")'>" + result["files"][f][1] + "</a>";
+										else if(ext == ".mp4" || ext == ".ogg" || ext == ".webm")
+											row.insertCell(2).innerHTML = "<a onclick='serve_video(\"" + result["files"][f][1] + "\", \"" + bwd + "/" + result["files"][f][1] +  "\", \"" + ext + "\")'>" + result["files"][f][1] + "</a>";
+										else if(ext == ".zip" || ext == ".xz" || ext == ".bz2" || ext == ".gz")
+											row.insertCell(2).innerHTML = "<a onclick='extract_path(\"" + bwd + "/" + result["files"][f][1] +  "\")'>" + result["files"][f][1] + "</a>";
+										else
+											row.insertCell(2).innerHTML = "<a onclick='edit_file(\"" + bwd + "/" + result["files"][f][1] +  "\")'>" + result["files"][f][1] + "</a>";
+										//else
+											//row.insertCell(2).innerHTML = result["files"][f][1];
 									}
 						
-									if(result["files"][f][0]) {
+									/*if(result["files"][f][0]) {
 										row.insertCell(3);
 										row.insertCell(4);
 									}
-									else {
+									else*/ {
 										if(result["files"][f][2] < 1000)
 											row.insertCell(3).innerHTML = result["files"][f][2] + "b";
 										else if(result["files"][f][2] < 1000000)
@@ -1900,9 +2071,10 @@
 									    },
 								        body: formData
 									});
-									let result = await response.json();
+									let result = await response.text();
 						
-									document.getElementById("editor").value = result["content"];
+									//document.getElementById("editor").value = desanitize(result);
+									document.getElementById("editor").value = result;
 									redraw_editor();
 						
 									var opt = document.createElement('option');
@@ -1937,7 +2109,7 @@
 								    },
 							        body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 						
 								for(var i=0; i<file_select.length; ++i) {
 									if(file_select.options[i].value == open_path) {
@@ -1978,7 +2150,7 @@
 								    },
 							        body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 						
 								if(path[0] == '/' || path[0] == '~')
 									edit_file(path);
@@ -2198,10 +2370,10 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 						
 								//certs_ta.innerHTML = result["output"];
-								certs_ta.innerHTML = result["output"].substring(result["output"].indexOf("-"), result["output"].lastIndexOf("-")+1);
+								certs_ta.innerHTML = result.substring(result.indexOf("-"), result.lastIndexOf("-")+1);
 							}
 						
 							async function get_host(domain) {
@@ -2218,9 +2390,9 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 						
-								return result["output"].substring(0, result["output"].length-1);
+								return result.substring(0, result.length-1);
 							}
 						
 							async function get_ip() {
@@ -2237,9 +2409,9 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 						
-								return result["output"].substring(1, result["output"].length-2);
+								return result.substring(1, result.length-2);
 							}
 						
 							async function check_host(domain) {
@@ -2269,9 +2441,9 @@
 									    },
 										body: formData
 									});
-									let result = await response.json();
+									let result = await response.text();
 						
-									await notify(result["output"]);
+									await notify(result);
 									await fetch_certs();
 								}
 							}
@@ -2292,9 +2464,9 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 								
-								await notify(result["output"]);
+								await notify(result);
 								await fetch_certs();
 							}
 						
@@ -2351,9 +2523,9 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 						
-								cronjobs_ta.innerHTML = result["output"];
+								cronjobs_ta.innerHTML = result;
 							}
 						
 							async function restart_cron() {
@@ -2370,7 +2542,7 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 							}
 						
 						</script>
@@ -2487,10 +2659,10 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 						
-								if(result["output"].search("not found") == -1)
-									docker_ta.innerHTML = result["output"];
+								if(result.search("not found") == -1)
+									docker_ta.innerHTML = result;
 								else
 									docker_ta.innerHTML = "Docker not installed";
 							}
@@ -2513,14 +2685,14 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 						
 								fetch_docker_containers();
 						
 								resolve_waiting_popup();
 						
-								if(result["output"] != "") {
-									notify(result["output"]);
+								if(result != "") {
+									notify(result);
 								}
 							}
 						
@@ -2540,14 +2712,14 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 						
 								fetch_docker_containers()
 						
 								if(document.getElementById("select-docker-action-type").value == "logs" || document.getElementById("select-docker-action-type").value == "top")
-									mono_notify(result["output"]);
-								else if(result["output"] != "") 
-									notify(result["output"]);
+									mono_notify(result);
+								else if(result != "") 
+									notify(result);
 							}
 						
 						</script>
@@ -2624,10 +2796,10 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 						
-								if(result["output"].search("not found") == -1)
-									fail2ban_ta.innerHTML = result["output"];
+								if(result.search("not found") == -1)
+									fail2ban_ta.innerHTML = result;
 								else {
 									fail2ban_ta.innerHTML = "fail2ban not installed";
 									document.getElementById("div-fail2ban-btns").style.display = "none";
@@ -2648,9 +2820,9 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 						
-								await notify(result["output"].replaceAll("\n", "<br>"));
+								await notify(result.replaceAll("\n", "<br>"));
 								await fetch_fail2ban_status();
 							}
 						
@@ -2670,9 +2842,9 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 								
-								//await notify(result["output"].replaceAll("\n", "<br>"));
+								//await notify(result.replaceAll("\n", "<br>"));
 								await fetch_fail2ban_status();
 							}
 						
@@ -2692,9 +2864,9 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 								
-								//await notify(result["output"].replaceAll("\n", "<br>"));
+								//await notify(result.replaceAll("\n", "<br>"));
 								await fetch_fail2ban_status();
 							}
 						</script>
@@ -2779,16 +2951,16 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 						
-								firewall_ta.innerHTML = result["output"];
+								firewall_ta.innerHTML = result;
 						
 								document.getElementById("firewall-add-btn").style.display = "none";
 								document.getElementById("firewall-del-btn").style.display = "none";
 								document.getElementById("firewall-enable-btn").style.display = "none";
 								document.getElementById("firewall-reset-btn").style.display = "none";
 								document.getElementById("firewall-disable-btn").style.display = "none";
-								if(result["output"].search("inactive") != -1) {
+								if(result.search("inactive") != -1) {
 									document.getElementById("firewall-enable-btn").style.display = "inline-flex";
 								}
 								else {
@@ -2813,9 +2985,9 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 						
-								await notify(result["output"].replaceAll("\n", "<br>"));
+								await notify(result.replaceAll("\n", "<br>"));
 								await fetch_rules();
 							}
 						
@@ -2833,9 +3005,9 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 						
-								await notify(result["output"].replaceAll("\n", "<br>"));
+								await notify(result.replaceAll("\n", "<br>"));
 								await fetch_rules();
 							}
 						
@@ -2853,9 +3025,9 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 						
-								await notify(result["output"].replaceAll("\n", "<br>"));
+								await notify(result.replaceAll("\n", "<br>"));
 								await fetch_rules();
 							}
 						
@@ -2875,9 +3047,9 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 						
-								await notify(result["output"].replaceAll("\n", "<br>"));
+								await notify(result.replaceAll("\n", "<br>"));
 								await fetch_rules();
 							}
 						
@@ -2897,9 +3069,9 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 								
-								await notify(result["output"].replaceAll("\n", "<br>"));
+								await notify(result.replaceAll("\n", "<br>"));
 								await fetch_rules();
 							}
 						
@@ -3039,9 +3211,9 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 						
-								repos = JSON.parse(result["content"]);
+								repos = JSON.parse(result);
 						
 								//alert(JSON.stringify(repos));
 						
@@ -3079,7 +3251,7 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 						
 								fetch_repos();
 								document.getElementById('add-repo-popup').style.display = 'none'
@@ -3117,7 +3289,7 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 						
 								fetch_repos();
 								document.getElementById('remove-repo-popup').style.display = 'none'
@@ -3205,9 +3377,9 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 						
-								services_ta.innerHTML = result["output"];
+								services_ta.innerHTML = result;
 							}
 						
 							async function reload_services() {
@@ -3224,12 +3396,12 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 						
 								fetch_services()
 						
-								if(result["output"] != "") {
-									notify(result["output"]);
+								if(result != "") {
+									notify(result);
 								}
 							}
 						
@@ -3249,12 +3421,12 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 						
 								fetch_services()
 						
-								if(result["output"] != "") 
-									notify(result["output"]);
+								if(result != "") 
+									notify(result);
 							}
 						
 						</script>
@@ -3320,9 +3492,9 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 						
-								notify(result["output"].replaceAll("\n", "<br>"));
+								notify(result.replaceAll("\n", "<br>"));
 							}
 						</script>
 					</div>
@@ -3399,9 +3571,9 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 						
-								users_ta.innerHTML = "Users:\n" + result["output"];
+								users_ta.innerHTML = "Users:\n" + result;
 							}
 						
 							async function add_user() {
@@ -3420,11 +3592,11 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 								
 								document.getElementById("input-add-user-username").value = "";
 								await fetch_users();
-								//await notify(result["output"].replaceAll("\n", "<br>"));
+								//await notify(result.replaceAll("\n", "<br>"));
 							}
 						
 							async function modify_user() {
@@ -3443,12 +3615,12 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 								
 								document.getElementById("input-modify-user-current-username").value = "";
 								document.getElementById("input-modify-user-new-username").value = "";
 								await fetch_users();
-								//await notify(result["output"].replaceAll("\n", "<br>"));
+								//await notify(result.replaceAll("\n", "<br>"));
 							}
 						
 							async function delete_user() {
@@ -3470,11 +3642,11 @@
 								    },
 									body: formData
 								});
-								let result = await response.json();
+								let result = await response.text();
 								
 								document.getElementById("input-delete-user-username").value = "";
 								await fetch_users();
-								await notify(result["output"].replaceAll("\n", "<br>"));
+								await notify(result.replaceAll("\n", "<br>"));
 							}
 						</script>
 						
@@ -3801,11 +3973,25 @@
 				    },
 			        body: formData
 				});
-				let result = await response.json();
+				let result = await response.text();
 
-				if(result["valid"] != true) {
+				if(result != "true") {
 					window.location.href = "../sign-in/"
 				}
+			}
+
+			function desanitize(str) {
+			    str = str.replaceAll("\\n", "\n");
+			    str = str.replaceAll("\\t", "\t");
+			    str = str.replaceAll("\\\"", "\"");
+
+				//var re = /\n.*\\r/g
+				//str = str.replaceAll(re, "\n");
+
+				//while(str.indexOf("\\b") != -1)
+			      //  str = str.replace(/.\\b/, "");
+
+			    return str;
 			}
 
 			async function get_config() {
@@ -3823,9 +4009,9 @@
 				    },
 			        body: formData
 				});
-				let result = await response.json();
+				let result = await response.text();
 
-				config = JSON.parse(result["content"]);
+				config = JSON.parse(result);
 			}
 
 			async function get_home() {
@@ -3842,9 +4028,9 @@
 				    },
 			        body: formData
 				});
-				let result = await response.json();
+				let result = await response.text();
 
-				home = result["home"];
+				home = result;
 			}
 
 			async function get_pwd() {
@@ -3861,9 +4047,9 @@
 				    },
 			        body: formData
 				});
-				let result = await response.json();
+				let result = await response.text();
 
-				pwd = result["pwd"];
+				pwd = result;
 			}
 
 			async function dash_init() {

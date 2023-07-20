@@ -49,10 +49,10 @@
 		    },
 			body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 
 		//certs_ta.innerHTML = result["output"];
-		certs_ta.innerHTML = result["output"].substring(result["output"].indexOf("-"), result["output"].lastIndexOf("-")+1);
+		certs_ta.innerHTML = result.substring(result.indexOf("-"), result.lastIndexOf("-")+1);
 	}
 
 	async function get_host(domain) {
@@ -69,9 +69,9 @@
 		    },
 			body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 
-		return result["output"].substring(0, result["output"].length-1);
+		return result.substring(0, result.length-1);
 	}
 
 	async function get_ip() {
@@ -88,9 +88,9 @@
 		    },
 			body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 
-		return result["output"].substring(1, result["output"].length-2);
+		return result.substring(1, result.length-2);
 	}
 
 	async function check_host(domain) {
@@ -120,9 +120,9 @@
 			    },
 				body: formData
 			});
-			let result = await response.json();
+			let result = await response.text();
 
-			await notify(result["output"]);
+			await notify(result);
 			await fetch_certs();
 		}
 	}
@@ -143,9 +143,9 @@
 		    },
 			body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 		
-		await notify(result["output"]);
+		await notify(result);
 		await fetch_certs();
 	}
 

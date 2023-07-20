@@ -2,7 +2,7 @@
     <a onclick="show('index')">dash</a>/terminal
 </div>
 
-<select id="select-terminal-interactive" class="noselect" onchange="select_terminal_mode_event()" style="margin: 0.25em 0 0; width: 300px">
+<select id="select-terminal-interactive" class="noselect" onchange="select_terminal_mode_event()" style="margin: 0.25em 0 0; width: 300px; max-width: 90%">
 	<option value="pty" selected>pty</option>
 	<option value="interactive">interactive</option>
 	<option value="non-interactive">non-interactive</option>
@@ -21,7 +21,7 @@
 
 	var socket;
 
-	function desanitize(str) {
+	function desanitize_terminal(str) {
 	    str = str.replaceAll("\\n", "\n");
 	    str = str.replaceAll("\\t", "\t");
 
@@ -102,7 +102,7 @@
 	}
 
 	async function add_prompt() {
-		if(document.getElementById("textarea-terminal").innerHTML != "")
+		if(document.getElementById("textarea-terminal").innerHTML != "" && document.getElementById("textarea-terminal").innerHTML[document.getElementById("textarea-terminal").innerHTML.length-1] != '\n')
 			document.getElementById("textarea-terminal").innerHTML += "\n";
 		document.getElementById("textarea-terminal").innerHTML += "<span style='color: var(--sorbet-pink)'>" + twd + "</span>$ ";
 		document.getElementById("textarea-terminal").scrollTop = document.getElementById("textarea-terminal").scrollHeight;
@@ -172,10 +172,10 @@
 			    },
 		        body: formData
 			});
-			let result = await response.json();
+			let result = await response.text();
 
 			var otwd = twd;
-			twd = result["output"].replaceAll("\n", "");
+			twd = result.replaceAll("\n", "");
 
 			if(twd.substring(0, home.length) == home)
 				twd = "~" + twd.substring(home.length, twd.length);
@@ -201,7 +201,7 @@
 			    },
 		        body: formData
 			});
-			let result = await response.json();
+			let result = await response.text();
 
 			await get_pwd();
 			twd = pwd;
@@ -209,7 +209,7 @@
 			if(twd.substring(0, home.length) == home)
 				twd = "~" + twd.substring(home.length, twd.length);
 
-			document.getElementById("textarea-terminal").innerHTML += result["output"];
+			document.getElementById("textarea-terminal").innerHTML += result;
 			add_prompt();
 		}
 		else if(document.getElementById("select-terminal-interactive").value != "non-interactive") {
@@ -233,9 +233,9 @@
 				    },
 			        body: formData
 				});
-				let result = await response.json();
+				let result = await response.text();
 
-				document.getElementById("textarea-terminal").innerHTML += result["output"];
+				document.getElementById("textarea-terminal").innerHTML += result;
 				document.getElementById("textarea-terminal").innerHTML = remove_backspaces(document.getElementById("textarea-terminal").innerHTML);
 				add_prompt();
 			}
@@ -263,7 +263,7 @@
 				}
 				else {
 					document.getElementById("textarea-terminal").innerHTML += e.data;
-					document.getElementById("textarea-terminal").innerHTML = desanitize(document.getElementById("textarea-terminal").innerHTML);
+					document.getElementById("textarea-terminal").innerHTML = desanitize_terminal(document.getElementById("textarea-terminal").innerHTML);
 					document.getElementById("textarea-terminal").scrollTop = document.getElementById("textarea-terminal").scrollHeight;
 				}
 		    };
@@ -374,9 +374,9 @@
 			    },
 				body: formData
 			});
-			result = await response.json();
+			result = await response.text();
 
-			var options = result["output"].split(" ");
+			var options = result.split(" ");
 
 			if(options.length == 1 && options[0] != "") {
 				document.getElementById("input-terminal").value = input.substring(0, pos) + options[0].substring(str.length, options[0].length) + input.substring(pos, input.length);

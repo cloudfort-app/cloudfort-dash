@@ -65,9 +65,9 @@
 		    },
 			body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 
-		services_ta.innerHTML = result["output"];
+		services_ta.innerHTML = result;
 	}
 
 	async function reload_services() {
@@ -84,12 +84,12 @@
 		    },
 			body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 
 		fetch_services()
 
-		if(result["output"] != "") {
-			notify(result["output"]);
+		if(result != "") {
+			notify(result);
 		}
 	}
 
@@ -109,12 +109,12 @@
 		    },
 			body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 
 		fetch_services()
 
-		if(result["output"] != "") 
-			notify(result["output"]);
+		if(result != "") 
+			notify(result);
 	}
 
 </script>

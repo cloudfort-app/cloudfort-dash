@@ -30,10 +30,10 @@
 			    },
 				body: formData
 			});
-			let result = await response.json();
+			let result = await response.text();
 
 			//monitor.innerHTML = result["output"];
-			monitor.innerHTML = hljs.highlightAuto(result["output"]).value;
+			monitor.innerHTML = hljs.highlightAuto(result).value;
 
 			setTimeout(function(){fetch_top()}, 3000);
 		}

@@ -490,11 +490,17 @@ ul li {
 .bootstrap-file-earmark:before {
   content: url("../icons/bootstrap-file-earmark.svg"); 
 }
+.bootstrap-file-earmark-image:before {
+  content: url("../icons/bootstrap-file-earmark-image.svg"); 
+}
 .bootstrap-file-earmark-plus:before {
   content: url("../icons/bootstrap-file-earmark-plus.svg"); 
 }
 .bootstrap-file-zip:before {
   content: url("../icons/bootstrap-file-zip.svg"); 
+}
+.bootstrap-film:before {
+  content: url("../icons/bootstrap-film.svg"); 
 }
 .bootstrap-folder:before {
   content: url("../icons/bootstrap-folder.svg"); 

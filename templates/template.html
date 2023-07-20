@@ -317,11 +317,25 @@
 				    },
 			        body: formData
 				});
-				let result = await response.json();
+				let result = await response.text();
 
-				if(result["valid"] != true) {
+				if(result != "true") {
 					window.location.href = "@pathto(auth/sign-in/)"
 				}
+			}
+
+			function desanitize(str) {
+			    str = str.replaceAll("\\n", "\n");
+			    str = str.replaceAll("\\t", "\t");
+			    str = str.replaceAll("\\\"", "\"");
+
+				//var re = /\n.*\\r/g
+				//str = str.replaceAll(re, "\n");
+
+				//while(str.indexOf("\\b") != -1)
+			      //  str = str.replace(/.\\b/, "");
+
+			    return str;
 			}
 
 			async function get_config() {
@@ -339,9 +353,9 @@
 				    },
 			        body: formData
 				});
-				let result = await response.json();
+				let result = await response.text();
 
-				config = JSON.parse(result["content"]);
+				config = JSON.parse(result);
 			}
 
 			async function get_home() {
@@ -358,9 +372,9 @@
 				    },
 			        body: formData
 				});
-				let result = await response.json();
+				let result = await response.text();
 
-				home = result["home"];
+				home = result;
 			}
 
 			async function get_pwd() {
@@ -377,9 +391,9 @@
 				    },
 			        body: formData
 				});
-				let result = await response.json();
+				let result = await response.text();
 
-				pwd = result["pwd"];
+				pwd = result;
 			}
 
 			async function dash_init() {

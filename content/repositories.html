@@ -107,9 +107,9 @@
 		    },
 			body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 
-		repos = JSON.parse(result["content"]);
+		repos = JSON.parse(result);
 
 		//alert(JSON.stringify(repos));
 
@@ -147,7 +147,7 @@
 		    },
 			body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 
 		fetch_repos();
 		document.getElementById('add-repo-popup').style.display = 'none'
@@ -185,7 +185,7 @@
 		    },
 			body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 
 		fetch_repos();
 		document.getElementById('remove-repo-popup').style.display = 'none'

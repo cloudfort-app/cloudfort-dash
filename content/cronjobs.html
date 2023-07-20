@@ -24,9 +24,9 @@
 		    },
 			body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 
-		cronjobs_ta.innerHTML = result["output"];
+		cronjobs_ta.innerHTML = result;
 	}
 
 	async function restart_cron() {
@@ -43,7 +43,7 @@
 		    },
 			body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 	}
 
 </script>

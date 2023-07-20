@@ -37,8 +37,8 @@
 		    },
 			body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 
-		notify(result["output"].replaceAll("\n", "<br>"));
+		notify(result.replaceAll("\n", "<br>"));
 	}
 </script>

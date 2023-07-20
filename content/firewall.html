@@ -56,16 +56,16 @@
 		    },
 			body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 
-		firewall_ta.innerHTML = result["output"];
+		firewall_ta.innerHTML = result;
 
 		document.getElementById("firewall-add-btn").style.display = "none";
 		document.getElementById("firewall-del-btn").style.display = "none";
 		document.getElementById("firewall-enable-btn").style.display = "none";
 		document.getElementById("firewall-reset-btn").style.display = "none";
 		document.getElementById("firewall-disable-btn").style.display = "none";
-		if(result["output"].search("inactive") != -1) {
+		if(result.search("inactive") != -1) {
 			document.getElementById("firewall-enable-btn").style.display = "inline-flex";
 		}
 		else {
@@ -90,9 +90,9 @@
 		    },
 			body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 
-		await notify(result["output"].replaceAll("\n", "<br>"));
+		await notify(result.replaceAll("\n", "<br>"));
 		await fetch_rules();
 	}
 
@@ -110,9 +110,9 @@
 		    },
 			body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 
-		await notify(result["output"].replaceAll("\n", "<br>"));
+		await notify(result.replaceAll("\n", "<br>"));
 		await fetch_rules();
 	}
 
@@ -130,9 +130,9 @@
 		    },
 			body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 
-		await notify(result["output"].replaceAll("\n", "<br>"));
+		await notify(result.replaceAll("\n", "<br>"));
 		await fetch_rules();
 	}
 
@@ -152,9 +152,9 @@
 		    },
 			body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 
-		await notify(result["output"].replaceAll("\n", "<br>"));
+		await notify(result.replaceAll("\n", "<br>"));
 		await fetch_rules();
 	}
 
@@ -174,9 +174,9 @@
 		    },
 			body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 		
-		await notify(result["output"].replaceAll("\n", "<br>"));
+		await notify(result.replaceAll("\n", "<br>"));
 		await fetch_rules();
 	}
 

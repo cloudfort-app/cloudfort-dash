@@ -67,9 +67,9 @@
 		    },
 			body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 
-		users_ta.innerHTML = "Users:\n" + result["output"];
+		users_ta.innerHTML = "Users:\n" + result;
 	}
 
 	async function add_user() {
@@ -88,11 +88,11 @@
 		    },
 			body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 		
 		document.getElementById("input-add-user-username").value = "";
 		await fetch_users();
-		//await notify(result["output"].replaceAll("\n", "<br>"));
+		//await notify(result.replaceAll("\n", "<br>"));
 	}
 
 	async function modify_user() {
@@ -111,12 +111,12 @@
 		    },
 			body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 		
 		document.getElementById("input-modify-user-current-username").value = "";
 		document.getElementById("input-modify-user-new-username").value = "";
 		await fetch_users();
-		//await notify(result["output"].replaceAll("\n", "<br>"));
+		//await notify(result.replaceAll("\n", "<br>"));
 	}
 
 	async function delete_user() {
@@ -138,11 +138,11 @@
 		    },
 			body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 		
 		document.getElementById("input-delete-user-username").value = "";
 		await fetch_users();
-		await notify(result["output"].replaceAll("\n", "<br>"));
+		await notify(result.replaceAll("\n", "<br>"));
 	}
 </script>
 

@@ -242,9 +242,10 @@
 			    },
 		        body: formData
 			});
-			let result = await response.json();
+			let result = await response.text();
 
-			document.getElementById("editor").value = result["content"];
+			//document.getElementById("editor").value = desanitize(result);
+			document.getElementById("editor").value = result;
 			redraw_editor();
 
 			var opt = document.createElement('option');
@@ -279,7 +280,7 @@
 		    },
 	        body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 
 		for(var i=0; i<file_select.length; ++i) {
 			if(file_select.options[i].value == open_path) {
@@ -320,7 +321,7 @@
 		    },
 	        body: formData
 		});
-		let result = await response.json();
+		let result = await response.text();
 
 		if(path[0] == '/' || path[0] == '~')
 			edit_file(path);
