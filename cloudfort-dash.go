@@ -20,6 +20,8 @@ import (
     "github.com/Jeffail/gabs/v2"
 
     "github.com/gorilla/websocket"
+
+    "github.com/creack/pty"
 )
 
 var config, repos *gabs.Container
@@ -27,7 +29,7 @@ var domain string
 var home string
 var port string
 var password []byte
-var version = "v0.1.19"
+var version = "v0.1.20"
 
 var upgrader = websocket.Upgrader{}
 
@@ -132,6 +134,7 @@ func sanitize(in_str string) string {
     str = strings.Replace(str, "\t", "\\t", -1)
 
     str = strings.Replace(str, "\b", "\\b", -1)
+    //str = strings.Replace(str, "\e", "\\e", -1)
     str = strings.Replace(str, "\f", "\\f", -1)
     str = strings.Replace(str, "\r", "\\r", -1)
 
@@ -505,7 +508,7 @@ func routeRun(w http.ResponseWriter, req *http.Request) {
 
     output := ""
     cmd := req.PostFormValue("command")
-    out, err := exec.Command("/bin/sh", "-c", cmd).CombinedOutput()
+    out, err := exec.Command("/bin/bash", "-c", cmd).CombinedOutput()
 
     if(err != nil) {
         //log.Println(err)
@@ -578,7 +581,7 @@ func routeSocketRun(w http.ResponseWriter, req *http.Request) {
             io.WriteString(stdin, string(cmd) + "\n")
         } else if(string(cmd) != "")  {
             finished = false
-            process = exec.Command("/bin/sh", "-c", string(cmd))
+            process = exec.Command("/bin/bash", "-c", string(cmd))
 
             stdin, _ = process.StdinPipe()
             stdout, _ = process.StdoutPipe()
@@ -590,6 +593,80 @@ func routeSocketRun(w http.ResponseWriter, req *http.Request) {
             process.Start()
 
             go readExecOutput(&stdout, &stderr, conn, ticker, &finished)
+        }
+    }
+}
+
+func readExecOutputPty(ptmx *os.File, conn *websocket.Conn, ticker *time.Ticker, finished *bool) {
+    run_output := ""
+    pos_sent := 0
+    ticker = time.NewTicker(100 * time.Millisecond)
+
+    go func() {
+        for _ = range (*ticker).C {
+            var old_pos_sent = pos_sent
+            pos_sent = len(run_output)
+            if(pos_sent > old_pos_sent) {
+                conn.WriteMessage(websocket.TextMessage, []byte(sanitize(run_output[old_pos_sent:pos_sent])))
+            }
+        }
+    }()
+
+    scanner := bufio.NewScanner(io.Reader(ptmx))
+    scanner.Split(bufio.ScanRunes)
+    //scanner.Split(bufio.ScanBytes)
+    for scanner.Scan() && *finished == false {
+        //conn.WriteMessage(websocket.TextMessage, []byte(scanner.Text()))
+        run_output += scanner.Text()
+    }
+    time.Sleep(150 * time.Millisecond)
+    ticker.Stop()
+    *finished = true
+    conn.WriteMessage(websocket.TextMessage, []byte("[finished]"))
+}
+
+func routeSocketRunPty(w http.ResponseWriter, req *http.Request) {
+    finished := true
+    conn, _ := upgrader.Upgrade(w, req, nil)
+    defer conn.Close()
+
+    if(!signatureHandshake(conn)) {
+        return
+    }
+
+    var ptmx *os.File
+    var process *exec.Cmd
+    var ticker *time.Ticker
+
+    for true {
+        _, cmd, err := conn.ReadMessage()
+
+        if err != nil { //handles page refreshes
+            break
+        }
+
+        if(string(cmd) == "kill") {
+            if(finished == false) {
+                finished = true
+                process.Process.Kill()
+                ptmx.Close()
+                //stdout.Close()
+                //stderr.Close()
+            }
+        } else if(!finished) {
+            ptmx.Write([]byte(string(cmd) + "\n"))
+        } else if(string(cmd) != "")  {
+            finished = false
+            process = exec.Command("/bin/bash", "-c", string(cmd))
+
+            ptmx, err = pty.Start(process)
+            if err != nil {
+                log.Println(err)
+                continue
+            }  
+            defer ptmx.Close()
+
+            go readExecOutputPty(ptmx, conn, ticker, &finished)
         }
     }
 }
@@ -704,6 +781,7 @@ func main() {
         mux.HandleFunc("/api/tab",         routeTab)
         mux.HandleFunc("/api/run",         routeRun)
         mux.HandleFunc("/api/socket/run",  routeSocketRun)
+        mux.HandleFunc("/api/socket/pty",  routeSocketRunPty)
         mux.HandleFunc("/api/download",    routeDownload)
         mux.HandleFunc("/api/upload",      routeUpload)
         mux.HandleFunc("/api/sigcheck",    routeVerifySignature)

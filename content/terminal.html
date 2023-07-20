@@ -2,12 +2,13 @@
     <a onclick="show('index')">dash</a>/terminal
 </div>
 
-<select id="select-terminal-interactive" class="noselect" style="margin: 0.25em 0 0; width: 300px">
-	<option value="interactive" selected>interactive</option>
+<select id="select-terminal-interactive" class="noselect" onchange="select_terminal_mode_event()" style="margin: 0.25em 0 0; width: 300px">
+	<option value="pty" selected>pty</option>
+	<option value="interactive">interactive</option>
 	<option value="non-interactive">non-interactive</option>
 </select>
 <div id="textarea-terminal" style="text-align: left; margin: 0.5em 0;"></div>
-<input id="input-terminal" placeholder="cmd" spellcheck="false" onkeydown="terminal_keypress(event)"><br>
+<input id="input-terminal" placeholder="cmd" spellcheck="false" onkeydown="terminal_keypress(event)" autocomplete="off"><br>
 <select id="select-hist" class="noselect" onchange="hist_event()">
 	<option value="none" disabled hidden selected>history</option>
 </select>
@@ -18,13 +19,74 @@
 	var hist_no = 0;
 	var finished = true;
 
-	var socket = new WebSocket("ws://" + window.location.host + "/api/socket/run");
+	var socket;
 
 	function desanitize(str) {
 	    str = str.replaceAll("\\n", "\n");
+	    str = str.replaceAll("\\t", "\t");
 
 		var re = /\n.*\\r/g
 		str = str.replaceAll(re, "\n");
+
+		re = /\n.*/g
+		str = str.replaceAll(re, "\n");
+
+		str = str.replaceAll("[m", "<span style='color: white'>");
+		str = str.replaceAll("[0m", "<span style='color: white'>");
+		str = str.replaceAll("[1m", "<span style='font-weight: bold'>");
+		//str = str.replaceAll("[2m", "<span style='font-weight: lighter'>");
+		//str = str.replaceAll("[3m", "<span style='font-style: italic'>");
+		//str = str.replaceAll("[4m", "<span style='text-decoration: underline'>");
+
+		str = str.replaceAll("[?7l", "");
+		str = str.replaceAll("[?25l", "");
+		str = str.replaceAll("[?7h", "");
+		str = str.replaceAll("[?25h", "");
+		str = str.replaceAll("[20A", "");
+		str = str.replaceAll("[9999999D", "");
+
+		str = str.replaceAll("[30m", "<span style='color: var(--sherb-green)'>");
+		str = str.replaceAll("[31m", "<span style='color: var(--sherb-red)'>");
+		str = str.replaceAll("[32m", "<span style='color: var(--sherb-blue)'>");
+		str = str.replaceAll("[33m", "<span style='color: var(--sherb-orange)'>");
+		str = str.replaceAll("[34m", "<span style='color: var(--sherb-yellow)'>");
+		str = str.replaceAll("[35m", "<span style='color: var(--sherb-purple)'>");
+		str = str.replaceAll("[36m", "<span style='color: var(--sherb-pink)'>");
+		str = str.replaceAll("[37m", "<span style='color: var(--sherb-pink)'>");
+		str = str.replaceAll("[40m", "<span style='color: var(--neon-green)'>");
+		str = str.replaceAll("[41m", "<span style='color: var(--neon-red)'>");
+		str = str.replaceAll("[42m", "<span style='color: var(--neon-blue)'>");
+		str = str.replaceAll("[43m", "<span style='color: var(--neon-orange)'>");
+		str = str.replaceAll("[43C", "<span style='color: var(--neon-orange)'>");
+		str = str.replaceAll("[44m", "<span style='color: var(--neon-yellow)'>");
+		str = str.replaceAll("[45m", "<span style='color: var(--neon-purple)'>");
+		str = str.replaceAll("[46m", "<span style='color: var(--neon-pink)'>");
+		str = str.replaceAll("[47m", "<span style='color: var(--neon-pink)'>");
+
+		str = str.replaceAll("[38;5;8m", "<span style='background: var(--sherb-green); color: transparent'>");
+		str = str.replaceAll("[38;5;9m", "<span style='background: var(--sherb-red); color: transparent'>");
+		str = str.replaceAll("[38;5;10m", "<span style='background: var(--sherb-blue); color: transparent'>");
+		str = str.replaceAll("[38;5;11m", "<span style='background: var(--sherb-purple); color: transparent'>");
+		str = str.replaceAll("[38;5;12m", "<span style='background: var(--sherb-pink); color: transparent'>");
+		str = str.replaceAll("[38;5;13m", "<span style='background: var(--sherb-orange); color: transparent'>");
+		str = str.replaceAll("[38;5;14m", "<span style='background: var(--sherb-yellow); color: transparent'>");
+		str = str.replaceAll("[38;5;15m", "<span style='background: var(--neon-pink); color: transparent'>");
+
+		str = str.replaceAll("[48;5;8m", "");
+		str = str.replaceAll("[48;5;9m", "");
+		str = str.replaceAll("[48;5;10m", "");
+		str = str.replaceAll("[48;5;11m", "");
+		str = str.replaceAll("[48;5;12m", "");
+		str = str.replaceAll("[48;5;13m", "");
+		str = str.replaceAll("[48;5;14m", "");
+		str = str.replaceAll("[48;5;15m", "");
+
+		str = str.replaceAll("[01;32m", "<span style='color: var(--sherb-green)'>");
+		str = str.replaceAll("[01;34m", "<span style='color: var(--sherb-purple)'>");
+		str = str.replaceAll("[01;36m", "<span style='color: var(--sherb-pink)'>");
+		str = str.replaceAll("[30;42m", "<span style='color: var(--sherb-orange)'>");
+		str = str.replaceAll("[30;43m", "<span style='color: var(--sherb-yellow)'>");
+		str = str.replaceAll("[37;41m", "<span style='color: var(--sherb-blue)'>");
 
 		while(str.indexOf("\\b") != -1)
 	        str = str.replace(/.\\b/, "");
@@ -46,22 +108,6 @@
 		document.getElementById("textarea-terminal").scrollTop = document.getElementById("textarea-terminal").scrollHeight;
 	}
 
-	socket.onmessage = function (e) {
-		if(e.data == "[finished]") {
-			finished = true;
-			add_prompt();
-		}
-		else if(e.data == "invalid signature") {
-			document.getElementById("input-terminal").disabled = true;
-			document.getElementById("textarea-terminal").innerHTML = "websocket handshake failed";
-		}
-		else {
-			document.getElementById("textarea-terminal").innerHTML += e.data;
-			document.getElementById("textarea-terminal").innerHTML = desanitize(document.getElementById("textarea-terminal").innerHTML);
-			document.getElementById("textarea-terminal").scrollTop = document.getElementById("textarea-terminal").scrollHeight;
-		}
-    };
-
 	async function hist_event() {
 		document.getElementById("input-terminal").value = hist_select.value;
 		document.getElementById("input-terminal").focus();
@@ -78,7 +124,7 @@
 
 		if(cmd.length && cmd[0] == ' ')
 			cmd = cmd.slice(1);
-		else if(cmd.length && cmd != prev_cmd && finished) {
+		else if(cmd.length > 1 && cmd != prev_cmd) {
 			var opt = document.createElement('option');
 		    opt.value = cmd;
 		    opt.innerHTML = cmd;
@@ -86,15 +132,22 @@
 		}
 		hist_no = hist_select.options.length;
 
-		document.getElementById("textarea-terminal").innerHTML += document.getElementById("input-terminal").value + "\n";
+		if(finished) {
+			document.getElementById("textarea-terminal").innerHTML += document.getElementById("input-terminal").value + "\n";
+		}
 		document.getElementById("input-terminal").value = "";
 
-		if(cmd == "clear") {
+		if(!finished && cmd == "clear") {
+			var terminal_ta = document.getElementById("textarea-terminal");
+			terminal_ta.innerHTML = terminal_ta.innerHTML.substring(terminal_ta.innerHTML.lastIndexOf('\n')+1, terminal_ta.innerHTML.length);
+		}
+
+		if(finished && cmd == "clear") {
 			document.getElementById("textarea-terminal").innerHTML = "";
 
 			add_prompt();
 		}
-		else if(cmd.split(" ")[0] == "edit") {
+		else if(finished && cmd.split(" ")[0] == "edit") {
 			var path = cmd.split(" ")[1];
 			if(path[0] == '/' || path[0] == '~')
 				edit_file(path);
@@ -103,7 +156,7 @@
 
 			add_prompt();
 		}
-		else if(cmd.split(" ")[0] == "cd") {
+		else if(finished && cmd.split(" ")[0] == "cd") {
 			var dir = cmd.split(" ")[1];
 
 			if(dir[0] == '~' && home.length)
@@ -132,7 +185,7 @@
 
 			add_prompt();
 		}
-		else if(cmd.split(" ")[0] == "CD") {
+		else if(finished && cmd.split(" ")[0] == "CD") {
 			var dir = cmd.split(" ")[1];
 
 			if(dir[0] == '~' && home.length)
@@ -159,7 +212,7 @@
 			document.getElementById("textarea-terminal").innerHTML += result["output"];
 			add_prompt();
 		}
-		else if(document.getElementById("select-terminal-interactive").value == "interactive") {
+		else if(document.getElementById("select-terminal-interactive").value != "non-interactive") {
 			if(!finished)
 				socket.send(cmd);
 			else {
@@ -192,22 +245,57 @@
 		}
 	}
 
+	async function select_terminal_mode_event() {
+		if(document.getElementById("select-terminal-interactive").value != "non-interactive") {
+			if(document.getElementById("select-terminal-interactive").value == "pty")
+				socket = new WebSocket("ws://" + window.location.host + "/api/socket/pty");
+			else if(document.getElementById("select-terminal-interactive").value == "interactive")
+				socket = new WebSocket("ws://" + window.location.host + "/api/socket/run");
+
+			socket.onmessage = function (e) {
+				if(e.data == "[finished]") {
+					finished = true;
+					add_prompt();
+				}
+				else if(e.data == "invalid signature") {
+					document.getElementById("input-terminal").disabled = true;
+					document.getElementById("textarea-terminal").innerHTML = "websocket handshake failed";
+				}
+				else {
+					document.getElementById("textarea-terminal").innerHTML += e.data;
+					document.getElementById("textarea-terminal").innerHTML = desanitize(document.getElementById("textarea-terminal").innerHTML);
+					document.getElementById("textarea-terminal").scrollTop = document.getElementById("textarea-terminal").scrollHeight;
+				}
+		    };
+
+		    //signature handshake
+			var date = new Date().getTime().toString();
+			socket.onopen = () => {
+				socket.send(date);
+				socket.send(signature(date));
+			}
+		}
+
+		document.getElementById("input-terminal").focus();
+	}
+
 	async function terminal_init() {
 		twd = pwd;
-
 		if(twd.substring(0, home.length) == home)
 			twd = "~" + twd.substring(home.length, twd.length);
 
-		//signature handshake
-		var date = new Date().getTime().toString();
-		socket.send(date);
-		socket.send(signature(date));
-
 		add_prompt();
 
-		if(config["terminal"] && config["terminal"]["mode"] == "non-interactive") {
-			document.getElementById("select-terminal-interactive").value = "non-interactive";
+		if(config["terminal"]) {
+			if(config["terminal"]["mode"] == "pty")
+				document.getElementById("select-terminal-interactive").value = "pty";
+			else if(config["terminal"]["mode"] == "interactive")
+				document.getElementById("select-terminal-interactive").value = "interactive";
+			else if(config["terminal"]["mode"] == "non-interactive")
+				document.getElementById("select-terminal-interactive").value = "non-interactive";
 		}
+
+		select_terminal_mode_event();
 	}
 
 	async function terminal_keypress(e) {

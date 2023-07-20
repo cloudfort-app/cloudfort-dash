@@ -7,6 +7,10 @@
 	<body>
 		@input("templates/popups.html")
 
+		<script>
+			waiting_popup("loading");
+		</script>
+
 		<div align="center">
 			@input("templates/menu.html")
 
@@ -381,6 +385,7 @@
 			async function dash_init() {
 				await check_signed_in();
 
+				resolve_waiting_popup();
 				document.getElementById("content").style.display = "block";
 
 				await get_home();
