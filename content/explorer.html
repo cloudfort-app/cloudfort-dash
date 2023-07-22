@@ -31,8 +31,8 @@
 	<button class="btn" onclick="document.getElementById('download-popup').style.display = 'none'" style="width: 100px; margin: 0 auto">close</button>
 </div>
 
-<div id="serve-img-popup" class="card card-shadow-no-hover popup popup-dash popup-top" style="width: 100%; height: 100%">
-	<img id="img-serve" style="max-width: 100%; max-height: 93%"><br>
+<div id="serve-img-popup" class="card card-shadow-no-hover popup popup-dash popup-top" style="width: 90%; max-height: 95vh; margin-top: 2.5em; overflow-x: scroll">
+	<img id="img-serve" style="min-width: 200px; max-height: 80vh; vertical-align: middle; margin-bottom: 1em;"><br>
 
 	<button class="btn" onclick="document.getElementById('serve-img-popup').style.display = 'none'" style="width: 100px; margin: 0 auto">close</button>
 	<a id="serve-img-download-btn"><button class="btn" style="width: 100px; margin: 0 auto">download</button></a>
@@ -179,6 +179,7 @@
 	const files_table = document.getElementById("table-files");
 	var bwd = "nil"; //browser working directory
 	var explorer_files;
+	var file_no;
 
 	var sort_indx = 1;
 	var sort_dir = 1;
@@ -636,11 +637,19 @@
 		}
 	}
 
-	async function serve_image(filename, path) {
+	function is_img_ext(ext) {
+		return (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".webp" || ext == ".svg" || ext == ".gif");
+	}
+
+	function is_video_ext(ext) {
+		return (ext == ".mp4" || ext == ".ogg" || ext == ".webm");
+	}
+
+	async function serve_image(f) {
 		const date = new Date().getTime().toString();
 		const formData = new FormData();
 		formData.append("date", date);
-		formData.append("path", path);
+		formData.append("path", bwd + "/" + explorer_files[f][1]);
 
 		response = await fetch("/api/download", {
 			method: "POST",
@@ -656,17 +665,49 @@
 		//window.location.assign(file);
 
 		document.getElementById("serve-img-download-btn").href = file;
-		document.getElementById("serve-img-download-btn").download = filename;
+		document.getElementById("serve-img-download-btn").download = explorer_files[f][1];
+		file_no = f;
 
 		document.getElementById('img-serve').src = file;
+		document.getElementById('img-serve').title = explorer_files[f][1];
 		document.getElementById('serve-img-popup').style.display = "block";
 	}
 
-	async function serve_video(filename, path, ext) {
+	async function serve_image_increment() {
+		var f = file_no;
+		f = (f+1)%explorer_files.length;
+		while(f != file_no) {
+			var ext = explorer_files[f][1].substring(explorer_files[f][1].indexOf('.'), explorer_files[f][1].length);
+			if(is_img_ext(ext)) {
+				serve_image(f);
+				break;
+			}
+			f = (f+1)%explorer_files.length;
+		}
+	}
+
+	async function serve_image_decrement() {
+		var f = file_no;
+		f--;
+		if(f < 0)
+			f = explorer_files.length-1;
+		while(f != file_no) {
+			var ext = explorer_files[f][1].substring(explorer_files[f][1].indexOf('.'), explorer_files[f][1].length);
+			if(is_img_ext(ext)) {
+				serve_image(f);
+				break;
+			}
+			f--;
+			if(f < 0)
+				f = explorer_files.length-1;
+		}
+	}
+
+	async function serve_video(f) {
 		const date = new Date().getTime().toString();
 		const formData = new FormData();
 		formData.append("date", date);
-		formData.append("path", path);
+		formData.append("path", bwd + "/" + explorer_files[f][1]);
 
 		response = await fetch("/api/download", {
 			method: "POST",
@@ -682,6 +723,8 @@
 		//window.location.assign(file);
 
 		document.getElementById('serve-video-popup').style.display = "block";
+
+		var ext = explorer_files[f][1].substring(explorer_files[f][1].indexOf('.'), explorer_files[f][1].length);
 		if(ext == ".mp4")
 			document.getElementById('serve-video-source').type = "video/mp4";
 		else if(ext == ".ogg")
@@ -689,10 +732,44 @@
 		else if(ext == ".webm")
 			document.getElementById('serve-video-source').type = "video/webm";
 		document.getElementById('video-serve').src = file;
+		document.getElementById('video-serve').title = explorer_files[f][1];
 		document.getElementById('video-serve').play();
 
 		document.getElementById("serve-video-download-btn").href = file;
-		document.getElementById("serve-video-download-btn").download = filename;
+		document.getElementById("serve-video-download-btn").download = explorer_files[f][1];
+		file_no = f;
+	}
+
+	async function serve_video_increment() {
+		var f = file_no;
+		f = (f+1)%explorer_files.length;
+		while(f != file_no) {
+			var ext = explorer_files[f][1].substring(explorer_files[f][1].indexOf('.'), explorer_files[f][1].length);
+			if(is_video_ext(ext)) {
+				serve_video(f);
+				break;
+			}
+
+			f = (f+1)%explorer_files.length;
+		}
+	}
+
+	async function serve_video_decrement() {
+		var f = file_no;
+		f--;
+		if(f < 0)
+			f = explorer_files.length-1;
+		while(f != file_no) {
+			var ext = explorer_files[f][1].substring(explorer_files[f][1].indexOf('.'), explorer_files[f][1].length);
+			if(is_video_ext(ext)) {
+				serve_video(f);
+				break;
+			}
+
+			f--;
+			if(f < 0)
+				f = explorer_files.length-1;
+		}
 	}
 
 	async function rename_path() {
@@ -972,9 +1049,9 @@
 			if(result["files"][f][0])
 				row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-folder no-hover-ico' style='padding-top: 3px'></i>";
 			else {
-				if(ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".webp" || ext == ".svg" || ext == ".gif")
+				if(is_img_ext(ext))
 					row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-file-earmark-image no-hover-ico' style='padding-top: 3px'></i>";
-				else if(ext == ".mp4" || ext == ".ogg" || ext == ".webm")
+				else if(is_video_ext(ext))
 					row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-film no-hover-ico' style='padding-top: 3px'></i>";
 				else if(ext == ".zip" || ext == ".xz" || ext == ".bz2" || ext == ".gz")
 					row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-file-zip no-hover-ico' style='padding-top: 3px'></i>";
@@ -989,9 +1066,9 @@
 				
 
 				if(ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".webp" || ext == ".svg" || ext == ".gif")
-					row.insertCell(2).innerHTML = "<a onclick='serve_image(\"" + result["files"][f][1] + "\", \"" + bwd + "/" + result["files"][f][1] +  "\")'>" + result["files"][f][1] + "</a>";
+					row.insertCell(2).innerHTML = "<a onclick='serve_image(" + f + ")'>" + result["files"][f][1] + "</a>";
 				else if(ext == ".mp4" || ext == ".ogg" || ext == ".webm")
-					row.insertCell(2).innerHTML = "<a onclick='serve_video(\"" + result["files"][f][1] + "\", \"" + bwd + "/" + result["files"][f][1] +  "\", \"" + ext + "\")'>" + result["files"][f][1] + "</a>";
+					row.insertCell(2).innerHTML = "<a onclick='serve_video(" + f + ")'>" + result["files"][f][1] + "</a>";
 				else if(ext == ".zip" || ext == ".xz" || ext == ".bz2" || ext == ".gz")
 					row.insertCell(2).innerHTML = "<a onclick='extract_path(\"" + bwd + "/" + result["files"][f][1] +  "\")'>" + result["files"][f][1] + "</a>";
 				else

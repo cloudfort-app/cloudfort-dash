@@ -3,11 +3,9 @@
 </div>
 
 <select id="select-terminal-interactive" class="noselect" onchange="select_terminal_mode_event()" style="margin: 0.25em 0 0; width: 300px; max-width: 90%">
-	<option value="pty" selected>pty</option>
-	<option value="interactive">interactive</option>
-	<option value="non-interactive">non-interactive</option>
 </select>
 <div id="textarea-terminal" style="text-align: left; margin: 0.5em 0;"></div>
+<input id="input-terminal-pw" placeholder="password" type="password" onkeydown="terminal_pw_keypress(event)" style="display: none;">
 <input id="input-terminal" placeholder="cmd" spellcheck="false" onkeydown="terminal_keypress(event)" autocomplete="off"><br>
 <select id="select-hist" class="noselect" onchange="hist_event()">
 	<option value="none" disabled hidden selected>history</option>
@@ -18,32 +16,42 @@
 	var prev_cmd, cmd, twd;
 	var hist_no = 0;
 	var finished = true;
+	var mode = "pty";
 
 	var socket;
 
 	function desanitize_terminal(str) {
 	    str = str.replaceAll("\\n", "\n");
 	    str = str.replaceAll("\\t", "\t");
+	    str = str.replaceAll("\\r", "\r");
 
-		var re = /\n.*\\r/g
-		str = str.replaceAll(re, "\n");
+		//var re = /\n.*\\r/g
+		//str = str.replaceAll(re, "\n");
+
+		if(str.indexOf('') < str.indexOf('\n') || str.indexOf('\n') == -1) {
+			str = str.substring(str.indexOf('')+1, str.length);
+		}
 
 		re = /\n.*/g
 		str = str.replaceAll(re, "\n");
 
-		str = str.replaceAll("[m", "<span style='color: white'>");
-		str = str.replaceAll("[0m", "<span style='color: white'>");
-		str = str.replaceAll("[1m", "<span style='font-weight: bold'>");
-		//str = str.replaceAll("[2m", "<span style='font-weight: lighter'>");
-		//str = str.replaceAll("[3m", "<span style='font-style: italic'>");
-		//str = str.replaceAll("[4m", "<span style='text-decoration: underline'>");
+		str = str.replaceAll("[00m", "</span>");
+		str = str.replaceAll("[m", "<span style='color: white; background: var(--secondary-dark)'>");
+		str = str.replaceAll("[K", "<span style='color: white; background: var(--secondary-dark)'>");
+		str = str.replaceAll("[0m", "<span style='color: white; background: var(--secondary-dark)''>");
+		str = str.replaceAll("[1m", "<span style='font-weight: bold; background: var(--secondary-dark)''>");
+		//str = str.replaceAll("[2m", "<span style='font-weight: lighter; background: var(--secondary-dark)''>");
+		//str = str.replaceAll("[3m", "<span style='font-style: italic; background: var(--secondary-dark)''>");
+		//str = str.replaceAll("[4m", "<span style='text-decoration: underline; background: var(--secondary-dark)''>");
 
 		str = str.replaceAll("[?7l", "");
 		str = str.replaceAll("[?25l", "");
 		str = str.replaceAll("[?7h", "");
 		str = str.replaceAll("[?25h", "");
 		str = str.replaceAll("[20A", "");
+		str = str.replaceAll("(B", "");
 		str = str.replaceAll("[9999999D", "");
+		str = str.replaceAll("[?2004l", "");
 
 		str = str.replaceAll("[30m", "<span style='color: var(--sherb-green)'>");
 		str = str.replaceAll("[31m", "<span style='color: var(--sherb-red)'>");
@@ -56,12 +64,18 @@
 		str = str.replaceAll("[40m", "<span style='color: var(--neon-green)'>");
 		str = str.replaceAll("[41m", "<span style='color: var(--neon-red)'>");
 		str = str.replaceAll("[42m", "<span style='color: var(--neon-blue)'>");
+		str = str.replaceAll("[42C", "<span style='color: var(--sorbet-purple)'>>");
 		str = str.replaceAll("[43m", "<span style='color: var(--neon-orange)'>");
 		str = str.replaceAll("[43C", "<span style='color: var(--neon-orange)'>");
 		str = str.replaceAll("[44m", "<span style='color: var(--neon-yellow)'>");
+		str = str.replaceAll("[44C", "");
 		str = str.replaceAll("[45m", "<span style='color: var(--neon-purple)'>");
+		str = str.replaceAll("[45C", "<span style='color: var(--neon-purple)'>");
 		str = str.replaceAll("[46m", "<span style='color: var(--neon-pink)'>");
+		str = str.replaceAll("[46C", "");
 		str = str.replaceAll("[47m", "<span style='color: var(--neon-pink)'>");
+		str = str.replaceAll("[47C", "");
+
 
 		str = str.replaceAll("[38;5;8m", "<span style='background: var(--sherb-green); color: transparent'>");
 		str = str.replaceAll("[38;5;9m", "<span style='background: var(--sherb-red); color: transparent'>");
@@ -72,6 +86,9 @@
 		str = str.replaceAll("[38;5;14m", "<span style='background: var(--sherb-yellow); color: transparent'>");
 		str = str.replaceAll("[38;5;15m", "<span style='background: var(--neon-pink); color: transparent'>");
 
+		str = str.replaceAll("[38;2;0;95;215m", "<span style='color: var(--neon-purple)'>");
+		str = str.replaceAll("[38;2;0;175;255m", "<span style='color: var(--neon-green)'>");
+
 		str = str.replaceAll("[48;5;8m", "");
 		str = str.replaceAll("[48;5;9m", "");
 		str = str.replaceAll("[48;5;10m", "");
@@ -81,12 +98,15 @@
 		str = str.replaceAll("[48;5;14m", "");
 		str = str.replaceAll("[48;5;15m", "");
 
-		str = str.replaceAll("[01;32m", "<span style='color: var(--sherb-green)'>");
-		str = str.replaceAll("[01;34m", "<span style='color: var(--sherb-purple)'>");
+		str = str.replaceAll("[1;31m", "<span style='color: var(--sherb-red)'>");
+		str = str.replaceAll("[01;32m", "<span style='color: var(--sorbet-green)'>");
+		str = str.replaceAll("[01;34m", "<span style='color: var(--sorbet-pink)'>");
 		str = str.replaceAll("[01;36m", "<span style='color: var(--sherb-pink)'>");
 		str = str.replaceAll("[30;42m", "<span style='color: var(--sherb-orange)'>");
 		str = str.replaceAll("[30;43m", "<span style='color: var(--sherb-yellow)'>");
+		str = str.replaceAll("[34;42m", "<span style='color: var(--neon-pink)'>");
 		str = str.replaceAll("[37;41m", "<span style='color: var(--sherb-blue)'>");
+		str = str.replaceAll("[39;49m", "<span style='color: var(--sorbet-purple)'>");
 
 		while(str.indexOf("\\b") != -1)
 	        str = str.replace(/.\\b/, "");
@@ -102,9 +122,11 @@
 	}
 
 	async function add_prompt() {
-		if(document.getElementById("textarea-terminal").innerHTML != "" && document.getElementById("textarea-terminal").innerHTML[document.getElementById("textarea-terminal").innerHTML.length-1] != '\n')
-			document.getElementById("textarea-terminal").innerHTML += "\n";
-		document.getElementById("textarea-terminal").innerHTML += "<span style='color: var(--sorbet-pink)'>" + twd + "</span>$ ";
+		if(mode == "pty" || mode == "interactive" || mode == "non-interactive") {
+			if(document.getElementById("textarea-terminal").innerHTML != "" && document.getElementById("textarea-terminal").innerHTML[document.getElementById("textarea-terminal").innerHTML.length-1] != '\n')
+				document.getElementById("textarea-terminal").innerHTML += "\n";
+			document.getElementById("textarea-terminal").innerHTML += "<span style='color: var(--sorbet-pink)'>" + twd + "</span>$ ";
+		}
 		document.getElementById("textarea-terminal").scrollTop = document.getElementById("textarea-terminal").scrollHeight;
 	}
 
@@ -114,17 +136,45 @@
 		hist_select.value = "none";
 	}
 
+	async function available_shells() {
+		const date = new Date().getTime().toString();
+		const formData = new FormData();
+		formData.append("date", date);
+		formData.append("command", "tail -n +2 /etc/shells");
+	
+		let response = await fetch("/api/run", {
+			method: "POST",
+			headers: {
+				//"content-type": "application/json"
+				"signature": signature(date)
+		    },
+			body: formData
+		});
+		let result = await response.text();
+
+		var paths = result.split('\n');
+		var shells = new Set();
+
+		for(var i=0; i<paths.length; ++i) {
+			if(paths[i] != "") {
+				shells.add(paths[i].substring(paths[i].lastIndexOf('/')+1, paths[i].length));
+			} 
+		}
+
+		return shells;
+	}
+
 	async function run_cmd() {
 		const date = new Date().getTime().toString();
 		const formData = new FormData();
 		formData.append("date", date);
 
-		prev_cmd = cmd;
 		cmd = document.getElementById("input-terminal").value;
 
 		if(cmd.length && cmd[0] == ' ')
 			cmd = cmd.slice(1);
 		else if(cmd.length > 1 && cmd != prev_cmd) {
+			prev_cmd = cmd;
 			var opt = document.createElement('option');
 		    opt.value = cmd;
 		    opt.innerHTML = cmd;
@@ -132,8 +182,14 @@
 		}
 		hist_no = hist_select.options.length;
 
-		if(finished) {
-			document.getElementById("textarea-terminal").innerHTML += document.getElementById("input-terminal").value + "\n";
+		if(document.getElementById("input-terminal").value.length) {
+			if(mode == "pty" || mode == "interactive" || mode == "non-interactive") {
+				if(document.getElementById("input-terminal").value[0] != " ") {
+					document.getElementById("textarea-terminal").innerHTML += document.getElementById("input-terminal").value + "\n";
+				}
+				else if(document.getElementById("textarea-terminal").innerHTML.length && document.getElementById("textarea-terminal").innerHTML[document.getElementById("textarea-terminal").innerHTML.length-1] != '\n')
+					document.getElementById("textarea-terminal").innerHTML += "\n";
+			}
 		}
 		document.getElementById("input-terminal").value = "";
 
@@ -212,7 +268,7 @@
 			document.getElementById("textarea-terminal").innerHTML += result;
 			add_prompt();
 		}
-		else if(document.getElementById("select-terminal-interactive").value != "non-interactive") {
+		else if(mode != "non-interactive") {
 			if(!finished)
 				socket.send(cmd);
 			else {
@@ -246,22 +302,40 @@
 	}
 
 	async function select_terminal_mode_event() {
-		if(document.getElementById("select-terminal-interactive").value != "non-interactive") {
-			if(document.getElementById("select-terminal-interactive").value == "pty")
-				socket = new WebSocket("ws://" + window.location.host + "/api/socket/pty");
-			else if(document.getElementById("select-terminal-interactive").value == "interactive")
+		mode = document.getElementById("select-terminal-interactive").value;
+		if(mode != "non-interactive") {
+			if(mode == "interactive")
 				socket = new WebSocket("ws://" + window.location.host + "/api/socket/run");
+			else
+				socket = new WebSocket("ws://" + window.location.host + "/api/socket/pty");
 
 			socket.onmessage = function (e) {
 				if(e.data == "[finished]") {
 					finished = true;
 					add_prompt();
+
+					if(mode != "pty" && mode != "interactive" && mode != "non-interactive") {
+						document.getElementById("input-terminal").value = " " + mode;
+						run_cmd();
+					}
+
+					if(document.getElementById('input-terminal-pw').style.display == "inline") {
+						document.getElementById('input-terminal-pw').style.display = "none";
+				  		document.getElementById('input-terminal').style.display = "inline";
+				  		document.getElementById('input-terminal').focus();
+				  	}
 				}
 				else if(e.data == "invalid signature") {
 					document.getElementById("input-terminal").disabled = true;
 					document.getElementById("textarea-terminal").innerHTML = "websocket handshake failed";
 				}
 				else {
+					if(e.data.search("password") != -1) {
+						document.getElementById('input-terminal').style.display = "none";
+				  		document.getElementById('input-terminal-pw').style.display = "inline";
+				  		document.getElementById('input-terminal-pw').focus();
+					}
+
 					document.getElementById("textarea-terminal").innerHTML += e.data;
 					document.getElementById("textarea-terminal").innerHTML = desanitize_terminal(document.getElementById("textarea-terminal").innerHTML);
 					document.getElementById("textarea-terminal").scrollTop = document.getElementById("textarea-terminal").scrollHeight;
@@ -269,12 +343,20 @@
 		    };
 
 		    //signature handshake
-			var date = new Date().getTime().toString();
 			socket.onopen = () => {
+				var date = new Date().getTime().toString();
 				socket.send(date);
 				socket.send(signature(date));
+
+				if(mode != "pty" && mode != "interactive") {
+					document.getElementById("input-terminal").value = " " + mode;
+					run_cmd();
+				}
 			}
 		}
+
+		if(mode == "pty" || mode == "interactive" || mode == "non-interactive")
+			add_prompt();
 
 		document.getElementById("input-terminal").focus();
 	}
@@ -284,18 +366,77 @@
 		if(twd.substring(0, home.length) == home)
 			twd = "~" + twd.substring(home.length, twd.length);
 
-		add_prompt();
-
-		if(config["terminal"]) {
-			if(config["terminal"]["mode"] == "pty")
-				document.getElementById("select-terminal-interactive").value = "pty";
-			else if(config["terminal"]["mode"] == "interactive")
-				document.getElementById("select-terminal-interactive").value = "interactive";
-			else if(config["terminal"]["mode"] == "non-interactive")
-				document.getElementById("select-terminal-interactive").value = "non-interactive";
+		terminal_mode_select = document.getElementById("select-terminal-interactive");
+		shells = await available_shells();
+		const sh_it = shells.values();
+		for(const it of sh_it) {
+			var opt = document.createElement('option');
+		    opt.value = opt.innerHTML = it;
+		    terminal_mode_select.appendChild(opt)
 		}
 
-		select_terminal_mode_event();
+		var opt = document.createElement('option');
+	    opt.value = opt.innerHTML = "pty";
+	    terminal_mode_select.appendChild(opt)
+	    var opt = document.createElement('option');
+	    opt.value = opt.innerHTML = "interactive";
+	    terminal_mode_select.appendChild(opt)
+	    var opt = document.createElement('option');
+	    opt.value = opt.innerHTML = "non-interactive";
+	    terminal_mode_select.appendChild(opt)
+
+		if(config["terminal"] && config["terminal"]["mode"])
+			document.getElementById("select-terminal-interactive").value = config["terminal"]["mode"];
+		else
+			document.getElementById("select-terminal-interactive").value = "bash";
+
+		await select_terminal_mode_event();
+
+		//add_prompt();
+	}
+
+	async function terminal_pw_keypress(e) {
+		var name = e.key;
+		var code = e.code;
+
+		if(name == 'Enter' || code == 'Enter') {
+			e.preventDefault();
+
+			document.getElementById('input-terminal').value = " " + document.getElementById('input-terminal-pw').value;
+			document.getElementById('input-terminal-pw').value = "";
+
+	  		run_cmd();
+
+	  		document.getElementById('input-terminal-pw').style.display = "none";
+	  		document.getElementById('input-terminal').style.display = "inline";
+	  		document.getElementById('input-terminal').focus();
+		}
+		else if(e.altKey) {
+			if(e.key == 'c') {
+				e.preventDefault();
+				document.getElementById('input-terminal-pw').value = "";
+				document.getElementById('input-terminal-pw').style.display = "none";
+		  		document.getElementById('input-terminal').style.display = "inline";
+		  		document.getElementById('input-terminal').focus();
+				document.getElementById("textarea-terminal").innerHTML += "kill\n";
+				socket.send("kill");
+
+				/*setTimeout(function(){
+					if(mode != "pty" && mode != "interactive" && mode != "non-interactive") {
+						document.getElementById("input-terminal").value = " " + mode;
+						run_cmd();
+					}
+				}, 500);*/
+			}
+			else if(e.key == 'p') {
+				e.preventDefault();
+
+				document.getElementById('input-terminal-pw').value = "";
+				document.getElementById('input-terminal-pw').style.display = "none";
+		  		document.getElementById('input-terminal').style.display = "inline";
+		  		document.getElementById('input-terminal').focus();
+			}
+		}
 	}
 
 	async function terminal_keypress(e) {
@@ -336,6 +477,20 @@
 				e.preventDefault();
 				document.getElementById("textarea-terminal").innerHTML += "kill\n";
 				socket.send("kill");
+
+				/*setTimeout(function(){
+					if(mode != "pty" && mode != "interactive" && mode != "non-interactive") {
+						document.getElementById("input-terminal").value = " " + mode;
+						run_cmd();
+					}
+				}, 500);*/
+			}
+			else if(e.key == 'p') {
+				e.preventDefault();
+
+				document.getElementById('input-terminal').style.display = "none";
+		  		document.getElementById('input-terminal-pw').style.display = "inline";
+		  		document.getElementById('input-terminal-pw').focus();
 			}
 		}
 		else if(name == 'Tab') {
@@ -404,20 +559,16 @@
 				}
 				else {
 					document.getElementById("textarea-terminal").innerHTML += document.getElementById("input-terminal").value + "\n";
-					document.getElementById("textarea-terminal").innerHTML += result["output"] + "\n";
+					document.getElementById("textarea-terminal").innerHTML += result + "\n";
 					add_prompt();
-				}
-
-					
+				}					
 			}
-
-			//alert(result["output"]);
 		}
 	}
 </script>
 
 <style>
-	#textarea-terminal, #input-terminal, #select-hist {
+	#textarea-terminal, #input-terminal, #input-terminal-pw, #select-hist {
 		background: var(--secondary-dark);
 		border: 1px solid var(--light-black);
 		color: var(--white);

@@ -39,7 +39,7 @@
 		const date = new Date().getTime().toString();
 		const formData = new FormData();
 		formData.append("date", date);
-		formData.append("command", "certbot --non-interactive certificates")
+		formData.append("command", "sudo certbot --non-interactive certificates")
 	
 		let response = await fetch("/api/run", {
 			method: "POST",
@@ -110,7 +110,7 @@
 			const date = new Date().getTime().toString();
 			const formData = new FormData();
 			formData.append("date", date);
-			formData.append("command", "certbot --non-interactive certonly --standalone -n --domains " + document.getElementById("input-domain").value + " --agree-tos -m " + document.getElementById("input-email").value);
+			formData.append("command", "sudo certbot --non-interactive certonly --standalone -n --domains " + document.getElementById("input-domain").value + " --agree-tos -m " + document.getElementById("input-email").value);
 		
 			let response = await fetch("/api/run", {
 				method: "POST",

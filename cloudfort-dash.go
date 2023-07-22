@@ -29,7 +29,7 @@ var domain string
 var home string
 var port string
 var password []byte
-var version = "v0.1.21"
+var version = "v0.1.22"
 
 var upgrader = websocket.Upgrader{}
 
@@ -593,6 +593,7 @@ func routeSocketRun(w http.ResponseWriter, req *http.Request) {
 
             defer stdin.Close()
             defer stdout.Close()
+            //defer stderr.Close()
 
             process.Start()
 
@@ -638,8 +639,8 @@ func routeSocketRunPty(w http.ResponseWriter, req *http.Request) {
         return
     }
 
-    var ptmx *os.File
     var process *exec.Cmd
+    var ptmx *os.File
     var ticker *time.Ticker
 
     for true {
@@ -676,8 +677,8 @@ func routeSocketRunPty(w http.ResponseWriter, req *http.Request) {
 }
 
 func routeDownload(w http.ResponseWriter, req *http.Request) {
-    fmt.Println(req.URL.String())
-    fmt.Println(req.PostFormValue("path"))
+    //fmt.Println(req.URL.String())
+    //fmt.Println(req.PostFormValue("path"))
 
     //w.Header().Set("Content-Disposition", "attachment; filename=" + req.PostFormValue("path"))
     //w.Header().Set("Content-Type", "application/octet-stream")
@@ -736,7 +737,7 @@ func createConfig() {
     },
 
     "terminal": {
-        "mode": "pty"
+        "mode": "bash"
     }
 }`), 0644);
 
