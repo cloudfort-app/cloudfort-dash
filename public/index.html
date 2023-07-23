@@ -1,7 +1,7 @@
 <!doctype html>
 <html id="html" lang="en">
 	<head>
-		<title>Cloudfort Dash</title>
+		<title>Dash</title>
 		
 		<meta name="description" content="">
 		<meta charset="utf-8">
@@ -205,24 +205,24 @@
 			      <li class="item li-menu li-dark has-submenu">
 			        <button class="submenu-link" onclick="toggle_submenu(0)">dashboard</button>
 			        <ul class="submenu" align="center">
-			          <li class="subitem"><a href="#" onclick="show('index'); close_menu()">home</a></li>
-			          <li class="subitem"><a href="#" onclick="show('monitor'); close_menu()">monitor</a></li>
-			          <li class="subitem"><a href="#" onclick="show('terminal'); close_menu()">terminal</a></li>
-			          <li class="subitem"><a href="#" onclick="show('browser'); close_menu()">browser</a></li>
-			          <li class="subitem"><a href="#" onclick="show('editor'); close_menu()">editor</a></li>
-			          <li class="subitem"><a href="#" onclick="show('tools'); close_menu()">tools</a></li>
+			          <li class="subitem"><a onclick="show('index'); close_menu()">home</a></li>
+			          <li class="subitem"><a onclick="show('monitor'); close_menu()">monitor</a></li>
+			          <li class="subitem"><a onclick="show('terminal'); close_menu()">terminal</a></li>
+			          <li class="subitem"><a onclick="show('browser'); close_menu()">browser</a></li>
+			          <li class="subitem"><a onclick="show('editor'); close_menu()">editor</a></li>
+			          <li class="subitem"><a onclick="show('tools'); close_menu()">tools</a></li>
+			          <li class="subitem"><a onclick="show('administration'); close_menu()">administration</a></li>
 			        </ul>
 			      </li>
 			
 			      <li class="item li-menu li-dark has-submenu">
 			        <button class="submenu-link" onclick="toggle_submenu(1)">company</button>
 			        <ul class="submenu" align="center">
-			          <li class="subitem"><a href="#" onclick="show('tos'); close_menu()">tos</a></li>
-			          <li class="subitem"><a href="#" onclick="show('privacy-policy'); close_menu()">privacy policy</a></li>
+			          <li class="subitem"><a onclick="show('tos'); close_menu()">tos</a></li>
+			          <li class="subitem"><a onclick="show('privacy-policy'); close_menu()">privacy policy</a></li>
 			        </ul>
 			      </li>
-			
-			      </ul>
+			    </ul>
 			  </nav>
 			
 			  <button id="sign-out-button" class="btn" onclick="sign_out()">sign out</button>
@@ -240,7 +240,7 @@
 						<i title="editor" class="bs-ico bootstrap-code-square menu-ico" onclick="show('editor')"></i><br>
 						<hr>
 						<i title="tools" class="bs-ico bootstrap-tools menu-ico" onclick="show('tools')"></i><br>
-						<i title="config" class="bs-ico bootstrap-gear menu-ico" onclick="edit_file(home + '/.cloudfort/config.json')"></i><br>
+						<i title="administration" class="bs-ico bootstrap-gear menu-ico" onclick="show('administration')"></i><br>
 					</div>
 				</div>
 
@@ -284,6 +284,12 @@
 							<i class="bs-ico bootstrap-tools width-5em card-hover-filter"></i><br>
 							<hr>
 							<h2 class="card-hover-color">tools</h2>
+						</div>
+						
+						<div class="card border-hover" onclick="show('administration')" style="cursor: pointer; width: 10em">
+							<i class="bs-ico bootstrap-gear width-5em card-hover-filter"></i><br>
+							<hr>
+							<h2 class="card-hover-color">admin</h2>
 						</div>
 					</div>
 				</div>
@@ -385,10 +391,10 @@
 							function desanitize_terminal(str) {
 							    str = str.replaceAll("\\n", "\n");
 							    str = str.replaceAll("\\t", "\t");
-							    str = str.replaceAll("\\r", "\r");
+							    //str = str.replaceAll("\\r", "\r");
 						
-								//var re = /\n.*\\r/g
-								//str = str.replaceAll(re, "\n");
+								var re = /\n.*\\r/g
+								str = str.replaceAll(re, "\n");
 						
 								if(str.indexOf('') < str.indexOf('\n') || str.indexOf('\n') == -1) {
 									str = str.substring(str.indexOf('')+1, str.length);
@@ -461,6 +467,7 @@
 								str = str.replaceAll("[48;5;15m", "");
 						
 								str = str.replaceAll("[1;31m", "<span style='color: var(--sherb-red)'>");
+								str = str.replaceAll("[01;31m", "<span style='color: var(--sorbet-purple)'>");
 								str = str.replaceAll("[01;32m", "<span style='color: var(--sorbet-green)'>");
 								str = str.replaceAll("[01;34m", "<span style='color: var(--sorbet-pink)'>");
 								str = str.replaceAll("[01;36m", "<span style='color: var(--sherb-pink)'>");
@@ -524,6 +531,12 @@
 								}
 						
 								return shells;
+							}
+						
+							async function run(cmd) {
+								document.getElementById("input-terminal").value = cmd;
+								show('terminal');
+								await run_cmd();
 							}
 						
 							async function run_cmd() {
@@ -875,6 +888,13 @@
 									else
 										str = input.substring(pspace + 1, pos);
 						
+									if(dir[0] != '/' && dir[0] != '~')
+										dir = twd + "/" + dir;
+						
+									//don't make this else if
+									if(dir[0] == '~')
+										dir = home + dir.substring(1, dir.length);
+						
 									//alert("'" + dir + "'\n'" + str + "'");
 						
 									const date = new Date().getTime().toString();
@@ -978,6 +998,7 @@
 						</div><br>
 						
 						<div class="card border noselect" style="overflow-x: scroll; white-space: nowrap; max-width: 90%;">
+							<i title="root" class='bs-ico bootstrap-slash ico-link-color' onclick="get_dir('')"></i> &nbsp;
 							<i title="home" class='bs-ico bootstrap-house ico-link-color' onclick="get_dir(home)"></i> &nbsp;&nbsp;
 							<i title="refresh" class='bs-ico bootstrap-arrow-repeat ico-link-color' onclick="get_dir(bwd)"></i> &nbsp;&nbsp;
 							<i title="new directory" class='bs-ico bootstrap-folder-plus ico-link-color' onclick="show_create_dir()"></i> &nbsp;&nbsp;
@@ -1616,6 +1637,10 @@
 								return (ext == ".mp4" || ext == ".ogg" || ext == ".webm");
 							}
 						
+							function is_archive_ext(ext) {
+								return (ext == ".zip" || ext == ".xz" || ext == ".bz2" || ext == ".gz");
+							}
+						
 							async function serve_image(f) {
 								const date = new Date().getTime().toString();
 								const formData = new FormData();
@@ -2024,7 +2049,7 @@
 											row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-file-earmark-image no-hover-ico' style='padding-top: 3px'></i>";
 										else if(is_video_ext(ext))
 											row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-film no-hover-ico' style='padding-top: 3px'></i>";
-										else if(ext == ".zip" || ext == ".xz" || ext == ".bz2" || ext == ".gz")
+										else if(is_archive_ext(ext))
 											row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-file-zip no-hover-ico' style='padding-top: 3px'></i>";
 										else
 											row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-file-earmark no-hover-ico' style='padding-top: 3px'></i>";
@@ -2034,13 +2059,11 @@
 										row.insertCell(2).innerHTML = "<a onclick='get_dir(\"" + bwd + "/" + result["files"][f][1] +  "\")'>" + result["files"][f][1] + "/</a>";
 									}
 									else {
-										
-						
-										if(ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".webp" || ext == ".svg" || ext == ".gif")
+										if(is_img_ext(ext))
 											row.insertCell(2).innerHTML = "<a onclick='serve_image(" + f + ")'>" + result["files"][f][1] + "</a>";
-										else if(ext == ".mp4" || ext == ".ogg" || ext == ".webm")
+										else if(is_video_ext(ext))
 											row.insertCell(2).innerHTML = "<a onclick='serve_video(" + f + ")'>" + result["files"][f][1] + "</a>";
-										else if(ext == ".zip" || ext == ".xz" || ext == ".bz2" || ext == ".gz")
+										else if(is_archive_ext(ext))
 											row.insertCell(2).innerHTML = "<a onclick='extract_path(\"" + bwd + "/" + result["files"][f][1] +  "\")'>" + result["files"][f][1] + "</a>";
 										else
 											row.insertCell(2).innerHTML = "<a onclick='edit_file(\"" + bwd + "/" + result["files"][f][1] +  "\")'>" + result["files"][f][1] + "</a>";
@@ -2491,12 +2514,6 @@
 								<h2 class="card-hover-color">firewall</h2>
 							</div>
 						
-							<div class="card border-hover" onclick="kill_dash()" style="cursor: pointer; width: 10em">
-								<i class="bs-ico bootstrap-x-square width-5em card-hover-filter"></i><br>
-								<hr>
-								<h2 class="card-hover-color">kill</h2>
-							</div>
-						
 							<div class="card border-hover" onclick="show('repos')" style="cursor: pointer; width: 10em">
 								<i class="bs-ico bootstrap-git width-5em card-hover-filter"></i><br>
 								<hr>
@@ -2515,12 +2532,6 @@
 								<h2 class="card-hover-color">ssh</h2>
 							</div>
 						
-							<div class="card border-hover" onclick="update_dash()" style="cursor: pointer; width: 10em">
-								<i class="bs-ico bootstrap-arrow-clockwise width-5em card-hover-filter"></i><br>
-								<hr>
-								<h2 class="card-hover-color">update</h2>
-							</div>
-						
 							<div class="card border-hover" onclick="show('users')" style="cursor: pointer; width: 10em">
 								<i class="bs-ico bootstrap-people width-5em card-hover-filter"></i><br>
 								<hr>
@@ -2531,6 +2542,60 @@
 								<i class="bs-ico bootstrap-globe width-5em card-hover-filter"></i><br>
 								<hr>
 								<h2 class="card-hover-color">websites</h2>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div id="administration-div" class="main-div" style="display: none">
+					<div class="main-page">
+						<div id="dash-breadcrumb">
+						    administration
+						</div>
+						
+						<h1 style="margin: 0.5em 0">Administration</h1>
+						
+						<div style="margin: 1em 0">
+							<div class="card border-hover" onclick="show('admin-dash')" style="cursor: pointer; width: 10em">
+								<i class="bs-ico bootstrap-dash width-5em card-hover-filter"></i><br>
+								<hr>
+								<h2 class="card-hover-color">dash</h2>
+							</div>
+						
+							<div class="card border-hover" onclick="show('admin-system')" style="cursor: pointer; width: 10em">
+								<i class="bs-ico bootstrap-server width-5em card-hover-filter"></i><br>
+								<hr>
+								<h2 class="card-hover-color">system</h2>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div id="admin-dash-div" class="main-div" style="display: none">
+					<div class="main-page">
+						<div id="dash-breadcrumb">
+						    <a onclick="show('administration')">administration</a>/dash
+						</div>
+						
+						<h1 style="margin: 0.5em 0">Dash</h1>
+						
+						<div style="margin: 1em 0">
+							<div class="card border-hover" onclick="edit_file(home + '/.cloudfort/config.json')" style="cursor: pointer; width: 10em">
+								<i class="bs-ico bootstrap-gear width-5em card-hover-filter"></i><br>
+								<hr>
+								<h2 class="card-hover-color">config</h2>
+							</div>
+						
+							<div class="card border-hover" onclick="kill_dash()" style="cursor: pointer; width: 10em">
+								<i class="bs-ico bootstrap-x-square width-5em card-hover-filter"></i><br>
+								<hr>
+								<h2 class="card-hover-color">kill</h2>
+							</div>
+						
+							<div class="card border-hover" onclick="update_dash()" style="cursor: pointer; width: 10em">
+								<i class="bs-ico bootstrap-arrow-clockwise width-5em card-hover-filter"></i><br>
+								<hr>
+								<h2 class="card-hover-color">update</h2>
 							</div>
 						</div>
 						
@@ -2566,9 +2631,100 @@
 									    },
 								        body: formData
 									});
-									let result = await response.json();
+									let result = await response.text();
+						
+									notify(result);
+								}
+							}
+						</script>
+					</div>
+				</div>
+
+				<div id="admin-system-div" class="main-div" style="display: none">
+					<div class="main-page">
+						<div id="dash-breadcrumb">
+						    <a onclick="show('administration')">administration</a>/system
+						</div>
+						
+						<h1 style="margin: 0.5em 0">System</h1>
+						
+						<div style="margin: 1em 0">
+							<div class="card border-hover" onclick="reboot_system()" style="cursor: pointer; width: 10em">
+								<i class="bs-ico bootstrap-arrow-repeat width-5em card-hover-filter"></i><br>
+								<hr>
+								<h2 class="card-hover-color">reboot</h2>
+							</div>
+						
+							<div class="card border-hover" onclick="update_system()" style="cursor: pointer; width: 10em">
+								<i class="bs-ico bootstrap-arrow-clockwise width-5em card-hover-filter"></i><br>
+								<hr>
+								<h2 class="card-hover-color">update</h2>
+							</div>
+						
+							<div class="card border-hover" onclick="shutdown_system()" style="cursor: pointer; width: 10em">
+								<i class="bs-ico bootstrap-power width-5em card-hover-filter"></i><br>
+								<hr>
+								<h2 class="card-hover-color">shutdown</h2>
+							</div>
+						</div>
+						
+						<script>
+						
+							async function reboot_system() {
+								if(await confirm_("reboot system?")) {
+									const date = new Date().getTime().toString();
+									const formData = new FormData();
+									formData.append("date", date);
+									formData.append("command", "systemctl reboot");
+						
+									let response = await fetch("/api/run", {
+										method: "POST",
+										headers: {
+									    	"signature": signature(date)
+									    },
+								        body: formData
+									});
+									let result = await response.text();
 						
 									notify(result["output"]);
+								}
+							}
+						
+							async function update_system() {
+								if(await confirm_("update system?")) {
+									if(pkg_man == "apk")
+										await run("apk update; apk upgrade");
+									else if(pkg_man == "apt" || pkg_man == "apt-get")
+										await run(pkg_man + " update; DEBIAN_FRONTEND=noninteractive " + pkg_man + " -y upgrade");
+									else if(pkg_man == "dnf")
+										await run("dnf -y upgrade");
+									else if(pkg_man == "emerge")
+										await run("emaint --auto sync; emerge --oneshot sys-apps/portage; emerge --verbose --update --deep --newuse @world; emerge --depclean");
+									else if(pkg_man == "pacman")
+										await run("pacman --noconfirm -Syu");
+									else if(pkg_man == "yum")
+										await run("yum -y update");
+									else if(pkg_man == "zypp")
+										await run("zypp --non-interactive --auto-agree-with-licenses --no-gpg-checks up");
+									else
+										await notify("cannot detect package manager");
+								}
+							}
+						
+							async function shutdown_system() {
+								if(await confirm_("shutdown system?")) {
+									const date = new Date().getTime().toString();
+									const formData = new FormData();
+									formData.append("date", date);
+									formData.append("command", "systemctl poweroff");
+						
+									let response = await fetch("/api/run", {
+										method: "POST",
+										headers: {
+									    	"signature": signature(date)
+									    },
+								        body: formData
+									});
 								}
 							}
 						</script>
@@ -4159,6 +4315,7 @@
 		<script>
 			var home = "nil";
 			var pwd = "~/";
+			var pkg_man;
 			var config;
 
 			const CLOUDFORT_DASH_PW = localStorage.getItem("CLOUDFORT_DASH_PW");
@@ -4171,12 +4328,21 @@
 				x[i].innerHTML = new Date().getFullYear();
 
 			function show(name) {
+				if(name == "index") {
+					document.title = "Dash";
+				}
+				else
+					document.title = "Dash - " + name;
+
 				document.getElementById("index-div").style.display = "none";
 				document.getElementById("monitor-div").style.display = "none";
 				document.getElementById("terminal-div").style.display = "none";
 				document.getElementById("explorer-div").style.display = "none";
 				document.getElementById("editor-div").style.display = "none";
 				document.getElementById("tools-div").style.display = "none";
+				document.getElementById("administration-div").style.display = "none";
+				document.getElementById("admin-dash-div").style.display = "none";
+				document.getElementById("admin-system-div").style.display = "none";
 				document.getElementById("certs-div").style.display = "none";
 				document.getElementById("cronjobs-div").style.display = "none";
 				document.getElementById("docker-div").style.display = "none";
@@ -4267,9 +4433,7 @@
 				    },
 			        body: formData
 				});
-				let result = await response.text();
-
-				config = JSON.parse(result);
+				config = JSON.parse(await response.text());
 			}
 
 			async function get_home() {
@@ -4286,9 +4450,24 @@
 				    },
 			        body: formData
 				});
-				let result = await response.text();
+				home = await response.text();
+			}
 
-				home = result;
+			async function get_pkg_man() {
+				const date = new Date().getTime().toString();
+
+				const formData = new FormData();
+				formData.append("date", date);
+
+				let response = await fetch("/api/pkg-man", {
+					method: "POST",
+					headers: {
+						//"content-type": "application/json"
+						"signature": signature(date)
+				    },
+			        body: formData
+				});
+				pkg_man = await response.text();
 			}
 
 			async function get_pwd() {
@@ -4305,9 +4484,7 @@
 				    },
 			        body: formData
 				});
-				let result = await response.text();
-
-				pwd = result;
+				pwd = await response.text();
 			}
 
 			async function dash_init() {
@@ -4318,6 +4495,7 @@
 
 				await get_home();
 				await get_config();
+				await get_pkg_man();
 				await get_pwd();
 
 				await editor_init();

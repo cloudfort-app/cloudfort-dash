@@ -35,12 +35,6 @@
 		<h2 class="card-hover-color">firewall</h2>
 	</div>
 
-	<div class="card border-hover" onclick="kill_dash()" style="cursor: pointer; width: 10em">
-		<i class="bs-ico bootstrap-x-square width-5em card-hover-filter"></i><br>
-		<hr>
-		<h2 class="card-hover-color">kill</h2>
-	</div>
-
 	<div class="card border-hover" onclick="show('repos')" style="cursor: pointer; width: 10em">
 		<i class="bs-ico bootstrap-git width-5em card-hover-filter"></i><br>
 		<hr>
@@ -59,12 +53,6 @@
 		<h2 class="card-hover-color">ssh</h2>
 	</div>
 
-	<div class="card border-hover" onclick="update_dash()" style="cursor: pointer; width: 10em">
-		<i class="bs-ico bootstrap-arrow-clockwise width-5em card-hover-filter"></i><br>
-		<hr>
-		<h2 class="card-hover-color">update</h2>
-	</div>
-
 	<div class="card border-hover" onclick="show('users')" style="cursor: pointer; width: 10em">
 		<i class="bs-ico bootstrap-people width-5em card-hover-filter"></i><br>
 		<hr>
@@ -77,42 +65,3 @@
 		<h2 class="card-hover-color">websites</h2>
 	</div>
 </div>
-
-<script>
-	async function kill_dash() {
-		if(await confirm_("kill dash")) {
-			const date = new Date().getTime().toString();
-			const formData = new FormData();
-			formData.append("date", date);
-			formData.append("command", "killall cloudfort-dash");
-
-			let response = await fetch("/api/run", {
-				method: "POST",
-				headers: {
-			    	"signature": signature(date)
-			    },
-		        body: formData
-			});
-		}
-	}
-
-	async function update_dash() {
-		if(await confirm_("update dash")) {
-			const date = new Date().getTime().toString();
-			const formData = new FormData();
-			formData.append("date", date);
-			formData.append("command", "cloudfort-dash update");
-
-			let response = await fetch("/api/run", {
-				method: "POST",
-				headers: {
-			    	"signature": signature(date)
-			    },
-		        body: formData
-			});
-			let result = await response.json();
-
-			notify(result["output"]);
-		}
-	}
-</script>

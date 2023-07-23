@@ -7,6 +7,7 @@
 </div><br>
 
 <div class="card border noselect" style="overflow-x: scroll; white-space: nowrap; max-width: 90%;">
+	<i title="root" class='bs-ico bootstrap-slash ico-link-color' onclick="get_dir('')"></i> &nbsp;
 	<i title="home" class='bs-ico bootstrap-house ico-link-color' onclick="get_dir(home)"></i> &nbsp;&nbsp;
 	<i title="refresh" class='bs-ico bootstrap-arrow-repeat ico-link-color' onclick="get_dir(bwd)"></i> &nbsp;&nbsp;
 	<i title="new directory" class='bs-ico bootstrap-folder-plus ico-link-color' onclick="show_create_dir()"></i> &nbsp;&nbsp;
@@ -645,6 +646,10 @@
 		return (ext == ".mp4" || ext == ".ogg" || ext == ".webm");
 	}
 
+	function is_archive_ext(ext) {
+		return (ext == ".zip" || ext == ".xz" || ext == ".bz2" || ext == ".gz");
+	}
+
 	async function serve_image(f) {
 		const date = new Date().getTime().toString();
 		const formData = new FormData();
@@ -1053,7 +1058,7 @@
 					row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-file-earmark-image no-hover-ico' style='padding-top: 3px'></i>";
 				else if(is_video_ext(ext))
 					row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-film no-hover-ico' style='padding-top: 3px'></i>";
-				else if(ext == ".zip" || ext == ".xz" || ext == ".bz2" || ext == ".gz")
+				else if(is_archive_ext(ext))
 					row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-file-zip no-hover-ico' style='padding-top: 3px'></i>";
 				else
 					row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-file-earmark no-hover-ico' style='padding-top: 3px'></i>";
@@ -1063,13 +1068,11 @@
 				row.insertCell(2).innerHTML = "<a onclick='get_dir(\"" + bwd + "/" + result["files"][f][1] +  "\")'>" + result["files"][f][1] + "/</a>";
 			}
 			else {
-				
-
-				if(ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".webp" || ext == ".svg" || ext == ".gif")
+				if(is_img_ext(ext))
 					row.insertCell(2).innerHTML = "<a onclick='serve_image(" + f + ")'>" + result["files"][f][1] + "</a>";
-				else if(ext == ".mp4" || ext == ".ogg" || ext == ".webm")
+				else if(is_video_ext(ext))
 					row.insertCell(2).innerHTML = "<a onclick='serve_video(" + f + ")'>" + result["files"][f][1] + "</a>";
-				else if(ext == ".zip" || ext == ".xz" || ext == ".bz2" || ext == ".gz")
+				else if(is_archive_ext(ext))
 					row.insertCell(2).innerHTML = "<a onclick='extract_path(\"" + bwd + "/" + result["files"][f][1] +  "\")'>" + result["files"][f][1] + "</a>";
 				else
 					row.insertCell(2).innerHTML = "<a onclick='edit_file(\"" + bwd + "/" + result["files"][f][1] +  "\")'>" + result["files"][f][1] + "</a>";

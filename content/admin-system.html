@@ -1,0 +1,86 @@
+<div id="dash-breadcrumb">
+    <a onclick="show('administration')">administration</a>/system
+</div>
+
+<h1 style="margin: 0.5em 0">System</h1>
+
+<div style="margin: 1em 0">
+	<div class="card border-hover" onclick="reboot_system()" style="cursor: pointer; width: 10em">
+		<i class="bs-ico bootstrap-arrow-repeat width-5em card-hover-filter"></i><br>
+		<hr>
+		<h2 class="card-hover-color">reboot</h2>
+	</div>
+
+	<div class="card border-hover" onclick="update_system()" style="cursor: pointer; width: 10em">
+		<i class="bs-ico bootstrap-arrow-clockwise width-5em card-hover-filter"></i><br>
+		<hr>
+		<h2 class="card-hover-color">update</h2>
+	</div>
+
+	<div class="card border-hover" onclick="shutdown_system()" style="cursor: pointer; width: 10em">
+		<i class="bs-ico bootstrap-power width-5em card-hover-filter"></i><br>
+		<hr>
+		<h2 class="card-hover-color">shutdown</h2>
+	</div>
+</div>
+
+<script>
+
+	async function reboot_system() {
+		if(await confirm_("reboot system?")) {
+			const date = new Date().getTime().toString();
+			const formData = new FormData();
+			formData.append("date", date);
+			formData.append("command", "systemctl reboot");
+
+			let response = await fetch("/api/run", {
+				method: "POST",
+				headers: {
+			    	"signature": signature(date)
+			    },
+		        body: formData
+			});
+			let result = await response.text();
+
+			notify(result["output"]);
+		}
+	}
+
+	async function update_system() {
+		if(await confirm_("update system?")) {
+			if(pkg_man == "apk")
+				await run("apk update; apk upgrade");
+			else if(pkg_man == "apt" || pkg_man == "apt-get")
+				await run(pkg_man + " update; DEBIAN_FRONTEND=noninteractive " + pkg_man + " -y upgrade");
+			else if(pkg_man == "dnf")
+				await run("dnf -y upgrade");
+			else if(pkg_man == "emerge")
+				await run("emaint --auto sync; emerge --oneshot sys-apps/portage; emerge --verbose --update --deep --newuse @world; emerge --depclean");
+			else if(pkg_man == "pacman")
+				await run("pacman --noconfirm -Syu");
+			else if(pkg_man == "yum")
+				await run("yum -y update");
+			else if(pkg_man == "zypp")
+				await run("zypp --non-interactive --auto-agree-with-licenses --no-gpg-checks up");
+			else
+				await notify("cannot detect package manager");
+		}
+	}
+
+	async function shutdown_system() {
+		if(await confirm_("shutdown system?")) {
+			const date = new Date().getTime().toString();
+			const formData = new FormData();
+			formData.append("date", date);
+			formData.append("command", "systemctl poweroff");
+
+			let response = await fetch("/api/run", {
+				method: "POST",
+				headers: {
+			    	"signature": signature(date)
+			    },
+		        body: formData
+			});
+		}
+	}
+</script>

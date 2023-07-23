@@ -23,10 +23,10 @@
 	function desanitize_terminal(str) {
 	    str = str.replaceAll("\\n", "\n");
 	    str = str.replaceAll("\\t", "\t");
-	    str = str.replaceAll("\\r", "\r");
+	    //str = str.replaceAll("\\r", "\r");
 
-		//var re = /\n.*\\r/g
-		//str = str.replaceAll(re, "\n");
+		var re = /\n.*\\r/g
+		str = str.replaceAll(re, "\n");
 
 		if(str.indexOf('') < str.indexOf('\n') || str.indexOf('\n') == -1) {
 			str = str.substring(str.indexOf('')+1, str.length);
@@ -99,6 +99,7 @@
 		str = str.replaceAll("[48;5;15m", "");
 
 		str = str.replaceAll("[1;31m", "<span style='color: var(--sherb-red)'>");
+		str = str.replaceAll("[01;31m", "<span style='color: var(--sorbet-purple)'>");
 		str = str.replaceAll("[01;32m", "<span style='color: var(--sorbet-green)'>");
 		str = str.replaceAll("[01;34m", "<span style='color: var(--sorbet-pink)'>");
 		str = str.replaceAll("[01;36m", "<span style='color: var(--sherb-pink)'>");
@@ -162,6 +163,12 @@
 		}
 
 		return shells;
+	}
+
+	async function run(cmd) {
+		document.getElementById("input-terminal").value = cmd;
+		show('terminal');
+		await run_cmd();
 	}
 
 	async function run_cmd() {
@@ -512,6 +519,13 @@
 				str = input.substring(pslash + 1, pos);
 			else
 				str = input.substring(pspace + 1, pos);
+
+			if(dir[0] != '/' && dir[0] != '~')
+				dir = twd + "/" + dir;
+
+			//don't make this else if
+			if(dir[0] == '~')
+				dir = home + dir.substring(1, dir.length);
 
 			//alert("'" + dir + "'\n'" + str + "'");
 

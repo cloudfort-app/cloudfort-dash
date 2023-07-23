@@ -1,9 +1,12 @@
 {
-	"last-built": "17:06:25 Saturday July 22 2023",
+	"last-built": "15:37:41 Sunday July 23 2023",
 	"name": "auth/details/",
 	"title": "auth/details",
 	"template": "templates/template.html",
 	"dependencies": [
+		"content/admin-dash.html",
+		"content/admin-system.html",
+		"content/administration.html",
 		"content/auth/details/index.html",
 		"content/certs.html",
 		"content/cronjobs.html",

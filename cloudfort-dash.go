@@ -503,6 +503,79 @@ func routeTab(w http.ResponseWriter, req *http.Request) {
     w.Write([]byte(output))
 }
 
+func routePkgMan(w http.ResponseWriter, req *http.Request) {
+    if(!hasValidSignature(&w, req)) {
+        return
+    }
+
+    cmd := "apk --version"
+    _, err := exec.Command("/bin/bash", "-c", cmd).CombinedOutput()
+    if(err == nil) {
+        w.Header().Set("Content-Type", "text/plain")
+        w.Write([]byte("apk"))
+        return
+    }
+
+    cmd = "apt -v"
+    _, err = exec.Command("/bin/bash", "-c", cmd).CombinedOutput()
+    if(err == nil) {
+        w.Header().Set("Content-Type", "text/plain")
+        w.Write([]byte("apt"))
+        return
+    }
+
+    cmd = "apt-get -v"
+    _, err = exec.Command("/bin/bash", "-c", cmd).CombinedOutput()
+    if(err == nil) {
+        w.Header().Set("Content-Type", "text/plain")
+        w.Write([]byte("apt-get"))
+        return
+    }
+
+    cmd = "dnf --version"
+    _, err = exec.Command("/bin/bash", "-c", cmd).CombinedOutput()
+    if(err == nil) {
+        w.Header().Set("Content-Type", "text/plain")
+        w.Write([]byte("dnf"))
+        return
+    }
+
+    cmd = "emerge -v"
+    _, err = exec.Command("/bin/bash", "-c", cmd).CombinedOutput()
+    if(err == nil) {
+        w.Header().Set("Content-Type", "text/plain")
+        w.Write([]byte("emerge"))
+        return
+    }
+
+    cmd = "pacman -V"
+    _, err = exec.Command("/bin/bash", "-c", cmd).CombinedOutput()
+    if(err == nil) {
+        w.Header().Set("Content-Type", "text/plain")
+        w.Write([]byte("pacman"))
+        return
+    }
+
+    cmd = "yum --version"
+    _, err = exec.Command("/bin/bash", "-c", cmd).CombinedOutput()
+    if(err == nil) {
+        w.Header().Set("Content-Type", "text/plain")
+        w.Write([]byte("yum"))
+        return
+    }
+
+    cmd = "zypp -version"
+    _, err = exec.Command("/bin/bash", "-c", cmd).CombinedOutput()
+    if(err == nil) {
+        w.Header().Set("Content-Type", "text/plain")
+        w.Write([]byte("zypp"))
+        return
+    }
+
+    w.Header().Set("Content-Type", "text/plain")
+    w.Write([]byte("[undetected]"))
+}
+
 func routeRun(w http.ResponseWriter, req *http.Request) {
     if(!hasValidSignature(&w, req)) {
         return
@@ -784,6 +857,7 @@ func main() {
         mux.HandleFunc("/api/ls",          routeLs)
         mux.HandleFunc("/api/pwd",         routePwd)
         mux.HandleFunc("/api/tab",         routeTab)
+        mux.HandleFunc("/api/pkg-man",     routePkgMan)
         mux.HandleFunc("/api/run",         routeRun)
         mux.HandleFunc("/api/socket/run",  routeSocketRun)
         mux.HandleFunc("/api/socket/pty",  routeSocketRunPty)
@@ -829,18 +903,22 @@ func main() {
 
         if(https) {
             fmt.Println("Serving Cloudfort Dash over https on port " + port)
-            err := http.ListenAndServeTLS(":" + port, 
-                "/etc/letsencrypt/live/" + domain + "/fullchain.pem", 
-                "/etc/letsencrypt/live/" + domain + "/privkey.pem", 
-                mux);
-            if err != nil {
-                log.Println("ListenAndServeTLS: ", err)
+            for {
+                err := http.ListenAndServeTLS(":" + port, 
+                    "/etc/letsencrypt/live/" + domain + "/fullchain.pem", 
+                    "/etc/letsencrypt/live/" + domain + "/privkey.pem", 
+                    mux);
+                if err != nil {
+                    log.Println("ListenAndServeTLS: ", err)
+                }
             }
         } else {
             fmt.Println("Serving Cloudfort Dash over http on port " + port)
-            err := http.ListenAndServe(":" + port, mux)
-            if err != nil {
-                log.Println("ListenAndServe: ", err)
+            for {
+                err := http.ListenAndServe(":" + port, mux)
+                if err != nil {
+                    log.Println("ListenAndServe: ", err)
+                }
             }
         } 
     } else if(cmd == "update" || cmd == "upgrade") {

@@ -448,6 +448,9 @@ ul li {
 .bootstrap-arrow-repeat:before {
   content: url("../icons/bootstrap-arrow-repeat.svg"); 
 }
+.bootstrap-bag-check:before {
+  content: url("../icons/bootstrap-bag-check.svg"); 
+}
 .bootstrap-box:before {
   content: url("../icons/bootstrap-box.svg"); 
 }
@@ -480,6 +483,9 @@ ul li {
 }
 .bootstrap-code-square:before {
   content: url("../icons/bootstrap-code-square.svg"); 
+}
+.bootstrap-dash:before {
+  content: url("../icons/bootstrap-dash.svg"); 
 }
 .bootstrap-database:before {
   content: url("../icons/bootstrap-database.svg"); 
@@ -532,6 +538,9 @@ ul li {
 .bootstrap-people:before {
   content: url("../icons/bootstrap-people.svg"); 
 }
+.bootstrap-power:before {
+  content: url("../icons/bootstrap-power.svg"); 
+}
 .bootstrap-regex:before {
   content: url("../icons/bootstrap-regex.svg"); 
 }
@@ -544,11 +553,17 @@ ul li {
 .bootstrap-save:before {
   content: url("../icons/bootstrap-save.svg"); 
 }
+.bootstrap-server:before {
+  content: url("../icons/bootstrap-server.svg"); 
+}
 .bootstrap-shield-check:before {
   content: url("../icons/bootstrap-shield-check.svg"); 
 }
 .bootstrap-shield-lock:before {
   content: url("../icons/bootstrap-shield-lock.svg"); 
+}
+.bootstrap-slash:before {
+  content: url("../icons/bootstrap-slash.svg"); 
 }
 .bootstrap-terminal:before {
   content: url("../icons/bootstrap-terminal.svg"); 

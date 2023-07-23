@@ -26,7 +26,7 @@
 						<i title="editor" class="bs-ico bootstrap-code-square menu-ico" onclick="show('editor')"></i><br>
 						<hr>
 						<i title="tools" class="bs-ico bootstrap-tools menu-ico" onclick="show('tools')"></i><br>
-						<i title="config" class="bs-ico bootstrap-gear menu-ico" onclick="edit_file(home + '/.cloudfort/config.json')"></i><br>
+						<i title="administration" class="bs-ico bootstrap-gear menu-ico" onclick="show('administration')"></i><br>
 					</div>
 				</div>
 
@@ -67,6 +67,24 @@
 				<div id="tools-div" class="main-div" style="display: none">
 					<div class="main-page">
 						@input("content/tools.html")
+					</div>
+				</div>
+
+				<div id="administration-div" class="main-div" style="display: none">
+					<div class="main-page">
+						@input("content/administration.html")
+					</div>
+				</div>
+
+				<div id="admin-dash-div" class="main-div" style="display: none">
+					<div class="main-page">
+						@input("content/admin-dash.html")
+					</div>
+				</div>
+
+				<div id="admin-system-div" class="main-div" style="display: none">
+					<div class="main-page">
+						@input("content/admin-system.html")
 					</div>
 				</div>
 
@@ -245,6 +263,7 @@
 		<script>
 			var home = "nil";
 			var pwd = "~/";
+			var pkg_man;
 			var config;
 
 			const CLOUDFORT_DASH_PW = localStorage.getItem("CLOUDFORT_DASH_PW");
@@ -257,12 +276,21 @@
 				x[i].innerHTML = new Date().getFullYear();
 
 			function show(name) {
+				if(name == "index") {
+					document.title = "Dash";
+				}
+				else
+					document.title = "Dash - " + name;
+
 				document.getElementById("index-div").style.display = "none";
 				document.getElementById("monitor-div").style.display = "none";
 				document.getElementById("terminal-div").style.display = "none";
 				document.getElementById("explorer-div").style.display = "none";
 				document.getElementById("editor-div").style.display = "none";
 				document.getElementById("tools-div").style.display = "none";
+				document.getElementById("administration-div").style.display = "none";
+				document.getElementById("admin-dash-div").style.display = "none";
+				document.getElementById("admin-system-div").style.display = "none";
 				document.getElementById("certs-div").style.display = "none";
 				document.getElementById("cronjobs-div").style.display = "none";
 				document.getElementById("docker-div").style.display = "none";
@@ -353,9 +381,7 @@
 				    },
 			        body: formData
 				});
-				let result = await response.text();
-
-				config = JSON.parse(result);
+				config = JSON.parse(await response.text());
 			}
 
 			async function get_home() {
@@ -372,9 +398,24 @@
 				    },
 			        body: formData
 				});
-				let result = await response.text();
+				home = await response.text();
+			}
 
-				home = result;
+			async function get_pkg_man() {
+				const date = new Date().getTime().toString();
+
+				const formData = new FormData();
+				formData.append("date", date);
+
+				let response = await fetch("/api/pkg-man", {
+					method: "POST",
+					headers: {
+						//"content-type": "application/json"
+						"signature": signature(date)
+				    },
+			        body: formData
+				});
+				pkg_man = await response.text();
 			}
 
 			async function get_pwd() {
@@ -391,9 +432,7 @@
 				    },
 			        body: formData
 				});
-				let result = await response.text();
-
-				pwd = result;
+				pwd = await response.text();
 			}
 
 			async function dash_init() {
@@ -404,6 +443,7 @@
 
 				await get_home();
 				await get_config();
+				await get_pkg_man();
 				await get_pwd();
 
 				await editor_init();

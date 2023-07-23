@@ -1,0 +1,64 @@
+<div id="dash-breadcrumb">
+    <a onclick="show('administration')">administration</a>/dash
+</div>
+
+<h1 style="margin: 0.5em 0">Dash</h1>
+
+<div style="margin: 1em 0">
+	<div class="card border-hover" onclick="edit_file(home + '/.cloudfort/config.json')" style="cursor: pointer; width: 10em">
+		<i class="bs-ico bootstrap-gear width-5em card-hover-filter"></i><br>
+		<hr>
+		<h2 class="card-hover-color">config</h2>
+	</div>
+
+	<div class="card border-hover" onclick="kill_dash()" style="cursor: pointer; width: 10em">
+		<i class="bs-ico bootstrap-x-square width-5em card-hover-filter"></i><br>
+		<hr>
+		<h2 class="card-hover-color">kill</h2>
+	</div>
+
+	<div class="card border-hover" onclick="update_dash()" style="cursor: pointer; width: 10em">
+		<i class="bs-ico bootstrap-arrow-clockwise width-5em card-hover-filter"></i><br>
+		<hr>
+		<h2 class="card-hover-color">update</h2>
+	</div>
+</div>
+
+<script>
+	async function kill_dash() {
+		if(await confirm_("kill dash")) {
+			const date = new Date().getTime().toString();
+			const formData = new FormData();
+			formData.append("date", date);
+			formData.append("command", "killall cloudfort-dash");
+
+			let response = await fetch("/api/run", {
+				method: "POST",
+				headers: {
+			    	"signature": signature(date)
+			    },
+		        body: formData
+			});
+		}
+	}
+
+	async function update_dash() {
+		if(await confirm_("update dash")) {
+			const date = new Date().getTime().toString();
+			const formData = new FormData();
+			formData.append("date", date);
+			formData.append("command", "cloudfort-dash update");
+
+			let response = await fetch("/api/run", {
+				method: "POST",
+				headers: {
+			    	"signature": signature(date)
+			    },
+		        body: formData
+			});
+			let result = await response.text();
+
+			notify(result);
+		}
+	}
+</script>
