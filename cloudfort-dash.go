@@ -29,7 +29,7 @@ var domain string
 var home string
 var port string
 var password []byte
-var version = "v0.1.24"
+var version = "v0.1.25"
 
 var upgrader = websocket.Upgrader{}
 
@@ -810,7 +810,7 @@ func createConfig() {
     },
 
     "terminal": {
-        "mode": "bash"
+        "mode": "pty"
     }
 }`), 0644);
 

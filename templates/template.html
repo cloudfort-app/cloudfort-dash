@@ -266,8 +266,6 @@
 			var pkg_man;
 			var config;
 
-			alert(window.location.protocol);
-
 			const CLOUDFORT_DASH_PW = localStorage.getItem("CLOUDFORT_DASH_PW");
 			function signature(msg) {
 				return CryptoJS.HmacSHA256(msg, CLOUDFORT_DASH_PW)
@@ -440,8 +438,8 @@
 			async function dash_init() {
 				await check_signed_in();
 
-				resolve_waiting_popup();
-				document.getElementById("content").style.display = "block";
+				//resolve_waiting_popup();
+				//document.getElementById("content").style.display = "block";
 
 				await get_home();
 				await get_config();
@@ -454,6 +452,9 @@
 				await terminal_init();
 				await certs_init();
 				await firewall_init();
+
+				resolve_waiting_popup();
+				document.getElementById("content").style.display = "block";
 			}
 			dash_init();
 

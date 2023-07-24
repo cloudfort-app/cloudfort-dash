@@ -403,7 +403,7 @@
 		if(config["terminal"] && config["terminal"]["mode"])
 			document.getElementById("select-terminal-interactive").value = config["terminal"]["mode"];
 		else
-			document.getElementById("select-terminal-interactive").value = "bash";
+			document.getElementById("select-terminal-interactive").value = "pty";
 
 		await select_terminal_mode_event();
 
