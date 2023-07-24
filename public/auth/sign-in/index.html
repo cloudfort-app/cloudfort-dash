@@ -226,9 +226,9 @@
 					    },
 				        body: formData
 					});
-					let result = await response.json();
+					let result = await response.text();
 			
-					if(result["valid"] != true) {
+					if(result != "true") {
 						notify("sign in failed");
 						return;
 					}
