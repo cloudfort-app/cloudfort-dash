@@ -679,10 +679,18 @@
 							async function select_terminal_mode_event() {
 								mode = document.getElementById("select-terminal-interactive").value;
 								if(mode != "non-interactive") {
-									if(mode == "interactive")
-										socket = new WebSocket("ws://" + window.location.host + "/api/socket/run");
-									else
-										socket = new WebSocket("ws://" + window.location.host + "/api/socket/pty");
+									if(mode == "interactive") {
+										if(window.location.protocol == "http:")
+											socket = new WebSocket("ws://" + window.location.host + "/api/socket/run");
+										else
+											socket = new WebSocket("wss://" + window.location.host + "/api/socket/run");
+									}
+									else {
+										if(window.location.protocol == "http:")
+											socket = new WebSocket("ws://" + window.location.host + "/api/socket/pty");
+										else
+											socket = new WebSocket("wss://" + window.location.host + "/api/socket/pty");
+									}
 						
 									socket.onmessage = function (e) {
 										if(e.data == "[finished]") {
@@ -4317,6 +4325,8 @@
 			var pwd = "~/";
 			var pkg_man;
 			var config;
+
+			alert(window.location.protocol);
 
 			const CLOUDFORT_DASH_PW = localStorage.getItem("CLOUDFORT_DASH_PW");
 			function signature(msg) {

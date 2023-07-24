@@ -266,6 +266,8 @@
 			var pkg_man;
 			var config;
 
+			alert(window.location.protocol);
+
 			const CLOUDFORT_DASH_PW = localStorage.getItem("CLOUDFORT_DASH_PW");
 			function signature(msg) {
 				return CryptoJS.HmacSHA256(msg, CLOUDFORT_DASH_PW)
