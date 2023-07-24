@@ -4522,22 +4522,22 @@
 					}*/
 				}
 				else if(e.key == 'ArrowRight' || e.code == 'ArrowRight') {
-					e.preventDefault();
-
 					if(document.getElementById("serve-img-popup").style.display == "block") {
+						e.preventDefault();
 						serve_image_increment();
 					}
 					else if(document.getElementById("serve-video-popup").style.display == "block") {
+						e.preventDefault();
 						serve_video_increment();
 					}
 				}
 				else if(e.key == 'ArrowLeft' || e.code == 'ArrowLeft') {
-					e.preventDefault();
-
 					if(document.getElementById("serve-img-popup").style.display == "block") {
+						e.preventDefault();
 						serve_image_decrement();
 					}
 					else if(document.getElementById("serve-video-popup").style.display == "block") {
+						e.preventDefault();
 						serve_video_decrement();
 					}
 				}
