@@ -7,32 +7,32 @@
 > 🛠 Dash provides an os-like experience in the browser for unix based servers. 
 
 ## Features
-	* Terminal
-		- Interactive
-		- Tab Completion
-	* File Explorer
-		- Browse File System
-		- Create/Delete/Copy/Move/Edit Files
-		- Compress/Extract
-		- Upload/Download
-		- View Images/Videos
-	* Editor
-		- Syntax Highlighting
-		- Line Numbers
-		- Find and Replace
-		- Regex Replace
-	* Monitor
-	* Tools
-		- Certs
-		- Cronjobs
-		- Docker
-		- fail2ban
-		- Firewall
-		- Git Repositories
-		- Services
-		- SSH
-		- User Management
-		- Websites 
+* Terminal
+	- Interactive
+	- Tab Completion
+* File Explorer
+	- Browse File System
+	- Create/Delete/Copy/Move/Edit Files
+	- Compress/Extract
+	- Upload/Download
+	- View Images/Videos
+* Editor
+	- Syntax Highlighting
+	- Line Numbers
+	- Find and Replace
+	- Regex Replace
+* Monitor
+* Tools
+	- Certs
+	- Cronjobs
+	- Docker
+	- fail2ban
+	- Firewall
+	- Git Repositories
+	- Services
+	- SSH
+	- User Management
+	- Websites 
 
 ## Install
 ```
