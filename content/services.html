@@ -71,25 +71,27 @@
 	}
 
 	async function reload_services() {
-		const date = new Date().getTime().toString();
-		const formData = new FormData();
-		formData.append("date", date);
-		formData.append("command", "systemctl daemon-reload");
-	
-		let response = await fetch("/api/run", {
-			method: "POST",
-			headers: {
-				//"content-type": "application/json"
-				"signature": signature(date)
-		    },
-			body: formData
-		});
-		let result = await response.text();
+		if(await confirm_("reload services?")) {
+			const date = new Date().getTime().toString();
+			const formData = new FormData();
+			formData.append("date", date);
+			formData.append("command", "systemctl daemon-reload");
+		
+			let response = await fetch("/api/run", {
+				method: "POST",
+				headers: {
+					//"content-type": "application/json"
+					"signature": signature(date)
+			    },
+				body: formData
+			});
+			let result = await response.text();
 
-		fetch_services()
+			fetch_services()
 
-		if(result != "") {
-			notify(result);
+			if(result != "") {
+				notify(result);
+			}
 		}
 	}
 

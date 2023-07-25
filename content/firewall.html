@@ -77,63 +77,69 @@
 	}
 
 	async function enable_firewall() {
-		const date = new Date().getTime().toString();
-		const formData = new FormData();
-		formData.append("date", date);
-		formData.append("command", "ufw enable");
-	
-		let response = await fetch("/api/run", {
-			method: "POST",
-			headers: {
-				//"content-type": "application/json"
-				"signature": signature(date)
-		    },
-			body: formData
-		});
-		let result = await response.text();
+		if(await confirm_("enable firewall?")) {
+			const date = new Date().getTime().toString();
+			const formData = new FormData();
+			formData.append("date", date);
+			formData.append("command", "ufw enable");
+		
+			let response = await fetch("/api/run", {
+				method: "POST",
+				headers: {
+					//"content-type": "application/json"
+					"signature": signature(date)
+			    },
+				body: formData
+			});
+			let result = await response.text();
 
-		await notify(result.replaceAll("\n", "<br>"));
-		await fetch_rules();
+			await notify(result.replaceAll("\n", "<br>"));
+			await fetch_rules();
+		}
 	}
 
 	async function disable_firewall() {
-		const date = new Date().getTime().toString();
-		const formData = new FormData();
-		formData.append("date", date);
-		formData.append("command", "ufw disable");
-	
-		let response = await fetch("/api/run", {
-			method: "POST",
-			headers: {
-				//"content-type": "application/json"
-				"signature": signature(date)
-		    },
-			body: formData
-		});
-		let result = await response.text();
+		if(await confirm_("disable firewall?")) {
+			const date = new Date().getTime().toString();
+			const formData = new FormData();
+			formData.append("date", date);
+			formData.append("command", "ufw disable");
+		
+			let response = await fetch("/api/run", {
+				method: "POST",
+				headers: {
+					//"content-type": "application/json"
+					"signature": signature(date)
+			    },
+				body: formData
+			});
+			let result = await response.text();
 
-		await notify(result.replaceAll("\n", "<br>"));
-		await fetch_rules();
+			await notify(result.replaceAll("\n", "<br>"));
+			await fetch_rules();
+		}
 	}
 
 	async function reset_firewall() {
-		const date = new Date().getTime().toString();
-		const formData = new FormData();
-		formData.append("date", date);
-		formData.append("command", "ufw reset");
-	
-		let response = await fetch("/api/run", {
-			method: "POST",
-			headers: {
-				//"content-type": "application/json"
-				"signature": signature(date)
-		    },
-			body: formData
-		});
-		let result = await response.text();
+		if(await confirm_("reset firewall?")) {
+			const date = new Date().getTime().toString();
+			const formData = new FormData();
+			formData.append("date", date);
+			formData.append("command", "ufw reset");
+		
+			let response = await fetch("/api/run", {
+				method: "POST",
+				headers: {
+					//"content-type": "application/json"
+					"signature": signature(date)
+			    },
+				body: formData
+			});
+			let result = await response.text();
 
-		await notify(result.replaceAll("\n", "<br>"));
-		await fetch_rules();
+			await notify(result.replaceAll("\n", "<br>"));
+			await fetch_rules();
+		}
 	}
 
 	async function add_rule() {

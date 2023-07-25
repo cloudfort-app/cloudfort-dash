@@ -59,23 +59,25 @@
 	}
 
 	async function restart_fail2ban() {
-		const date = new Date().getTime().toString();
-		const formData = new FormData();
-		formData.append("date", date);
-		formData.append("command", "service fail2ban restart");
-	
-		let response = await fetch("/api/run", {
-			method: "POST",
-			headers: {
-				//"content-type": "application/json"
-				"signature": signature(date)
-		    },
-			body: formData
-		});
-		let result = await response.text();
+		if(await confirm_("restart fail2ban?")) {
+			const date = new Date().getTime().toString();
+			const formData = new FormData();
+			formData.append("date", date);
+			formData.append("command", "service fail2ban restart");
+		
+			let response = await fetch("/api/run", {
+				method: "POST",
+				headers: {
+					//"content-type": "application/json"
+					"signature": signature(date)
+			    },
+				body: formData
+			});
+			let result = await response.text();
 
-		await notify(result.replaceAll("\n", "<br>"));
-		await fetch_fail2ban_status();
+			await notify(result.replaceAll("\n", "<br>"));
+			await fetch_fail2ban_status();
+		}
 	}
 
 	async function ban_ip() {

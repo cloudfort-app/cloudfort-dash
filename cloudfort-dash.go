@@ -29,7 +29,7 @@ var domain string
 var home string
 var port string
 var password []byte
-var version = "v0.1.25"
+var version = "v0.1.26"
 
 var upgrader = websocket.Upgrader{}
 
@@ -598,6 +598,27 @@ func routeRun(w http.ResponseWriter, req *http.Request) {
     w.Write([]byte(output))
 }
 
+func routeShellRun(w http.ResponseWriter, req *http.Request) {
+    if(!hasValidSignature(&w, req)) {
+        return
+    }
+
+    output := ""
+    cmd := req.PostFormValue("command")
+    shell := req.PostFormValue("shell")
+    out, err := exec.Command(shell, "-c", cmd).CombinedOutput()
+
+    if(err != nil) {
+        //log.Println(err)
+        //output = sanitize(err.Error() + "\n")
+    }
+
+    output = string(out)
+
+    w.Header().Set("Content-Type", "text/plain")
+    w.Write([]byte(output))
+}
+
 func readExecOutput(stdout, stderr *io.ReadCloser, conn *websocket.Conn, ticker *time.Ticker, finished *bool) {
     run_output := ""
     pos_sent := 0
@@ -859,6 +880,7 @@ func main() {
         mux.HandleFunc("/api/tab",         routeTab)
         mux.HandleFunc("/api/pkg-man",     routePkgMan)
         mux.HandleFunc("/api/run",         routeRun)
+        mux.HandleFunc("/api/shell/run",   routeShellRun)
         mux.HandleFunc("/api/socket/run",  routeSocketRun)
         mux.HandleFunc("/api/socket/pty",  routeSocketRunPty)
         mux.HandleFunc("/api/download",    routeDownload)

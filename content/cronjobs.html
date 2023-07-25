@@ -30,20 +30,22 @@
 	}
 
 	async function restart_cron() {
-		const date = new Date().getTime().toString();
-		const formData = new FormData();
-		formData.append("date", date);
-		formData.append("command", "service cron restart");
-	
-		let response = await fetch("/api/run", {
-			method: "POST",
-			headers: {
-				//"content-type": "application/json"
-				"signature": signature(date)
-		    },
-			body: formData
-		});
-		let result = await response.text();
+		if(await confirm_("restart cron?")) {
+			const date = new Date().getTime().toString();
+			const formData = new FormData();
+			formData.append("date", date);
+			formData.append("command", "service cron restart");
+		
+			let response = await fetch("/api/run", {
+				method: "POST",
+				headers: {
+					//"content-type": "application/json"
+					"signature": signature(date)
+			    },
+				body: formData
+			});
+			let result = await response.text();
+		}
 	}
 
 </script>

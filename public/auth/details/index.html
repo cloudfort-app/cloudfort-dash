@@ -334,7 +334,7 @@
 						    <a onclick="show('index')">dash</a>/terminal
 						</div>
 						
-						<select id="select-terminal-interactive" class="noselect" onchange="select_terminal_mode_event()" style="margin: 0.25em 0 0; width: 300px; max-width: 90%">
+						<select id="select-terminal-mode" class="noselect" onchange="select_terminal_mode_event()" style="margin: 0.25em 0 0; width: 300px; max-width: 90%">
 						</select>
 						<div id="textarea-terminal" style="text-align: left; margin: 0.5em 0;"></div>
 						<input id="input-terminal-pw" placeholder="password" type="password" onkeydown="terminal_pw_keypress(event)" style="display: none;">
@@ -355,10 +355,11 @@
 							function desanitize_terminal(str) {
 							    str = str.replaceAll("\\n", "\n");
 							    str = str.replaceAll("\\t", "\t");
+							    str = str.replaceAll("\\\"", "\"");
 							    //str = str.replaceAll("\\r", "\r");
 						
-								var re = /\n.*\\r/g
-								str = str.replaceAll(re, "\n");
+								//var re = /\n.*\\r/g
+								//str = str.replaceAll(re, "\n");
 						
 								if(str.indexOf('') < str.indexOf('\n') || str.indexOf('\n') == -1) {
 									str = str.substring(str.indexOf('')+1, str.length);
@@ -537,6 +538,36 @@
 									terminal_ta.innerHTML = terminal_ta.innerHTML.substring(terminal_ta.innerHTML.lastIndexOf('\n')+1, terminal_ta.innerHTML.length);
 								}
 						
+								if(mode != "pty" && mode != "interactive" && mode != "non-interactive") {
+									if(cmd.split(" ")[0] == "cd") {
+										var dir = cmd.split(" ")[1];
+						
+										if(dir[0] == '~' && home.length)
+											dir = home + dir.substring(1, dir.length);
+						
+										formData.append("command", "cd " + twd + "; " + cmd + " 2> /dev/null; pwd");
+						
+										let response = await fetch("/api/run", {
+											method: "POST",
+											headers: {
+												//"content-type": "application/json"
+												"signature": signature(date)
+										    },
+									        body: formData
+										});
+										let result = await response.text();
+						
+										var otwd = twd;
+										twd = result.replaceAll("\n", "");
+						
+										if(twd.substring(0, home.length) == home)
+											twd = "~" + twd.substring(home.length, twd.length);
+						
+										if(twd == otwd && dir != "./" && dir != twd) 
+											document.getElementById("textarea-terminal").innerHTML += "cd: " + dir + ": no such directory\n";
+									}
+								}
+						
 								if(finished && cmd == "clear") {
 									document.getElementById("textarea-terminal").innerHTML = "";
 						
@@ -608,8 +639,9 @@
 									add_prompt();
 								}
 								else if(mode != "non-interactive") {
-									if(!finished)
+									if(!finished) {
 										socket.send(cmd);
+									}
 									else {
 										finished = false;
 										socket.send("cd " + twd + "; " + cmd);
@@ -641,7 +673,8 @@
 							}
 						
 							async function select_terminal_mode_event() {
-								mode = document.getElementById("select-terminal-interactive").value;
+								mode = document.getElementById("select-terminal-mode").value;
+								finished = true;
 								if(mode != "non-interactive") {
 									if(mode == "interactive") {
 										if(window.location.protocol == "http:")
@@ -702,6 +735,9 @@
 									}
 								}
 						
+								if(document.getElementById("textarea-terminal").innerHTML != "") 
+									document.getElementById("textarea-terminal").innerHTML += "\n";
+								
 								if(mode == "pty" || mode == "interactive" || mode == "non-interactive")
 									add_prompt();
 						
@@ -713,13 +749,13 @@
 								if(twd.substring(0, home.length) == home)
 									twd = "~" + twd.substring(home.length, twd.length);
 						
-								terminal_mode_select = document.getElementById("select-terminal-interactive");
+								terminal_mode_select = document.getElementById("select-terminal-mode");
 								shells = await available_shells();
 								const sh_it = shells.values();
 								for(const it of sh_it) {
 									var opt = document.createElement('option');
 								    opt.value = opt.innerHTML = it;
-								    terminal_mode_select.appendChild(opt)
+								    terminal_mode_select.appendChild(opt);
 								}
 						
 								var opt = document.createElement('option');
@@ -733,9 +769,9 @@
 							    terminal_mode_select.appendChild(opt)
 						
 								if(config["terminal"] && config["terminal"]["mode"])
-									document.getElementById("select-terminal-interactive").value = config["terminal"]["mode"];
+									document.getElementById("select-terminal-mode").value = config["terminal"]["mode"];
 								else
-									document.getElementById("select-terminal-interactive").value = "pty";
+									document.getElementById("select-terminal-mode").value = "pty";
 						
 								await select_terminal_mode_event();
 						
@@ -937,7 +973,7 @@
 								box-sizing:border-box;
 							}
 						
-							#select-terminal-interactive {
+							#select-terminal-mode, #select-terminal-shell {
 								background: var(--secondary-dark);
 								border: 1px solid var(--light-black);
 								color: var(--white);
@@ -2915,20 +2951,22 @@
 							}
 						
 							async function restart_cron() {
-								const date = new Date().getTime().toString();
-								const formData = new FormData();
-								formData.append("date", date);
-								formData.append("command", "service cron restart");
-							
-								let response = await fetch("/api/run", {
-									method: "POST",
-									headers: {
-										//"content-type": "application/json"
-										"signature": signature(date)
-								    },
-									body: formData
-								});
-								let result = await response.text();
+								if(await confirm_("restart cron?")) {
+									const date = new Date().getTime().toString();
+									const formData = new FormData();
+									formData.append("date", date);
+									formData.append("command", "service cron restart");
+								
+									let response = await fetch("/api/run", {
+										method: "POST",
+										headers: {
+											//"content-type": "application/json"
+											"signature": signature(date)
+									    },
+										body: formData
+									});
+									let result = await response.text();
+								}
 							}
 						
 						</script>
@@ -3193,23 +3231,25 @@
 							}
 						
 							async function restart_fail2ban() {
-								const date = new Date().getTime().toString();
-								const formData = new FormData();
-								formData.append("date", date);
-								formData.append("command", "service fail2ban restart");
-							
-								let response = await fetch("/api/run", {
-									method: "POST",
-									headers: {
-										//"content-type": "application/json"
-										"signature": signature(date)
-								    },
-									body: formData
-								});
-								let result = await response.text();
+								if(await confirm_("restart fail2ban?")) {
+									const date = new Date().getTime().toString();
+									const formData = new FormData();
+									formData.append("date", date);
+									formData.append("command", "service fail2ban restart");
+								
+									let response = await fetch("/api/run", {
+										method: "POST",
+										headers: {
+											//"content-type": "application/json"
+											"signature": signature(date)
+									    },
+										body: formData
+									});
+									let result = await response.text();
 						
-								await notify(result.replaceAll("\n", "<br>"));
-								await fetch_fail2ban_status();
+									await notify(result.replaceAll("\n", "<br>"));
+									await fetch_fail2ban_status();
+								}
 							}
 						
 							async function ban_ip() {
@@ -3358,63 +3398,69 @@
 							}
 						
 							async function enable_firewall() {
-								const date = new Date().getTime().toString();
-								const formData = new FormData();
-								formData.append("date", date);
-								formData.append("command", "ufw enable");
-							
-								let response = await fetch("/api/run", {
-									method: "POST",
-									headers: {
-										//"content-type": "application/json"
-										"signature": signature(date)
-								    },
-									body: formData
-								});
-								let result = await response.text();
+								if(await confirm_("enable firewall?")) {
+									const date = new Date().getTime().toString();
+									const formData = new FormData();
+									formData.append("date", date);
+									formData.append("command", "ufw enable");
+								
+									let response = await fetch("/api/run", {
+										method: "POST",
+										headers: {
+											//"content-type": "application/json"
+											"signature": signature(date)
+									    },
+										body: formData
+									});
+									let result = await response.text();
 						
-								await notify(result.replaceAll("\n", "<br>"));
-								await fetch_rules();
+									await notify(result.replaceAll("\n", "<br>"));
+									await fetch_rules();
+								}
 							}
 						
 							async function disable_firewall() {
-								const date = new Date().getTime().toString();
-								const formData = new FormData();
-								formData.append("date", date);
-								formData.append("command", "ufw disable");
-							
-								let response = await fetch("/api/run", {
-									method: "POST",
-									headers: {
-										//"content-type": "application/json"
-										"signature": signature(date)
-								    },
-									body: formData
-								});
-								let result = await response.text();
+								if(await confirm_("disable firewall?")) {
+									const date = new Date().getTime().toString();
+									const formData = new FormData();
+									formData.append("date", date);
+									formData.append("command", "ufw disable");
+								
+									let response = await fetch("/api/run", {
+										method: "POST",
+										headers: {
+											//"content-type": "application/json"
+											"signature": signature(date)
+									    },
+										body: formData
+									});
+									let result = await response.text();
 						
-								await notify(result.replaceAll("\n", "<br>"));
-								await fetch_rules();
+									await notify(result.replaceAll("\n", "<br>"));
+									await fetch_rules();
+								}
 							}
 						
 							async function reset_firewall() {
-								const date = new Date().getTime().toString();
-								const formData = new FormData();
-								formData.append("date", date);
-								formData.append("command", "ufw reset");
-							
-								let response = await fetch("/api/run", {
-									method: "POST",
-									headers: {
-										//"content-type": "application/json"
-										"signature": signature(date)
-								    },
-									body: formData
-								});
-								let result = await response.text();
+								if(await confirm_("reset firewall?")) {
+									const date = new Date().getTime().toString();
+									const formData = new FormData();
+									formData.append("date", date);
+									formData.append("command", "ufw reset");
+								
+									let response = await fetch("/api/run", {
+										method: "POST",
+										headers: {
+											//"content-type": "application/json"
+											"signature": signature(date)
+									    },
+										body: formData
+									});
+									let result = await response.text();
 						
-								await notify(result.replaceAll("\n", "<br>"));
-								await fetch_rules();
+									await notify(result.replaceAll("\n", "<br>"));
+									await fetch_rules();
+								}
 							}
 						
 							async function add_rule() {
@@ -3769,25 +3815,27 @@
 							}
 						
 							async function reload_services() {
-								const date = new Date().getTime().toString();
-								const formData = new FormData();
-								formData.append("date", date);
-								formData.append("command", "systemctl daemon-reload");
-							
-								let response = await fetch("/api/run", {
-									method: "POST",
-									headers: {
-										//"content-type": "application/json"
-										"signature": signature(date)
-								    },
-									body: formData
-								});
-								let result = await response.text();
+								if(await confirm_("reload services?")) {
+									const date = new Date().getTime().toString();
+									const formData = new FormData();
+									formData.append("date", date);
+									formData.append("command", "systemctl daemon-reload");
+								
+									let response = await fetch("/api/run", {
+										method: "POST",
+										headers: {
+											//"content-type": "application/json"
+											"signature": signature(date)
+									    },
+										body: formData
+									});
+									let result = await response.text();
 						
-								fetch_services()
+									fetch_services()
 						
-								if(result != "") {
-									notify(result);
+									if(result != "") {
+										notify(result);
+									}
 								}
 							}
 						
@@ -3860,27 +3908,29 @@
 						<div class="card border-hover" onclick="reset_ssh()" style="cursor: pointer; width: 10em">
 							<i class="bs-ico bootstrap-arrow-repeat width-5em card-hover-filter"></i><br>
 							<hr>
-							<h2 class="card-hover-color">reset</h2>
+							<h2 class="card-hover-color">reload</h2>
 						</div>
 						
 						<script>
 							async function reset_ssh() {
-								const date = new Date().getTime().toString();
-								const formData = new FormData();
-								formData.append("date", date);
-								formData.append("command", "/etc/init.d/ssh reload");
-							
-								let response = await fetch("/api/run", {
-									method: "POST",
-									headers: {
-										//"content-type": "application/json"
-										"signature": signature(date)
-								    },
-									body: formData
-								});
-								let result = await response.text();
+								if(await confirm_("reload ssh?")) {
+									const date = new Date().getTime().toString();
+									const formData = new FormData();
+									formData.append("date", date);
+									formData.append("command", "/etc/init.d/ssh reload");
+								
+									let response = await fetch("/api/run", {
+										method: "POST",
+										headers: {
+											//"content-type": "application/json"
+											"signature": signature(date)
+									    },
+										body: formData
+									});
+									let result = await response.text();
 						
-								notify(result.replaceAll("\n", "<br>"));
+									notify(result.replaceAll("\n", "<br>"));
+								}
 							}
 						</script>
 					</div>
