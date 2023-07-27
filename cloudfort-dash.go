@@ -29,7 +29,7 @@ var domain string
 var home string
 var port string
 var password []byte
-var version = "v0.1.27"
+var version = "v0.1.28"
 
 var upgrader = websocket.Upgrader{}
 
@@ -943,7 +943,7 @@ func main() {
                 }
             }
         } 
-    } else if(cmd == "update" || cmd == "upgrade") {
+    } else if(cmd == "update" || cmd == "upgrade" || cmd == "force-update") {
         cmd := "curl -s https://raw.githubusercontent.com/cloudfort-app/cloudfort-dash/main/version.md"
         latestVersion, err := exec.Command("/bin/sh", "-c", cmd).CombinedOutput()
 
@@ -952,7 +952,7 @@ func main() {
             return
         }
 
-        if(string(latestVersion) == version) {
+        if(cmd != "force-update" && string(latestVersion) == version) {
             fmt.Println("latest version already installed")
             return
         }
