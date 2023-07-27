@@ -374,7 +374,7 @@
 						</select>
 						<div id="textarea-terminal" style="text-align: left; margin: 0.5em 0;"></div>
 						<input id="input-terminal-pw" placeholder="password" type="password" onkeydown="terminal_pw_keypress(event)" style="display: none;">
-						<input id="input-terminal" placeholder="cmd" spellcheck="false" onkeydown="terminal_keypress(event)" autocomplete="off"><br>
+						<input id="input-terminal" placeholder="cmd" spellcheck="false" oninput="terminal_keypress(event)" autocomplete="off"><br>
 						<select id="select-hist" class="noselect" onchange="hist_event()">
 							<option value="none" disabled hidden selected>history</option>
 						</select>
