@@ -338,7 +338,7 @@
 						</select>
 						<div id="textarea-terminal" style="text-align: left; margin: 0.5em 0;"></div>
 						<input id="input-terminal-pw" placeholder="password" type="password" onkeydown="terminal_pw_keypress(event)" style="display: none;">
-						<input id="input-terminal" placeholder="cmd" spellcheck="false" oninput="terminal_keypress(event)" autocomplete="off"><br>
+						<input id="input-terminal" placeholder="cmd" spellcheck="false" onfocusout="if(window.innerWidth < 600) run_cmd()" onkeydown="terminal_keypress(event)" autocomplete="off"><br>
 						<select id="select-hist" class="noselect" onchange="hist_event()">
 							<option value="none" disabled hidden selected>history</option>
 						</select>
@@ -834,8 +834,7 @@
 								var name = e.key;
 								var code = e.code;
 						
-								//alert(name)
-								alert(e.which);
+								//alert(name);
 						
 								if(name == 'ArrowUp' || code == 'ArrowUp') {
 									e.preventDefault();
@@ -859,7 +858,7 @@
 										document.getElementById("input-terminal").value = "";
 									}
 								}
-								else if(name == 'Enter' || code == 'Enter' || e.keyCode == 13 || e.which == 13) {
+								else if(name == 'Enter' || code == 'Enter') {
 									e.preventDefault();
 							  		run_cmd();
 								}

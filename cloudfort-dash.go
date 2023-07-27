@@ -29,7 +29,7 @@ var domain string
 var home string
 var port string
 var password []byte
-var version = "v0.1.28"
+var version = "v0.1.29"
 
 var upgrader = websocket.Upgrader{}
 
@@ -944,8 +944,8 @@ func main() {
             }
         } 
     } else if(cmd == "update" || cmd == "upgrade" || cmd == "force-update") {
-        cmd := "curl -s https://raw.githubusercontent.com/cloudfort-app/cloudfort-dash/main/version.md"
-        latestVersion, err := exec.Command("/bin/sh", "-c", cmd).CombinedOutput()
+        cmd_str := "curl -s https://raw.githubusercontent.com/cloudfort-app/cloudfort-dash/main/version.md"
+        latestVersion, err := exec.Command("/bin/sh", "-c", cmd_str).CombinedOutput()
 
         if(err != nil) {
             log.Println(err)
@@ -957,15 +957,15 @@ func main() {
             return
         }
 
-        cmd = "wget -q -O cloudfort-dash.tar.xz https://github.com/cloudfort-app/cloudfort-dash/releases/download/" + string(latestVersion) + "/cloudfort-dash.tar.xz; "
-        cmd += "tar -xvf cloudfort-dash.tar.xz; "
-        cmd += "rm cloudfort-dash.tar.xz; "
-        cmd += "rm -r /var/www/cloudfort-dash/public; "
-        cmd += "mv public /var/www/cloudfort-dash; "
-        cmd += "chmod a+x cloudfort-dash; "
-        cmd += "rm /usr/local/bin/cloudfort-dash; "
-        cmd += "mv cloudfort-dash /usr/local/bin; "
-        out, err := exec.Command("/bin/sh", "-c", cmd).CombinedOutput()
+        cmd_str = "wget -q -O cloudfort-dash.tar.xz https://github.com/cloudfort-app/cloudfort-dash/releases/download/" + string(latestVersion) + "/cloudfort-dash.tar.xz; "
+        cmd_str += "tar -xvf cloudfort-dash.tar.xz; "
+        cmd_str += "rm cloudfort-dash.tar.xz; "
+        cmd_str += "rm -r /var/www/cloudfort-dash/public; "
+        cmd_str += "mv public /var/www/cloudfort-dash; "
+        cmd_str += "chmod a+x cloudfort-dash; "
+        cmd_str += "rm /usr/local/bin/cloudfort-dash; "
+        cmd_str += "mv cloudfort-dash /usr/local/bin; "
+        out, err := exec.Command("/bin/sh", "-c", cmd_str).CombinedOutput()
 
         if(err != nil) {
             log.Println(err)
