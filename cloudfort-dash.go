@@ -29,7 +29,7 @@ var domain string
 var home string
 var port string
 var password []byte
-var version = "v0.1.26"
+var version = "v0.1.27"
 
 var upgrader = websocket.Upgrader{}
 

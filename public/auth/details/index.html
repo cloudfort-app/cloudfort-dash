@@ -208,7 +208,7 @@
 			          <li class="subitem"><a onclick="show('index'); close_menu()">home</a></li>
 			          <li class="subitem"><a onclick="show('monitor'); close_menu()">monitor</a></li>
 			          <li class="subitem"><a onclick="show('terminal'); close_menu()">terminal</a></li>
-			          <li class="subitem"><a onclick="show('browser'); close_menu()">browser</a></li>
+			          <li class="subitem"><a onclick="show('explorer'); close_menu()">explorer</a></li>
 			          <li class="subitem"><a onclick="show('editor'); close_menu()">editor</a></li>
 			          <li class="subitem"><a onclick="show('tools'); close_menu()">tools</a></li>
 			          <li class="subitem"><a onclick="show('administration'); close_menu()">administration</a></li>
@@ -710,10 +710,18 @@
 											document.getElementById("textarea-terminal").innerHTML = "websocket handshake failed";
 										}
 										else {
-											if(e.data.search("password") != -1) {
+											if(e.data.toLowerCase().search("password") != -1) {
 												document.getElementById('input-terminal').style.display = "none";
 										  		document.getElementById('input-terminal-pw').style.display = "inline";
+										  		document.getElementById('input-terminal-pw').placeholder = "password";
 										  		document.getElementById('input-terminal-pw').focus();
+											}
+											else if(e.data.toLowerCase().search("passphrase") != -1) {
+												document.getElementById('input-terminal').style.display = "none";
+										  		document.getElementById('input-terminal-pw').style.display = "inline";
+										  		document.getElementById('input-terminal-pw').placeholder = "passphrase";
+										  		document.getElementById('input-terminal-pw').focus();
+						
 											}
 						
 											document.getElementById("textarea-terminal").innerHTML += e.data;
@@ -850,7 +858,7 @@
 										document.getElementById("input-terminal").value = "";
 									}
 								}
-								else if(name == 'Enter' || code == 'Enter') {
+								else if(name == 'Enter' || code == 'Enter' || e.keyCode == 13) {
 									e.preventDefault();
 						
 							  		run_cmd();

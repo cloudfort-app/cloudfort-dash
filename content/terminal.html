@@ -378,10 +378,18 @@
 					document.getElementById("textarea-terminal").innerHTML = "websocket handshake failed";
 				}
 				else {
-					if(e.data.search("password") != -1) {
+					if(e.data.toLowerCase().search("password") != -1) {
 						document.getElementById('input-terminal').style.display = "none";
 				  		document.getElementById('input-terminal-pw').style.display = "inline";
+				  		document.getElementById('input-terminal-pw').placeholder = "password";
 				  		document.getElementById('input-terminal-pw').focus();
+					}
+					else if(e.data.toLowerCase().search("passphrase") != -1) {
+						document.getElementById('input-terminal').style.display = "none";
+				  		document.getElementById('input-terminal-pw').style.display = "inline";
+				  		document.getElementById('input-terminal-pw').placeholder = "passphrase";
+				  		document.getElementById('input-terminal-pw').focus();
+
 					}
 
 					document.getElementById("textarea-terminal").innerHTML += e.data;
@@ -518,7 +526,7 @@
 				document.getElementById("input-terminal").value = "";
 			}
 		}
-		else if(name == 'Enter' || code == 'Enter') {
+		else if(name == 'Enter' || code == 'Enter' || e.keyCode == 13) {
 			e.preventDefault();
 
 	  		run_cmd();
