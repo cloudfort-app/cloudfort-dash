@@ -356,7 +356,7 @@
 							    str = str.replaceAll("\\n", "\n");
 							    str = str.replaceAll("\\t", "\t");
 							    str = str.replaceAll("\\\"", "\"");
-							    //str = str.replaceAll("\\r", "\r");
+							    str = str.replaceAll("\\r", "\r");
 						
 								//var re = /\n.*\\r/g
 								//str = str.replaceAll(re, "\n");
@@ -1015,6 +1015,9 @@
 						<div class="card border noselect" style="overflow-x: scroll; white-space: nowrap; max-width: 90%;">
 							<i title="root" class='bs-ico bootstrap-slash ico-link-color' onclick="get_dir('')"></i> &nbsp;
 							<i title="home" class='bs-ico bootstrap-house ico-link-color' onclick="get_dir(home)"></i> &nbsp;&nbsp;
+							<i title="explore" class='bs-ico bootstrap-folder ico-link-color' onclick="show_browse_dir(home)"></i> &nbsp;&nbsp;
+							<i title="back" class='bs-ico bootstrap-arrow-left ico-link-color' onclick="explorer_back()"></i> &nbsp;&nbsp;
+							<i title="forward" class='bs-ico bootstrap-arrow-right ico-link-color' onclick="explorer_forward()"></i> &nbsp;&nbsp;
 							<i title="refresh" class='bs-ico bootstrap-arrow-repeat ico-link-color' onclick="get_dir(bwd)"></i> &nbsp;&nbsp;
 							<i title="new directory" class='bs-ico bootstrap-folder-plus ico-link-color' onclick="show_create_dir()"></i> &nbsp;&nbsp;
 							<i title="new file" class='bs-ico bootstrap-file-earmark-plus ico-link-color' onclick="show_create_file()"></i> &nbsp;&nbsp;
@@ -1030,6 +1033,11 @@
 							<i title="rename" class='bs-ico bootstrap-input-cursor-text ico-link-color' onclick="show_rename_path()"></i> &nbsp;&nbsp;
 							<i title="delete" class='bs-ico bootstrap-trash ico-link-color' onclick="rm_paths()"></i>
 						</div><br>
+						
+						<div id="card-browse-dir" class="card border" style="display: none">
+							<input id="input-explorer-browse-dir" placeholder="dir" style="width: 400px; max-width: 90%">
+							<button class="btn" onclick="explorer_browse_dir()">explore</button>
+						</div>
 						
 						<div id="download-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
 							<table id="table-downloads">
@@ -1082,7 +1090,7 @@
 						<div id="card-input-upload" class="card border" style="display: none">
 							<div class="dropzone">
 								<div id="span-dropzone" style="padding: 0.25em 0; overflow-x: hidden; white-space: nowrap; font-size: 1em">drop or select</div>
-								<input id="input-file" type="file" class="upload-input" onchange="display_filename()" />
+								<input id="input-file" type="file" multiple="multiple" class="upload-input" onchange="display_filename()" />
 							</div>
 							<button id="upload_button"  class="btn" onclick="upload_file()">upload</button>
 						</div>
@@ -1185,6 +1193,8 @@
 						<script>
 							const files_table = document.getElementById("table-files");
 							var bwd = "nil"; //browser working directory
+							var bwd_hist = [];
+							var hist_c = -1;
 							var explorer_files;
 							var file_no;
 						
@@ -1199,6 +1209,7 @@
 							}
 						
 							async function hide_input_cards() {
+								document.getElementById("card-browse-dir").style.display = "none";
 								document.getElementById("card-fetch-url").style.display = "none";
 								document.getElementById("card-run-cmd").style.display = "none";
 								document.getElementById("card-input-upload").style.display = "none";
@@ -1208,6 +1219,17 @@
 								document.getElementById("card-input-compress").style.display = "none";
 								document.getElementById("create_dir_button").style.display = "none";
 								document.getElementById("create_file_button").style.display = "none";
+							}
+						
+							async function show_browse_dir() {
+								if(document.getElementById("card-browse-dir").style.display == "none") {
+									hide_input_cards();
+									document.getElementById("card-browse-dir").style.display = "block";
+									document.getElementById("input-explorer-browse-dir").focus();
+								}
+								else {
+									hide_input_cards();
+								}
 							}
 						
 							async function show_fetch_url() {
@@ -1278,7 +1300,12 @@
 							}
 						
 							async function display_filename() {
-								document.getElementById("span-dropzone").innerHTML = document.getElementById("input-file").value.split('\\').pop();
+								const fileField = document.getElementById("input-file");
+						
+								if(fileField.files.length > 1) 
+									document.getElementById("span-dropzone").innerHTML = fileField.files.length + " files selected";
+								else
+									document.getElementById("span-dropzone").innerHTML = document.getElementById("input-file").value.split('\\').pop();
 							}
 						
 							async function show_rename_path() {
@@ -1301,6 +1328,12 @@
 								else {
 									hide_input_cards();
 								}
+							}
+						
+							async function explorer_browse_dir() {
+								document.getElementById("card-browse-dir").style.display = "none";
+								get_dir(document.getElementById("input-explorer-browse-dir").value);
+								document.getElementById("input-explorer-browse-dir").value = "";
 							}
 						
 							async function create_dir() {
@@ -1502,29 +1535,36 @@
 								const fileField = document.getElementById("input-file");
 						
 								if(!fileField.files.length) {
-									notify("No file chosen");
+									notify("No files chosen");
 									return;
 								}
 						
-								waiting_popup("uploading " + fileField.value.split('\\').pop());
+								for(var i=0; i<fileField.files.length; i++) {
+									//waiting_popup("uploading " + fileField.value.split('\\').pop());
+									waiting_popup("uploading " + fileField.files.item(i).name);
 						
-								const date = new Date().getTime().toString();
-								const formData = new FormData();
-								formData.append("date", date);
-								formData.append("path", bwd + "/" + fileField.value.split('\\').pop());
-								formData.append("file", fileField.files[0]);
+									const date = new Date().getTime().toString();
+									const formData = new FormData();
+									formData.append("date", date);
+									//formData.append("path", bwd + "/" + fileField.value.split('\\').pop());
+									formData.append("path", bwd + "/" + fileField.files.item(i).name);
+									formData.append("file", fileField.files[i]);
 						
-								response = await fetch("/api/upload", {
-									method: "POST",
-									headers: {
-										//"content-type": "application/json"
-										"signature": signature(date)
-								    },
-									body: formData
-								});
-								result = await response.text();
+									response = await fetch("/api/upload", {
+										method: "POST",
+										headers: {
+											//"content-type": "application/json"
+											"signature": signature(date)
+									    },
+										body: formData
+									});
+									result = await response.text();
 						
-								resolve_waiting_popup();
+									if(result != "upload successful")
+										await notify(result);
+						
+									resolve_waiting_popup();
+								}
 						
 								get_dir(bwd);
 						
@@ -1811,7 +1851,7 @@
 								const date = new Date().getTime().toString();
 								const formData = new FormData();
 								formData.append("date", date);
-								formData.append("command", "cd " + bwd + "; cp -rf " + document.getElementById("input-name-current").value + " " + document.getElementById("input-name-new").value);
+								formData.append("command", "cd " + bwd + "; cp -rf \"" + document.getElementById("input-name-current").value + "\" \"" + document.getElementById("input-name-new").value + "\"");
 						
 								response = await fetch("/api/run", {
 									method: "POST",
@@ -1831,26 +1871,20 @@
 							}
 						
 							async function mv_paths() {
-								var paths = "";
-								var first = true;
 								var count = 0;
+								const formData = new FormData();
+						
 								for(var f=0; f<explorer_files.length; ++f) {
 									if(document.getElementById('checkbox-' + f).checked) {
-										if(first)
-											first = false;
-										else
-											paths += " ";
-										paths += bwd + "/" + explorer_files[f][1];
+										formData.append("path-" + count++, bwd + "/" + explorer_files[f][1])
 										document.getElementById('checkbox-' + f).checked = false;
-										++count;
 									}
 								}
 						
 								if(count) {
 									const date = new Date().getTime().toString();
-									const formData = new FormData();
 									formData.append("date", date);
-									formData.append("paths", paths);
+									formData.append("no-paths", count);
 									formData.append("path", bwd + "/" + document.getElementById("input-mv-path").value);
 						
 									response = await fetch("/api/mv", {
@@ -1883,7 +1917,7 @@
 											first = false;
 										else
 											paths += " ";
-										paths += bwd + "/" + explorer_files[f][1];
+										paths += "\"" + bwd + "/" + explorer_files[f][1] + "\"";
 										document.getElementById('checkbox-' + f).checked = false;
 										++count;
 									}
@@ -1893,7 +1927,7 @@
 									const date = new Date().getTime().toString();
 									const formData = new FormData();
 									formData.append("date", date);
-									formData.append("command", "cp -rf " + paths + " " + bwd + "/" + document.getElementById("input-mv-path").value);
+									formData.append("command", "cp -rf " + paths + " \"" + bwd + "/" + document.getElementById("input-mv-path").value + "\"");
 						
 									response = await fetch("/api/run", {
 										method: "POST",
@@ -1920,26 +1954,20 @@
 									return;
 								}
 						
-								var paths = "";
-								var first = true;
 								var count = 0;
+								const formData = new FormData();
+						
 								for(var f=0; f<explorer_files.length; ++f) {
 									if(document.getElementById('checkbox-' + f).checked) {
-										if(first)
-											first = false;
-										else
-											paths += " ";
-										paths += bwd + "/" + explorer_files[f][1];
+										formData.append("path-" + count++, bwd + "/" + explorer_files[f][1]);
 										document.getElementById('checkbox-' + f).checked = false;
-										++count;
 									}
 								}
 						
 								if(count) {
 									const date = new Date().getTime().toString();
-									const formData = new FormData();
 									formData.append("date", date);
-									formData.append("paths", paths);
+									formData.append("no-paths", count);
 						
 									response = await fetch("/api/rm", {
 										method: "POST",
@@ -1998,7 +2026,31 @@
 								get_dir(bwd);
 							}
 						
+							async function explorer_back() {
+								if(hist_c > 0) {
+									explore_dir(bwd_hist[--hist_c]);
+								}
+							}
+						
+							async function explorer_forward() {
+								if(hist_c+1 < bwd_hist.length) {
+									explore_dir(bwd_hist[++hist_c]);
+								}
+							}
+						
 							async function get_dir(dir) {
+								if(dir != bwd) {
+									if(hist_c+1 < bwd_hist.length)
+										for(var i=hist_c; i<bwd_hist.length; ++i)
+											bwd_hist.pop();
+						
+									bwd_hist.push(dir);
+									hist_c = bwd_hist.length-1;
+								}
+								explore_dir(dir);
+							}
+						
+							async function explore_dir(dir) {
 								clear_explorer_table();
 						
 								const date = new Date().getTime().toString();
@@ -3035,7 +3087,7 @@
 								placeholder="container port" 
 							>
 							<button class="btn" onclick="document.getElementById('docker-run-popup').style.display = 'none'">cancel</button>
-							<button class="btn" onclick="docker_run()">ok</button>
+							<button class="btn" onclick="docker_run()">run</button>
 						</div>
 						
 						<div id="docker-action-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">

@@ -98,8 +98,14 @@
 .bootstrap-arrow-down-up:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-arrow-down-up.svg)"); 
 }
+.bootstrap-arrow-left:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-arrow-left.svg)"); 
+}
 .bootstrap-arrow-repeat:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-arrow-repeat.svg)"); 
+}
+.bootstrap-arrow-right:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-arrow-right.svg)"); 
 }
 .bootstrap-bag-check:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-bag-check.svg)"); 
@@ -205,6 +211,9 @@
 }
 .bootstrap-save:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-save.svg)"); 
+}
+.bootstrap-search:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-search.svg)"); 
 }
 .bootstrap-server:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-server.svg)"); 

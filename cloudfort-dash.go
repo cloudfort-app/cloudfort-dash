@@ -29,7 +29,7 @@ var domain string
 var home string
 var port string
 var password []byte
-var version = "v0.1.29"
+var version = "v0.1.30"
 
 var upgrader = websocket.Upgrader{}
 
@@ -321,11 +321,12 @@ func routeMv(w http.ResponseWriter, req *http.Request) {
     }
 
     output := ""
-    paths := strings.Split(req.PostFormValue("paths"), " ")
+    //paths := strings.Split(req.PostFormValue("paths"), " ")
+    no_paths, _ := strconv.Atoi(req.PostFormValue("no-paths"))
 
-    for p:=0; p<len(paths); p++ {
-        sl := strings.Split(paths[p], "/")
-        err := os.Rename(paths[p], req.PostFormValue("path") + "/" + sl[len(sl)-1])
+    for p:=0; p<no_paths; p++ {
+        sl := strings.Split(req.PostFormValue("path-" + strconv.Itoa(p)), "/")
+        err := os.Rename(req.PostFormValue("path-" + strconv.Itoa(p)), req.PostFormValue("path") + "/" + sl[len(sl)-1])
         if(err != nil) {
             log.Println(err)
             output = err.Error() + "\\n"
@@ -367,11 +368,12 @@ func routeCp(w http.ResponseWriter, req *http.Request) {
     }
 
     output := ""
-    paths := strings.Split(req.PostFormValue("paths"), " ")
+    //paths := strings.Split(req.PostFormValue("paths"), " ")
+    no_paths, _ := strconv.Atoi(req.PostFormValue("no-paths"))
 
-    for p:=0; p<len(paths); p++ {
-        sl := strings.Split(paths[p], "/")
-        err := Copy(paths[p], req.PostFormValue("path") + "/" + sl[len(sl)-1])
+    for p:=0; p<no_paths; p++ {
+        sl := strings.Split(req.PostFormValue("path-" + strconv.Itoa(p)), "/")
+        err := Copy(req.PostFormValue("path-" + strconv.Itoa(p)), req.PostFormValue("path") + "/" + sl[len(sl)-1])
         if(err != nil) {
             log.Println(err)
             output = err.Error() + "\\n"
@@ -388,11 +390,11 @@ func routeRm(w http.ResponseWriter, req *http.Request) {
     }
 
     output := ""
-    paths := strings.Split(req.PostFormValue("paths"), " ")
+    no_paths, _ := strconv.Atoi(req.PostFormValue("no-paths"))
 
-    for p:=0; p<len(paths); p++ {
-        //err := os.Remove(paths[p])
-        err := os.RemoveAll(paths[p])
+    for p:=0; p<no_paths; p++ {
+        //err := os.Remove(req.PostFormValue("path-" + strconv.Itoa(p)))
+        err := os.RemoveAll(req.PostFormValue("path-" + strconv.Itoa(p)))
         if(err != nil) {
             log.Println(err)
             output = err.Error() + "\\n"
@@ -788,7 +790,7 @@ func routeUpload(w http.ResponseWriter, req *http.Request) {
     file, _, err := req.FormFile("file")
     if err != nil {
         w.Header().Set("Content-Type", "text/plain")
-        w.Write([]byte("{\"output\": \"error retrieving file\"}"))
+        w.Write([]byte("error retrieving " + req.PostFormValue("path")))
         return
     }
     defer file.Close()
@@ -799,6 +801,30 @@ func routeUpload(w http.ResponseWriter, req *http.Request) {
     w.Header().Set("Content-Type", "text/plain")
     w.Write([]byte("upload successful"))
 }
+
+/*func routeMultiUpload(w http.ResponseWriter, req *http.Request) {
+    if(!hasValidSignature(&w, req)) {
+        return
+    }
+
+    no_files, _ := strconv.Atoi(req.PostFormValue("no-files"))
+
+    for i := 0; i<no_files; i++ {
+        file, _, err := req.FormFile("file-" + strconv.Itoa(i))
+        if err != nil {
+            w.Header().Set("Content-Type", "text/plain")
+            w.Write([]byte("error retrieving file"))
+            return
+        }
+        defer file.Close()
+        f, err := os.OpenFile(req.PostFormValue("path"), os.O_WRONLY|os.O_CREATE, 0666)
+        defer f.Close()
+        io.Copy(f, file)
+    }
+
+    w.Header().Set("Content-Type", "text/plain")
+    w.Write([]byte("upload successful"))
+}*/
 
 func routeVerifySignature(w http.ResponseWriter, req *http.Request) {
     if(!hasValidSignature(&w, req)) {
