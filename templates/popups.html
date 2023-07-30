@@ -6,7 +6,7 @@
 
 <div id="div-notify-popup" class="card border popup popup-dash popup-middle">
 	<span id="span-notify-popup-msg">are you sure?</span><br>
-	<button class="btn" onclick="resolve_notify()">ok</button>
+	<button id="notify-ok-btn" class="btn" onclick="resolve_notify()">ok</button>
 </div>
 
 <div id="div-mono-notify-popup" class="card border popup popup-dash popup-middle" style="width: 100%">
@@ -146,6 +146,7 @@
 		notify_resolved = false;
 		document.getElementById("span-notify-popup-msg").innerHTML = msg;
 		document.getElementById("div-notify-popup").style.display = "block";
+		document.getElementById("notify-ok-btn").focus();
 
 		/*while(!notify_resolved) {
 			await sleep(250);

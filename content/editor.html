@@ -6,6 +6,8 @@
 	<i title="open" class='bs-ico bootstrap-folder-open ico-link-color' onclick="show_input_path_create()"></i> &nbsp;&nbsp;
 	<i title="save" class='bs-ico bootstrap-save ico-link-color' onclick="save_file()"></i> &nbsp;&nbsp;
 	<i title="save as" class='bs-ico bootstrap-arrow-down-square ico-link-color' onclick="show_save_as()"></i> &nbsp;&nbsp;
+	<i title="explore" class='bs-ico bootstrap-folder ico-link-color' onclick="explore_open_file_dir()"></i> &nbsp;&nbsp;
+	<i title="duplicate" class='bs-ico bootstrap-back ico-link-color' onclick="editor_duplicate_line()"></i> &nbsp;&nbsp;
 	<i title="goto line" class='bs-ico bootstrap-arrow-down-up ico-link-color' onclick="show_goto_line_no()"></i> &nbsp;&nbsp;
 	<i title="replace" class='bs-ico bootstrap-braces-asterisk ico-link-color' onclick="show_find_and_replace()"></i> &nbsp;&nbsp;
 	<i title="regex" class='bs-ico bootstrap-regex ico-link-color' onclick="show_regex_replace()"></i> &nbsp;&nbsp;
@@ -170,6 +172,11 @@
 		else {
 			editor_hide_input_cards();
 		}
+	}
+
+	async function explore_open_file_dir() {
+		get_dir(open_path.substring(0, open_path.lastIndexOf('/')));
+		show('explorer');
 	}
 
 	async function open_file() {

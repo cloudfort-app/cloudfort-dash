@@ -1,0 +1,592 @@
+<div id="dash-breadcrumb">
+    <a onclick="show('index')">dash</a>/search
+</div>
+
+<div class="card border">
+    <input id="input-search" placeholder="term" autocomplete="off" onkeydown="search_keypress(event)" style="width: 400px; max-width: 100%"><br>
+    <button class="btn" onclick="search_server()">search</button>
+</div><br>
+
+<div class="card border noselect" style="overflow-x: scroll; white-space: nowrap; max-width: 90%;">
+    <i title="refresh" class='bs-ico bootstrap-arrow-repeat ico-link-color' onclick="search_server()"></i> &nbsp;&nbsp;
+    <i title="edit" class='bs-ico bootstrap-code-square ico-link-color' onclick="edit_selected_search_files()"></i> &nbsp;&nbsp;
+    <i title="download" class='bs-ico bootstrap-download ico-link-color' onclick="download_selected_search_files()"></i> &nbsp;&nbsp;
+    <i title="copy/move" class='bs-ico bootstrap-box-arrow-right ico-link-color' onclick="search_show_mv_paths()"></i> &nbsp;&nbsp;
+    <i title="delete" class='bs-ico bootstrap-trash ico-link-color' onclick="rm_search_paths()"></i>
+</div><br>
+
+<div id="card-input-search-mv" class="card border" style="display: none">
+    <input id="input-search-mv-path" placeholder="path">
+    <button  class="btn" onclick="search_cp_paths()">copy</button>
+    <button  class="btn" onclick="search_mv_paths()">move</button>
+</div>
+
+<div class="card border" style="max-width: 90%; margin-bottom: 1em;">
+    <table id="table-search" style="white-space: nowrap">
+        <tr>
+            <th><input type='checkbox' id='search-checkbox-all' onchange='search_select_all_event()' style='vertical-align: middle;'></th>
+            <th></th>
+            <th onclick='search_toggle_sort(1)' style="margin-right:100px; cursor: pointer;">path</th>
+            <th onclick='search_toggle_sort(2)' style="cursor: pointer;">size</th>
+            <th onclick='search_toggle_sort(3)' style="cursor: pointer;">modified</th>
+        </tr>
+    </table>
+</div>
+
+<div id="search-img-popup">
+    <div id="search-img-popup-cross" >
+        <i id="close-search-img-popup-icon" class="fa fa-xmark" onclick="document.getElementById('search-img-popup').style.display = 'none'"></i>
+    </div>
+
+    <div id="div-search-img" style="position: relative; height: 90%">
+        <img id="search-img" class="vcenter" style="min-width: 200px; max-height: 80vh;">
+    </div>
+
+    <div id="div-search-img-download-btn">
+        <a id="search-img-download-btn"><i title="download" class='bs-ico bootstrap-download ico-primary-red'></i></a>
+    </div>
+</div>
+
+<div id="search-video-popup">
+    <div id="search-video-popup-cross" >
+        <i id="close-search-video-popup-icon" class="fa fa-xmark" onclick="document.getElementById('search-video-popup').style.display = 'none'"></i>
+    </div>
+
+    <video id="search-video" controls loop playsinline style="width: 100%; height: 93%"><source id="search-video-source" type="video/mp4"></video><br>
+
+    <div id="div-search-video-download-btn">
+        <a id="search-video-download-btn"><i title="download" class='bs-ico bootstrap-download ico-primary-red'></i></a>
+    </div>
+</div>
+
+<style>
+    #table-search {
+        margin: 0 auto; 
+        text-align: left;
+
+        display: block;
+        overflow-x: scroll;
+        max-height: calc(100vh - 16.5em);
+        overflow-y: scroll;
+    }
+
+    #search-img-popup-cross, #search-video-popup-cross {
+        position: absolute;
+        top: 1em;
+        left: 1em;
+        text-align: center;
+        z-index: 99;
+    }
+
+    #div-search-img-download-btn, #div-search-video-download-btn {
+        position: absolute;
+        top: 1em;
+        right: 1em;
+        text-align: center;
+        z-index: 99;
+    }
+
+    #close-search-img-popup-icon, #close-search-video-popup-icon {
+        width: 1.5em;
+        height: 1.5em;
+        padding-top: 0em;
+        filter: var(--filter-primary-red);
+    }
+
+    #close-search-img-popup-icon:hover, #close-search-video-popup-icon:hover {
+        filter: var(--filter-neon-orange);
+    }
+
+    #search-img-popup, #search-video-popup {
+        background: var(--secondary-dark);
+        display: none;
+        position: fixed; 
+        left: 0;
+        top: 0;
+        overflow-y: hidden;
+        padding-top: 4em;
+        text-align: center;
+        width: 100%;
+        height: 100%;
+        max-height: 100%;
+
+        z-index: 10;
+    }
+</style>
+
+<script>
+    const search_files_table = document.getElementById("table-search");
+    var search_files;
+    var search_file_no;
+
+    var search_sort_indx = 1;
+    var search_sort_dir = 1;
+
+    async function search_select_all_event() {
+        for(var f=0; f<search_files.length; ++f) {
+            document.getElementById('search-checkbox-' + f).checked = document.getElementById('search-checkbox-all').checked;
+        }
+    }
+
+    async function clear_search_table() {
+        while(search_files_table.rows.length > 1)
+            search_files_table.deleteRow(1);
+    }
+
+    async function search_hide_input_cards() {
+        document.getElementById("card-input-search-mv").style.display = "none";
+    }
+
+    async function search_show_mv_paths() {
+        if(document.getElementById("card-input-search-mv").style.display == "none") {
+            search_hide_input_cards();
+            document.getElementById("card-input-search-mv").style.display = "block";
+            document.getElementById("input-search-mv-path").focus();
+        }
+        else {
+            search_hide_input_cards();
+        }
+    }
+
+    async function download_selected_search_files() {
+        const downloads_table = document.getElementById("table-downloads");
+        var r = 0;
+
+        clear_downloads_table();
+
+        for(var f=0; f<search_files.length; ++f) {
+            if(document.getElementById('search-checkbox-' + f).checked) {
+                if(search_files[f][0]) {
+                    await notify("cannot download directories");
+                }
+                else {
+                    const date = new Date().getTime().toString();
+                    const formData = new FormData();
+                    formData.append("date", date);
+                    formData.append("path", search_files[f][1]);
+
+                    response = await fetch("/api/download", {
+                        method: "POST",
+                        headers: {
+                            //"content-type": "application/json"
+                            "signature": signature(date)
+                        },
+                        body: formData
+                    });
+                    var blob = await response.blob();
+
+                    var file = window.URL.createObjectURL(blob);
+
+                    var row = downloads_table.insertRow(0);
+                    row.insertCell(0).innerHTML = search_files[f][1];
+                    row.insertCell(1).innerHTML = "<a id='download-link-" + f + "' download><button class='btn'>download</button></a>";
+                    document.getElementById("download-link-"+ f).href = file;
+                    document.getElementById("download-link-"+ f).download = search_files[f][1].substring(search_files[f][1].lastIndexOf("/")+1, search_files[f][1].length);
+                    document.getElementById("download-link-"+ f).click();
+                    
+                    //window.location.assign(file);
+                }
+            }
+        }
+    }
+
+    async function edit_selected_search_files() {
+        var paths = "";
+        var count = 0;
+        for(var f=0; f<search_files.length; ++f) {
+            if(document.getElementById('search-checkbox-' + f).checked) {
+                if(search_files[f][0]) {
+                    await notify("cannot edit directories");
+                }
+                else {
+                    ++count;
+                    await edit_file(search_files[f][1]);
+                }
+            }
+        }
+
+        if(!count) {
+            notify("nothing selected")
+        }
+    }
+
+    async function search_mv_paths() {
+        const target = document.getElementById("input-search-mv-path").value;
+        var count = 0;
+        const formData = new FormData();
+
+        if(target[0] != '/' && target[0] != '~') {
+            notify("target needs to be an absolute not relative path");
+            return;
+        }
+
+        for(var f=0; f<search_files.length; ++f) {
+            if(document.getElementById('search-checkbox-' + f).checked) {
+                formData.append("path-" + count++, search_files[f][1])
+                document.getElementById('search-checkbox-' + f).checked = false;
+            }
+        }
+
+        if(count) {
+            const date = new Date().getTime().toString();
+            formData.append("date", date);
+            formData.append("no-paths", count);
+            formData.append("path", target);
+
+            response = await fetch("/api/mv", {
+                method: "POST",
+                headers: {
+                    //"content-type": "application/json"
+                    "signature": signature(date)
+                },
+                body: formData
+            });
+            result = await response.text();
+        }
+        else {
+            notify("nothing selected")
+        }
+
+        document.getElementById("input-search-mv-path").value = "";
+        document.getElementById("card-input-search-mv").style.display = "none";
+    }
+
+    async function search_cp_paths() {
+        const target = document.getElementById("input-search-mv-path").value;
+        const target_dir = target.substring(0, target.lastIndexOf('/'));
+        var paths = "";
+        var first = true;
+        var count = 0;
+
+        if(target[0] != '/' && target[0] != '~') {
+            notify("target needs to be an absolute not relative path");
+            return;
+        }
+
+        for(var f=0; f<search_files.length; ++f) {
+            if(document.getElementById('search-checkbox-' + f).checked) {
+                if(first)
+                    first = false;
+                else
+                    paths += " ";
+                paths += "\"" + search_files[f][1] + "\"";
+                document.getElementById('search-checkbox-' + f).checked = false;
+                ++count;
+            }
+        }
+
+        if(count) {
+            const date = new Date().getTime().toString();
+            const formData = new FormData();
+            formData.append("date", date);
+            formData.append("command", "mkdir -p " + target_dir + "; cp -rf " + paths + " \"" + target + "\"");
+
+            response = await fetch("/api/run", {
+                method: "POST",
+                headers: {
+                    //"content-type": "application/json"
+                    "signature": signature(date)
+                },
+                body: formData
+            });
+            result = await response.text();
+        }
+        else {
+            notify("nothing selected")
+        }
+
+        document.getElementById("input-search-mv-path").value = "";
+        document.getElementById("card-input-search-mv").style.display = "none";
+    }
+
+    async function rm_search_paths() {
+        if(!await confirm_("permanently delete files?")) {
+            return;
+        }
+
+        var count = 0;
+        const formData = new FormData();
+
+        for(var f=0; f<search_files.length; ++f) {
+            if(document.getElementById('search-checkbox-' + f).checked) {
+                formData.append("path-" + count++, search_files[f][1]);
+                document.getElementById('search-checkbox-' + f).checked = false;
+            }
+        }
+
+        if(count) {
+            const date = new Date().getTime().toString();
+            formData.append("date", date);
+            formData.append("no-paths", count);
+
+            response = await fetch("/api/rm", {
+                method: "POST",
+                headers: {
+                    //"content-type": "application/json"
+                    "signature": signature(date)
+                },
+                body: formData
+            });
+            result = await response.text();
+
+            search_server();
+        }
+        else {
+            notify("nothing selected")
+        }
+    }
+
+    async function serve_search_image(f) {
+        const date = new Date().getTime().toString();
+        const formData = new FormData();
+        formData.append("date", date);
+        formData.append("path", search_files[f][1]);
+
+        response = await fetch("/api/download", {
+            method: "POST",
+            headers: {
+                //"content-type": "application/json"
+                "signature": signature(date)
+            },
+            body: formData
+        });
+        var blob = await response.blob();
+
+        var file = window.URL.createObjectURL(blob);
+        //window.location.assign(file);
+
+        document.getElementById("search-img-download-btn").href = file;
+        document.getElementById("search-img-download-btn").download = search_files[f][1].substring(search_files[f][1].lastIndexOf("/")+1, search_files[f][1].length);
+        search_file_no = f;
+
+        document.getElementById('search-img').src = file;
+        document.getElementById('search-img').title = search_files[f][1].substring(search_files[f][1].lastIndexOf("/")+1, search_files[f][1].length);
+        document.getElementById('search-img-popup').style.display = "block";
+    }
+
+    async function serve_search_image_increment() {
+        var f = search_file_no;
+        f = (f+1)%search_files.length;
+        while(f != search_file_no) {
+            var ext = search_files[f][1].substring(search_files[f][1].indexOf('.'), search_files[f][1].length);
+            if(is_img_ext(ext)) {
+                serve_search_image(f);
+                break;
+            }
+            f = (f+1)%search_files.length;
+        }
+    }
+
+    async function serve_search_image_decrement() {
+        var f = search_file_no;
+        f--;
+        if(f < 0)
+            f = search_files.length-1;
+        while(f != search_file_no) {
+            var ext = search_files[f][1].substring(search_files[f][1].indexOf('.'), search_files[f][1].length);
+            if(is_img_ext(ext)) {
+                serve_search_image(f);
+                break;
+            }
+            f--;
+            if(f < 0)
+                f = search_files.length-1;
+        }
+    }
+
+    async function serve_search_video(f) {
+        const date = new Date().getTime().toString();
+        const formData = new FormData();
+        formData.append("date", date);
+        formData.append("path", search_files[f][1]);
+
+        response = await fetch("/api/download", {
+            method: "POST",
+            headers: {
+                //"content-type": "application/json"
+                "signature": signature(date)
+            },
+            body: formData
+        });
+        var blob = await response.blob();
+
+        var file = window.URL.createObjectURL(blob);
+        //window.location.assign(file);
+
+        document.getElementById('search-video-popup').style.display = "block";
+
+        var ext = search_files[f][1].substring(search_files[f][1].lastIndexOf('.'), search_files[f][1].length);
+        if(ext == ".mp4")
+            document.getElementById('search-video-source').type = "video/mp4";
+        else if(ext == ".ogg")
+            document.getElementById('search-video-source').type = "video/ogg";
+        else if(ext == ".webm")
+            document.getElementById('search-video-source').type = "video/webm";
+        document.getElementById('search-video').src = file;
+        document.getElementById('search-video').title = search_files[f][1].substring(search_files[f][1].lastIndexOf("/")+1, search_files[f][1].length);
+        document.getElementById('search-video').play();
+
+        document.getElementById("search-video-download-btn").href = file;
+        document.getElementById("search-video-download-btn").download = search_files[f][1].substring(search_files[f][1].lastIndexOf("/")+1, search_files[f][1].length);
+        search_file_no = f;
+    }
+
+    async function search_video_increment() {
+        var f = search_file_no;
+        f = (f+1)%search_files.length;
+        while(f != search_file_no) {
+            var ext = search_files[f][1].substring(search_files[f][1].indexOf('.'), search_files[f][1].length);
+            if(is_video_ext(ext)) {
+                serve_search_video(f);
+                break;
+            }
+
+            f = (f+1)%search_files.length;
+        }
+    }
+
+    async function search_video_decrement() {
+        var f = search_file_no;
+        f--;
+        if(f < 0)
+            f = search_files.length-1;
+        while(f != search_file_no) {
+            var ext = search_files[f][1].substring(search_files[f][1].indexOf('.'), search_files[f][1].length);
+            if(is_video_ext(ext)) {
+                serve_search_video(f);
+                break;
+            }
+
+            f--;
+            if(f < 0)
+                f = search_files.length-1;
+        }
+    }
+
+    function search_sort_data()
+    {
+        if(search_sort_indx == 1 || search_sort_indx == 3)
+        {
+            search_files.sort(function(obj1, obj2) {
+                if(obj1[search_sort_indx].toLowerCase() > obj2[search_sort_indx].toLowerCase())
+                    return search_sort_dir*1;
+                else if(obj1[search_sort_indx] == obj2[search_sort_indx])
+                    return 0;
+                else return search_sort_dir*-1;
+            });
+        }
+        else
+        {
+            search_files.sort(function(obj1, obj2) {
+                return search_sort_dir*(obj1[search_sort_indx] - obj2[search_sort_indx]);
+            });
+        }
+
+        //draw_table();
+    }
+
+    function search_toggle_sort(indx)
+    {
+        if(search_sort_indx == indx)
+            search_sort_dir *= -1;
+        else
+        {
+            search_sort_indx = indx;
+            search_sort_dir = 1;
+        }
+
+        search_server();
+    }
+
+    async function search_server() {
+        waiting_popup("searching");
+        clear_search_table();
+
+        const date = new Date().getTime().toString();
+        const formData = new FormData();
+        formData.append("date", date);
+        formData.append("term", document.getElementById("input-search").value);
+
+        response = await fetch("/api/locate", {
+            method: "POST",
+            headers: {
+                //"content-type": "application/json"
+                "signature": signature(date)
+            },
+            body: formData
+        });
+        result = await response.json();
+        search_files = result["files"];
+
+        //sorts files
+        search_sort_data();
+
+        if(result["files"].length == 0) {
+            notify("no matches");
+        }
+
+        for(var f=result["files"].length-1; f>=0; --f) {
+            var row = search_files_table.insertRow(1);
+
+            var ext = result["files"][f][1].substring(result["files"][f][1].lastIndexOf('.'), result["files"][f][1].length).toLowerCase();
+
+            row.insertCell(0).innerHTML = "<input type='checkbox' id='search-checkbox-" + f + "' style='vertical-align: middle;'>"
+
+            if(result["files"][f][0])
+                row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-folder no-hover-ico' style='padding-top: 3px'></i>";
+            else {
+                if(is_img_ext(ext))
+                    row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-file-earmark-image no-hover-ico' style='padding-top: 3px'></i>";
+                else if(is_video_ext(ext))
+                    row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-film no-hover-ico' style='padding-top: 3px'></i>";
+                else if(is_archive_ext(ext))
+                    row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-file-zip no-hover-ico' style='padding-top: 3px'></i>";
+                else
+                    row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-file-earmark no-hover-ico' style='padding-top: 3px'></i>";
+            }
+
+            if(result["files"][f][0]) {
+                row.insertCell(2).innerHTML = "<a onclick='explore(\"" + result["files"][f][1].substring(0, result["files"][f][1].length-1) +  "\")'>" + result["files"][f][1] + "/</a>";
+            }
+            else {
+                var dir = result["files"][f][1].substring(0, result["files"][f][1].lastIndexOf('/')+1);
+                var file = result["files"][f][1].substring(result["files"][f][1].lastIndexOf('/')+1, result["files"][f][1].length);
+
+                if(is_img_ext(ext))
+                    row.insertCell(2).innerHTML = "<a onclick='explore(\"" + dir.substring(0, dir.length-1) +  "\")'>" + dir + "</a><a onclick='serve_search_image(" + f + ")'>" + file + "</a>";
+                else if(is_video_ext(ext))
+                    row.insertCell(2).innerHTML = "<a onclick='explore(\"" + dir.substring(0, dir.length-1) +  "\")'>" + dir + "</a><a onclick='serve_search_video(" + f + ")'>" + file + "</a>";
+                else if(is_archive_ext(ext))
+                    row.insertCell(2).innerHTML = "<a onclick='explore(\"" + dir.substring(0, dir.length-1) +  "\")'>" + dir + "</a><a onclick='extract_path(\"" + result["files"][f][1] +  "\")'>" + result["files"][f][1] + "</a>";
+                else
+                    row.insertCell(2).innerHTML = "<a onclick='explore(\"" + dir.substring(0, dir.length-1) +  "\")'>" + dir + "</a><a onclick='edit_file(\"" + result["files"][f][1] +  "\")'>" + file + "</a>";
+                //else
+                    //row.insertCell(2).innerHTML = result["files"][f][1];
+            }
+
+            
+            if(result["files"][f][2] < 1000)
+                row.insertCell(3).innerHTML = result["files"][f][2] + "b";
+            else if(result["files"][f][2] < 1000000)
+                row.insertCell(3).innerHTML = (result["files"][f][2]/1000).toFixed(2) + "kb";
+            else
+                row.insertCell(3).innerHTML = (result["files"][f][2]/1000000).toFixed(2) + "mb";
+
+            row.insertCell(4).innerHTML = result["files"][f][3];
+        }
+
+        resolve_waiting_popup();
+    }
+
+    async function search_keypress(e) {
+        var name = e.key;
+        var code = e.code;
+
+        if(name == 'Enter' || code == 'Enter') {
+            e.preventDefault();
+            search_server();
+            document.getElementById("input-search").blur();
+            //document.activeElement.blur();
+        }
+    }
+</script>

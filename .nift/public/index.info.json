@@ -1,5 +1,5 @@
 {
-	"last-built": "03:31:14 Saturday July 29 2023",
+	"last-built": "09:49:57 Monday July 31 2023",
 	"name": "/",
 	"title": "index",
 	"template": "templates/template.html",
@@ -18,6 +18,7 @@
 		"content/monitor.html",
 		"content/privacy-policy.html",
 		"content/repositories.html",
+		"content/search.html",
 		"content/services.html",
 		"content/ssh.html",
 		"content/terminal.html",

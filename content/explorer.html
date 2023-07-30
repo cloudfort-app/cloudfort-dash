@@ -6,13 +6,17 @@
 	<span id="span-pwd"></span>
 </div><br>
 
+<select id="select-explorer-hist" class="noselect" onchange="explorer_hist_event()">
+	<option value="none" disabled hidden selected>history</option>
+</select><br>
+
 <div class="card border noselect" style="overflow-x: scroll; white-space: nowrap; max-width: 90%;">
-	<i title="root" class='bs-ico bootstrap-slash ico-link-color' onclick="get_dir('')"></i> &nbsp;
-	<i title="home" class='bs-ico bootstrap-house ico-link-color' onclick="get_dir(home)"></i> &nbsp;&nbsp;
-	<i title="explore" class='bs-ico bootstrap-folder ico-link-color' onclick="show_browse_dir(home)"></i> &nbsp;&nbsp;
 	<i title="back" class='bs-ico bootstrap-arrow-left ico-link-color' onclick="explorer_back()"></i> &nbsp;&nbsp;
 	<i title="forward" class='bs-ico bootstrap-arrow-right ico-link-color' onclick="explorer_forward()"></i> &nbsp;&nbsp;
 	<i title="refresh" class='bs-ico bootstrap-arrow-repeat ico-link-color' onclick="get_dir(bwd)"></i> &nbsp;&nbsp;
+	<i title="root" class='bs-ico bootstrap-slash ico-link-color' onclick="get_dir('')"></i> &nbsp;
+	<i title="home" class='bs-ico bootstrap-house ico-link-color' onclick="get_dir(home)"></i> &nbsp;&nbsp;
+	<i title="explore" class='bs-ico bootstrap-folder ico-link-color' onclick="show_browse_dir(home)"></i> &nbsp;&nbsp;
 	<i title="new directory" class='bs-ico bootstrap-folder-plus ico-link-color' onclick="show_create_dir()"></i> &nbsp;&nbsp;
 	<i title="new file" class='bs-ico bootstrap-file-earmark-plus ico-link-color' onclick="show_create_file()"></i> &nbsp;&nbsp;
 	<i title="edit" class='bs-ico bootstrap-code-square ico-link-color' onclick="edit_selected_files()"></i> &nbsp;&nbsp;
@@ -24,7 +28,7 @@
 	<i title="url" class='bs-ico bootstrap-cloud-arrow-down ico-link-color' onclick="show_fetch_url()"></i> &nbsp;&nbsp;
 	<i title="download" class='bs-ico bootstrap-download ico-link-color' onclick="download_files()"></i> &nbsp;&nbsp;
 	<i title="copy/move" class='bs-ico bootstrap-box-arrow-right ico-link-color' onclick="show_mv_paths()"></i> &nbsp;&nbsp;
-	<i title="rename" class='bs-ico bootstrap-input-cursor-text ico-link-color' onclick="show_rename_path()"></i> &nbsp;&nbsp;
+	<i title="duplicate/rename" class='bs-ico bootstrap-input-cursor-text ico-link-color' onclick="show_rename_path()"></i> &nbsp;&nbsp;
 	<i title="delete" class='bs-ico bootstrap-trash ico-link-color' onclick="rm_paths()"></i>
 </div><br>
 
@@ -40,18 +44,30 @@
 	<button class="btn" onclick="document.getElementById('download-popup').style.display = 'none'" style="width: 100px; margin: 0 auto">close</button>
 </div>
 
-<div id="serve-img-popup" class="card card-shadow-no-hover popup popup-dash popup-top" style="width: 90%; max-height: 95vh; margin-top: 2.5em; overflow-x: scroll">
-	<img id="img-serve" style="min-width: 200px; max-height: 80vh; vertical-align: middle; margin-bottom: 1em;"><br>
+<div id="serve-img-popup">
+	<div id="serve-img-popup-cross" >
+        <i id="close-serve-img-popup-icon" class="fa fa-xmark" onclick="document.getElementById('serve-img-popup').style.display = 'none'"></i>
+    </div>
 
-	<button class="btn" onclick="document.getElementById('serve-img-popup').style.display = 'none'" style="width: 100px; margin: 0 auto">close</button>
-	<a id="serve-img-download-btn"><button class="btn" style="width: 100px; margin: 0 auto">download</button></a>
+	<div id="div-serve-img" style="position: relative; height: 90%">
+		<img id="img-serve" class="vcenter" style="min-width: 200px; max-height: 80vh;">
+	</div>
+
+	<div id="div-serve-img-download-btn">
+        <a id="serve-img-download-btn"><i title="download" class='bs-ico bootstrap-download ico-primary-red'></i></a>
+    </div>
 </div>
 
-<div id="serve-video-popup" class="card card-shadow-no-hover popup popup-dash popup-top" style="width: 100%; height: 100%">
+<div id="serve-video-popup">
+	<div id="serve-video-popup-cross" >
+        <i id="close-serve-video-popup-icon" class="fa fa-xmark" onclick="document.getElementById('serve-video-popup').style.display = 'none'"></i>
+    </div>
+
 	<video id="video-serve" controls loop playsinline style="width: 100%; height: 93%"><source id="serve-video-source" type="video/mp4"></video><br>
 
-	<button class="btn" onclick="document.getElementById('video-serve').pause(); document.getElementById('serve-video-popup').style.display = 'none'" style="width: 100px; margin: 0 auto">close</button>
-	<a id="serve-video-download-btn"><button class="btn" style="width: 100px; margin: 0 auto">download</button></a>
+	<div id="div-serve-video-download-btn">
+        <a id="serve-video-download-btn"><i title="download" class='bs-ico bootstrap-download ico-primary-red'></i></a>
+    </div>
 </div>
 
 <div id="card-fetch-url" class="card border" style="display: none">
@@ -146,6 +162,21 @@
 		left: 6px;
 	}
 
+	#select-explorer-hist {
+		background: var(--secondary-dark);
+		border: 1px solid var(--light-black);
+		color: var(--white);
+		width: 600px;
+		max-width: 90%; 
+		margin: 0.25em 0;
+		overflow-y: scroll;
+
+		-ms-box-sizing:border-box;
+		-moz-box-sizing:border-box;
+		-webkit-box-sizing:border-box; 
+		box-sizing:border-box;
+	}
+
 	.dropzone {
 		margin-top: 0.15em;
 		width: 300px;
@@ -175,13 +206,65 @@
 
 		display: block;
 		overflow-x: scroll;
-		max-height: calc(100vh - 14.5em);
+		max-height: calc(100vh - 16em);
 		overflow-y: scroll;
 	}
 
 	#card-browser {
 		/*height: calc(100vh - 14em);*/
 	}
+
+	#serve-img-popup-cross, #serve-video-popup-cross {
+        position: absolute;
+        top: 1em;
+        left: 1em;
+        text-align: center;
+        z-index: 99;
+    }
+
+    #div-serve-img-download-btn, #div-serve-video-download-btn {
+        position: absolute;
+        top: 1em;
+        right: 1em;
+        text-align: center;
+        z-index: 99;
+    }
+
+    #close-serve-img-popup-icon, #close-serve-video-popup-icon {
+        width: 1.5em;
+        height: 1.5em;
+        padding-top: 0em;
+        filter: var(--filter-primary-red);
+    }
+
+    #close-serve-img-popup-icon:hover, #close-serve-video-popup-icon:hover {
+        filter: var(--filter-neon-orange);
+    }
+
+    .vcenter {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: auto;
+    }
+
+    #serve-img-popup, #serve-video-popup {
+        background: var(--secondary-dark);
+        display: none;
+        position: fixed; 
+        left: 0;
+        top: 0;
+        overflow-y: hidden;
+        padding-top: 4em;
+        text-align: center;
+        width: 100%;
+        height: 100%;
+        max-height: 100%;
+
+        z-index: 10;
+    }
 </style>
 
 <script>
@@ -865,6 +948,7 @@
 	}
 
 	async function mv_paths() {
+		const target = document.getElementById("input-mv-path").value;
 		var count = 0;
 		const formData = new FormData();
 
@@ -879,7 +963,10 @@
 			const date = new Date().getTime().toString();
 			formData.append("date", date);
 			formData.append("no-paths", count);
-			formData.append("path", bwd + "/" + document.getElementById("input-mv-path").value);
+			if(target[0] == '/' || target[0] == '~')
+				formData.append("path", target);
+			else
+				formData.append("path", bwd + "/" + target);
 
 			response = await fetch("/api/mv", {
 				method: "POST",
@@ -902,6 +989,8 @@
 	}
 
 	async function cp_paths() {
+		const target = document.getElementById("input-mv-path").value;
+        const target_dir = target.substring(0, target.lastIndexOf('/'));
 		var paths = "";
 		var first = true;
 		var count = 0;
@@ -921,7 +1010,10 @@
 			const date = new Date().getTime().toString();
 			const formData = new FormData();
 			formData.append("date", date);
-			formData.append("command", "cp -rf " + paths + " \"" + bwd + "/" + document.getElementById("input-mv-path").value + "\"");
+			if(target[0] == '/' || target[0] == '~')
+				formData.append("command", "mkdir -p " + target_dir + "; cp -rf " + paths + " \"" + target + "\"");
+			else
+				formData.append("command", "mkdir - p " + target_dir + "; cp -rf " + paths + " \"" + bwd + "/" + target + "\"");
 
 			response = await fetch("/api/run", {
 				method: "POST",
@@ -1032,16 +1124,40 @@
 		}
 	}
 
+	const explorer_hist_select = document.getElementById("select-explorer-hist");
+
+	async function explorer_hist_event() {
+		get_dir(explorer_hist_select.value);
+		//explore_dir(explorer_hist_select.value);
+		explorer_hist_select.value = "none";
+	}
+
+	async function explore(dir) {
+		await get_dir(dir);
+		show('explorer');
+	}
+
 	async function get_dir(dir) {
 		if(dir != bwd) {
-			if(hist_c+1 < bwd_hist.length)
-				for(var i=hist_c; i<bwd_hist.length; ++i)
+			if(hist_c+1 < bwd_hist.length) {
+				for(var i=hist_c; i<bwd_hist.length; ++i) {
+					explorer_hist_select.remove(i+1);
 					bwd_hist.pop();
+				}
+			}
 
 			bwd_hist.push(dir);
 			hist_c = bwd_hist.length-1;
+
+			var opt = document.createElement('option');
+		    opt.value = dir;
+		    if(dir == "")
+			    opt.innerHTML = "/";
+			else
+			    opt.innerHTML = dir;
+		    explorer_hist_select.appendChild(opt);
 		}
-		explore_dir(dir);
+		await explore_dir(dir);
 	}
 
 	async function explore_dir(dir) {
@@ -1161,6 +1277,7 @@
 	}
 
 	async function explorer_init() {
-		bwd = pwd
+		get_dir(pwd);
+		//bwd = pwd
 	}
 </script>

@@ -54,6 +54,35 @@ function setCaretToPos (input, pos) {
 	setSelectionRange(input, pos, pos);
 }
 
+function editor_duplicate_line() {
+	//const selObj = window.getSelection();
+	//const selRange = selObj.getRangeAt(0);
+
+	if(mantis_editor.selectionStart == mantis_editor.selectionEnd) {
+		const scrollTop = mantis_editor.scrollTop;
+		var pos = mantis_editor.selectionStart;
+
+		mantis_editor.value = mantis_editor.value.substring(0, mantis_editor.value.indexOf("\n", pos)) + mantis_editor.value.substring(mantis_editor.value.lastIndexOf("\n", pos-1), mantis_editor.value.indexOf("\n", pos)) + mantis_editor.value.substring(mantis_editor.value.indexOf("\n", pos), mantis_editor.value.length);
+
+		pos += mantis_editor.value.indexOf("\n", pos) - mantis_editor.value.lastIndexOf("\n", pos-1);
+		setCaretToPos(mantis_editor, pos);
+		redraw_editor();
+		mantis_editor.scrollTop = scrollTop;
+	}
+	else {
+		const scrollTop = mantis_editor.scrollTop;
+		const selStart = mantis_editor.selectionStart;
+		const selEnd = mantis_editor.selectionEnd;
+		const selText = window.getSelection().toString();
+		mantis_editor.value = mantis_editor.value.substring(0, selEnd) + selText + mantis_editor.value.substring(selEnd, mantis_editor.value.length);
+		setSelectionRange(mantis_editor, selStart, selEnd);
+		redraw_editor();
+		mantis_editor.scrollTop = scrollTop;
+	}
+
+	mark_edited();
+}
+
 function jump_to_line() {
 	var line = document.getElementById("input-line-no").value;
 
@@ -77,6 +106,7 @@ function find_and_replace() {
 	var replace = document.getElementById("input-editor-replace").value;
 	mantis_editor.value = mantis_editor.value.replaceAll(find, replace);
 	redraw_editor();
+	mark_edited();
 }
 
 function regex_replace() {
@@ -86,6 +116,7 @@ function regex_replace() {
 	var re = new RegExp(pattern, flags);
 	mantis_editor.value = mantis_editor.value.replaceAll(re, replace);
 	redraw_editor();
+	mark_edited();
 }
 
 hljs.highlightAll();
@@ -182,6 +213,10 @@ mantis_editor.onkeydown = function(e) {
 		else if(name == "S") {
 			e.preventDefault();
 			show_save_as();
+		}
+		else if(name == "D") {
+			e.preventDefault();
+			editor_duplicate_line();
 		}
 		else if(name == 'F') {
 			e.preventDefault();

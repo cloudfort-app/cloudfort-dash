@@ -107,6 +107,9 @@
 .bootstrap-arrow-right:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-arrow-right.svg)"); 
 }
+.bootstrap-back:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-back.svg)"); 
+}
 .bootstrap-bag-check:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-bag-check.svg)"); 
 }

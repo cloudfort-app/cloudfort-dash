@@ -23,6 +23,7 @@
 						<i title="monitor" class="bs-ico bootstrap-activity menu-ico" onclick="show('monitor')"></i><br>
 						<i title="terminal" class="bs-ico bootstrap-terminal menu-ico" onclick="show('terminal')"></i><br>
 						<i title="explorer" class="bs-ico bootstrap-folder menu-ico" onclick="show('explorer')"></i><br>
+						<i title="search" class="bs-ico bootstrap-search menu-ico" onclick="show('search')"></i><br>
 						<i title="editor" class="bs-ico bootstrap-code-square menu-ico" onclick="show('editor')"></i><br>
 						<hr>
 						<i title="tools" class="bs-ico bootstrap-tools menu-ico" onclick="show('tools')"></i><br>
@@ -55,6 +56,12 @@
 				<div id="explorer-div" class="main-div" style="display: none">
 					<div class="main-page">
 						@input("content/explorer.html")
+					</div>
+				</div>
+
+				<div id="search-div" class="main-div" style="display: none">
+					<div class="main-page">
+						@input("content/search.html")
 					</div>
 				</div>
 
@@ -286,6 +293,7 @@
 				document.getElementById("monitor-div").style.display = "none";
 				document.getElementById("terminal-div").style.display = "none";
 				document.getElementById("explorer-div").style.display = "none";
+				document.getElementById("search-div").style.display = "none";
 				document.getElementById("editor-div").style.display = "none";
 				document.getElementById("tools-div").style.display = "none";
 				document.getElementById("administration-div").style.display = "none";
@@ -319,6 +327,8 @@
 					get_dir(bwd);
 				else if(name == "monitor")
 					fetch_top();
+				else if(name == "search")
+					document.getElementById("input-search").focus();
 				else if(name == "terminal")
 					document.getElementById("input-terminal").focus();
 			}
@@ -438,8 +448,8 @@
 			async function dash_init() {
 				await check_signed_in();
 
-				//resolve_waiting_popup();
-				//document.getElementById("content").style.display = "block";
+				resolve_waiting_popup();
+				document.getElementById("content").style.display = "block";
 
 				await get_home();
 				await get_config();
@@ -453,8 +463,8 @@
 				await certs_init();
 				await firewall_init();
 
-				resolve_waiting_popup();
-				document.getElementById("content").style.display = "block";
+				//resolve_waiting_popup();
+				//document.getElementById("content").style.display = "block";
 			}
 			dash_init();
 
@@ -463,6 +473,10 @@
 					if(e.key == 'e') {
 						e.preventDefault();
 						show('editor');
+					}
+					if(e.key == 'f') {
+						e.preventDefault();
+						show('search');
 					}
 					else if(e.key == 'm') {
 						e.preventDefault();
@@ -476,7 +490,7 @@
 						e.preventDefault();
 						show('explorer')
 					}
-					else if(e.key == "f" || e.key == "Enter") {
+					else if(e.key == "Enter") {
 						e.preventDefault();
 						if(document.fullscreenElement || document.webkitIsFullScreen || document.mozFullScreen || document.msIsFullScreen) {
 							document.exitFullscreen();
@@ -499,7 +513,15 @@
 					}*/
 				}
 				else if(e.key == 'ArrowRight' || e.code == 'ArrowRight') {
-					if(document.getElementById("serve-img-popup").style.display == "block") {
+					if(document.getElementById("search-img-popup").style.display == "block") {
+						e.preventDefault();
+						serve_search_image_increment();
+					}
+					else if(document.getElementById("search-video-popup").style.display == "block") {
+						e.preventDefault();
+						search_video_increment();
+					}
+					else if(document.getElementById("serve-img-popup").style.display == "block") {
 						e.preventDefault();
 						serve_image_increment();
 					}
@@ -509,7 +531,15 @@
 					}
 				}
 				else if(e.key == 'ArrowLeft' || e.code == 'ArrowLeft') {
-					if(document.getElementById("serve-img-popup").style.display == "block") {
+					if(document.getElementById("search-img-popup").style.display == "block") {
+						e.preventDefault();
+						serve_search_image_decrement();
+					}
+					else if(document.getElementById("search-video-popup").style.display == "block") {
+						e.preventDefault();
+						search_video_decrement();
+					}
+					else if(document.getElementById("serve-img-popup").style.display == "block") {
 						e.preventDefault();
 						serve_image_decrement();
 					}

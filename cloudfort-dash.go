@@ -29,7 +29,7 @@ var domain string
 var home string
 var port string
 var password []byte
-var version = "v0.1.30"
+var version = "v0.1.31"
 
 var upgrader = websocket.Upgrader{}
 
@@ -403,6 +403,49 @@ func routeRm(w http.ResponseWriter, req *http.Request) {
 
     w.Header().Set("Content-Type", "text/plain")
     w.Write([]byte(output))
+}
+
+func routeLocate(w http.ResponseWriter, req *http.Request) {
+    if(!hasValidSignature(&w, req)) {
+        return
+    }
+
+    cmd := "locate " + req.PostFormValue("term")
+    out, err := exec.Command("/bin/bash", "-c", cmd).CombinedOutput()
+
+    if(err != nil) {
+        //log.Println(err)
+        //output = sanitize(err.Error() + "\n")
+    }
+
+    paths := strings.Split(string(out), "\n")
+
+    json := "{\"files\": ["
+
+    for i:=0; i<len(paths); i++ {
+        if paths[i] != "" {
+            file, err := os.Stat(paths[i])
+
+            if err == nil {
+                if(i > 0) {
+                    json += ", "
+                }
+
+                json += "["
+                json += strconv.FormatBool(file.IsDir()) + ", "
+                json += "\"" + paths[i] + "\", "
+                json += "\"" + strconv.Itoa(int(file.Size())) + "\", "
+                json += "\"" + file.ModTime().Format("2006-01-02 15:04:05") + "\""
+                json += "]"
+            }
+        }
+    }
+    json += "]}\n"
+
+    json = strings.ReplaceAll(json, "\\x2d", "\x2d")
+
+    w.Header().Set("Content-Type", "text/plain")
+    w.Write([]byte(json))
 }
 
 func routeLs(w http.ResponseWriter, req *http.Request) {
@@ -901,6 +944,7 @@ func main() {
         mux.HandleFunc("/api/mv",          routeMv)
         mux.HandleFunc("/api/cp",          routeCp)
         mux.HandleFunc("/api/rm",          routeRm)
+        mux.HandleFunc("/api/locate",      routeLocate)
         mux.HandleFunc("/api/ls",          routeLs)
         mux.HandleFunc("/api/pwd",         routePwd)
         mux.HandleFunc("/api/tab",         routeTab)
