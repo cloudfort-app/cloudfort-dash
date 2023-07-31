@@ -29,7 +29,7 @@ var domain string
 var home string
 var port string
 var password []byte
-var version = "v0.1.31"
+var version = "v0.1.32"
 
 var upgrader = websocket.Upgrader{}
 
@@ -405,12 +405,69 @@ func routeRm(w http.ResponseWriter, req *http.Request) {
     w.Write([]byte(output))
 }
 
+func searchFileSystem(root_dir, term string) []string {
+    var dirs []string
+    var paths []string
+    dirs = append(dirs, root_dir)
+
+    for d:=0; d<len(dirs); d++ {
+        files, _ := ioutil.ReadDir(dirs[d] + "/")
+
+        for _, file := range files {
+            if(strings.Contains(dirs[d] + "/" + file.Name(), term)) {
+                paths = append(paths, dirs[d] + "/" + file.Name())
+            }
+
+            if(file.IsDir()) {
+                dirs = append(dirs, dirs[d] + "/" + file.Name())
+            } 
+        }
+    }
+
+    return paths
+}
+
+func searchFileContent(root_dir, term string, max_size int) []string {
+    var dirs []string
+    var paths []string
+    dirs = append(dirs, root_dir)
+
+    for d:=0; d<len(dirs); d++ {
+        files, _ := ioutil.ReadDir(dirs[d] + "/")
+
+        for _, file := range files {
+            /*if(strings.Contains(dirs[d] + "/" + file.Name(), term)) {
+                paths = append(paths, dirs[d] + "/" + file.Name())
+            }*/
+
+            if(file.IsDir()) {
+                dirs = append(dirs, dirs[d] + "/" + file.Name())
+            } else if(int(file.Size()) < max_size) {
+                b, err := os.ReadFile(dirs[d] + "/" + file.Name()) 
+                if(err == nil && strings.Contains(string(b), term)) {
+                    paths = append(paths, dirs[d] + "/" + file.Name())
+                }
+            }
+        }
+    }
+
+    return paths
+}
+
 func routeLocate(w http.ResponseWriter, req *http.Request) {
     if(!hasValidSignature(&w, req)) {
         return
     }
 
-    cmd := "locate " + req.PostFormValue("term")
+    var paths []string
+    if(req.PostFormValue("mode") == "system") {
+        paths = searchFileSystem(req.PostFormValue("path"), req.PostFormValue("term"))
+    } else {
+        max_size, _ := strconv.Atoi(req.PostFormValue("max-size"))
+        paths = searchFileContent(req.PostFormValue("path"), req.PostFormValue("term"), max_size)
+    }
+
+    /*cmd := "locate " + req.PostFormValue("term")
     out, err := exec.Command("/bin/bash", "-c", cmd).CombinedOutput()
 
     if(err != nil) {
@@ -418,7 +475,7 @@ func routeLocate(w http.ResponseWriter, req *http.Request) {
         //output = sanitize(err.Error() + "\n")
     }
 
-    paths := strings.Split(string(out), "\n")
+    paths := strings.Split(string(out), "\n")*/
 
     json := "{\"files\": ["
 

@@ -2299,7 +2299,13 @@
 						</div>
 						
 						<div class="card border">
-						    <input id="input-search" placeholder="term" autocomplete="off" onkeydown="search_keypress(event)" style="width: 400px; max-width: 100%"><br>
+						    <select id="select-search-mode" class="noselect" onchange="select_search_mode_event()" style="width: 400px; max-width: 100%; margin: 0.1em 0">
+						        <option value="system" selected>system</option>
+						        <option value="content">content</option>
+						    </select><br>
+						    <input id="input-search-max-size" placeholder="max size (kb)" type="number" autocomplete="off" onkeydown="search_keypress(event)" style="display: none; width: 400px; max-width: 100%; margin: 0.1em 0">
+						    <input id="input-search-path" placeholder="path" autocomplete="off" onkeydown="search_keypress(event)" style="width: 400px; max-width: 100%; margin: 0.1em 0"><br>
+						    <input id="input-search-term" placeholder="term" autocomplete="off" onkeydown="search_keypress(event)" style="width: 400px; max-width: 100%; margin: 0.1em 0"><br>
 						    <button class="btn" onclick="search_server()">search</button>
 						</div><br>
 						
@@ -2362,7 +2368,7 @@
 						
 						        display: block;
 						        overflow-x: scroll;
-						        max-height: calc(100vh - 16.5em);
+						        max-height: calc(100vh - 19.5em);
 						        overflow-y: scroll;
 						    }
 						
@@ -2418,6 +2424,8 @@
 						    var search_sort_indx = 1;
 						    var search_sort_dir = 1;
 						
+						    document.getElementById("input-search-max-size").value = 100;
+						
 						    async function search_select_all_event() {
 						        for(var f=0; f<search_files.length; ++f) {
 						            document.getElementById('search-checkbox-' + f).checked = document.getElementById('search-checkbox-all').checked;
@@ -2431,6 +2439,13 @@
 						
 						    async function search_hide_input_cards() {
 						        document.getElementById("card-input-search-mv").style.display = "none";
+						    }
+						
+						    async function select_search_mode_event() {
+						        if(document.getElementById("select-search-mode").value == "content")
+						            document.getElementById("input-search-max-size").style.display = "block";
+						        else
+						            document.getElementById("input-search-max-size").style.display = "none";
 						    }
 						
 						    async function search_show_mv_paths() {
@@ -2798,10 +2813,19 @@
 						        waiting_popup("searching");
 						        clear_search_table();
 						
+						        var path = document.getElementById("input-search-path").value;
+						
 						        const date = new Date().getTime().toString();
 						        const formData = new FormData();
 						        formData.append("date", date);
-						        formData.append("term", document.getElementById("input-search").value);
+						        formData.append("mode", document.getElementById("select-search-mode").value);
+						        if(document.getElementById("select-search-mode").value == "content")
+						            formData.append("max-size", document.getElementById("input-search-max-size").value*1000);
+						        if(path[path.length-1] == '/')
+						            formData.append("path", path.substring(0, path.length-1));
+						        else
+						            formData.append("path", path);
+						        formData.append("term", document.getElementById("input-search-term").value);
 						
 						        response = await fetch("/api/locate", {
 						            method: "POST",
@@ -2881,7 +2905,7 @@
 						        if(name == 'Enter' || code == 'Enter') {
 						            e.preventDefault();
 						            search_server();
-						            document.getElementById("input-search").blur();
+						            document.getElementById("input-search-term").blur();
 						            //document.activeElement.blur();
 						        }
 						    }
@@ -5177,7 +5201,7 @@
 				else if(name == "monitor")
 					fetch_top();
 				else if(name == "search")
-					document.getElementById("input-search").focus();
+					document.getElementById("input-search-term").focus();
 				else if(name == "terminal")
 					document.getElementById("input-terminal").focus();
 			}
