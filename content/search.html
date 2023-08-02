@@ -131,6 +131,9 @@
     document.getElementById("input-search-max-size").value = 100;
 
     async function search_select_all_event() {
+        if(search_files == undefined)
+            return;
+        
         for(var f=0; f<search_files.length; ++f) {
             document.getElementById('search-checkbox-' + f).checked = document.getElementById('search-checkbox-all').checked;
         }

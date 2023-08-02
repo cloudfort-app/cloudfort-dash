@@ -230,6 +230,9 @@
 .bootstrap-slash:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-slash.svg)"); 
 }
+.bootstrap-tag:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-tag.svg)"); 
+}
 .bootstrap-terminal:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-terminal.svg)"); 
 }
@@ -249,3 +252,6 @@
   content: url("@pathtofile(public/assets/icons/bootstrap-x-square.svg)"); 
 }
 
+.icon-snapcraft:before {
+  content: url("@pathtofile(public/assets/icons/snapcraft.svg)"); 
+}

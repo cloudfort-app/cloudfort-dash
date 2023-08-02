@@ -239,8 +239,10 @@
 						<i title="terminal" class="bs-ico bootstrap-terminal menu-ico" onclick="show('terminal')"></i><br>
 						<i title="explorer" class="bs-ico bootstrap-folder menu-ico" onclick="show('explorer')"></i><br>
 						<i title="search" class="bs-ico bootstrap-search menu-ico" onclick="show('search')"></i><br>
+						<i title="tags" class="bs-ico bootstrap-tag menu-ico" onclick="show('tags')"></i><br>
 						<i title="editor" class="bs-ico bootstrap-code-square menu-ico" onclick="show('editor')"></i><br>
 						<hr>
+						<i title="snapcraft" class="bs-ico icon-snapcraft menu-ico" onclick="show('snapcraft')"></i><br>
 						<i title="tools" class="bs-ico bootstrap-tools menu-ico" onclick="show('tools')"></i><br>
 						<i title="administration" class="bs-ico bootstrap-gear menu-ico" onclick="show('administration')"></i><br>
 					</div>
@@ -410,6 +412,7 @@
 								str = str.replaceAll("[46C", "");
 								str = str.replaceAll("[47m", "<span style='color: var(--neon-pink)'>");
 								str = str.replaceAll("[47C", "");
+								str = str.replaceAll("[93m", "<span style='color: var(--neon-orange)'>");
 						
 						
 								str = str.replaceAll("[38;5;8m", "<span style='background: var(--sherb-green); color: transparent'>");
@@ -1027,6 +1030,7 @@
 							<i title="explore" class='bs-ico bootstrap-folder ico-link-color' onclick="show_browse_dir(home)"></i> &nbsp;&nbsp;
 							<i title="new directory" class='bs-ico bootstrap-folder-plus ico-link-color' onclick="show_create_dir()"></i> &nbsp;&nbsp;
 							<i title="new file" class='bs-ico bootstrap-file-earmark-plus ico-link-color' onclick="show_create_file()"></i> &nbsp;&nbsp;
+							<i title="tag" class='bs-ico bootstrap-tag ico-link-color' onclick="show_tag_selected()"></i> &nbsp;&nbsp;
 							<i title="edit" class='bs-ico bootstrap-code-square ico-link-color' onclick="edit_selected_files()"></i> &nbsp;&nbsp;
 							<i title="open in terminal" class='bs-ico bootstrap-terminal ico-link-color' onclick="open_in_terminal()"></i> &nbsp;&nbsp;
 							<i title="run" class='bs-ico bootstrap-alt ico-link-color' onclick="show_run_cmd()"></i> &nbsp;&nbsp;
@@ -1086,6 +1090,12 @@
 						<div id="card-run-cmd" class="card border" style="display: none">
 							<input id="input-explorer-cmd" placeholder="cmd" style="width: 400px; max-width: 90%">
 							<button class="btn" onclick="explorer_run_cmd()">run</button>
+						</div>
+						
+						<div id="card-tag-selected" class="card border" style="display: none">
+							<select id="select-tag-to-apply" class="noselect" style="margin: 0.25em 0 0; width: 300px; max-width: 90%">
+							</select>
+							<button class="btn" onclick="tag_selected()">tag</button>
 						</div>
 						
 						<div id="card-input-name" class="card border" style="display: none">
@@ -1339,6 +1349,16 @@
 								}
 							}
 						
+							async function show_tag_selected() {
+								if(document.getElementById("card-tag-selected").style.display == "none") {
+									hide_input_cards();
+									document.getElementById("card-tag-selected").style.display = "block";
+								}
+								else {
+									hide_input_cards();
+								}
+							}
+						
 							async function show_create_dir() {
 								if(document.getElementById("create_dir_button").style.display == "none") {
 									hide_input_cards();
@@ -1487,6 +1507,44 @@
 								}
 						
 								if(!count) {
+									notify("nothing selected")
+								}
+							}
+						
+							async function tag_selected() {
+								document.getElementById("card-tag-selected").style.display = "none";
+								var count = 0;
+						
+								for(var f=0; f<explorer_files.length; ++f) {
+									if(document.getElementById('checkbox-' + f).checked) {
+										document.getElementById('checkbox-' + f).checked = false;
+										++count;
+										tags_json["tags"][document.getElementById("select-tag-to-apply").value].push(bwd + "/" + explorer_files[f][1]);
+									}
+								}
+						
+								if(count) {
+									const date = new Date().getTime().toString();
+							        const formData = new FormData();
+							        formData.append("date", date);
+							        formData.append("path", home + "/.cloudfort/tags.json");
+							        formData.append("content", JSON.stringify(tags_json, null, "\t"));
+						
+							        response = await fetch("/api/file/write", {
+							            method: "POST",
+							            headers: {
+							                //"content-type": "application/json"
+							                "signature": signature(date)
+							            },
+							            body: formData
+							        });
+							        result = await response.text();
+						
+							        if(result != "") {
+							            notify(result);
+							        }
+								} 
+								else {
 									notify("nothing selected")
 								}
 							}
@@ -2149,7 +2207,8 @@
 								if(dir != bwd) {
 									if(hist_c+1 < bwd_hist.length) {
 										for(var i=hist_c; i<bwd_hist.length; ++i) {
-											explorer_hist_select.remove(i+1);
+											//explorer_hist_select.remove(i+1);
+											explorer_hist_select.remove(hist_c+1);
 											bwd_hist.pop();
 										}
 									}
@@ -2278,7 +2337,7 @@
 									var par = bwd.substring(0, bwd.lastIndexOf("/"));
 									row.insertCell(0).innerHTML = "<input type='checkbox' id='checkbox-parent' disabled style='vertical-align: middle;'>";
 									row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-folder'></i>";
-									row.insertCell(2).innerHTML = "<a href='#' onclick='get_dir(\"" + par + "\")'>../</a>";
+									row.insertCell(2).innerHTML = "<a onclick='get_dir(\"" + par + "\")'>../</a>";
 									row.insertCell(3);
 									row.insertCell(4);
 								}
@@ -2427,6 +2486,9 @@
 						    document.getElementById("input-search-max-size").value = 100;
 						
 						    async function search_select_all_event() {
+						        if(search_files == undefined)
+						            return;
+						        
 						        for(var f=0; f<search_files.length; ++f) {
 						            document.getElementById('search-checkbox-' + f).checked = document.getElementById('search-checkbox-all').checked;
 						        }
@@ -2908,6 +2970,462 @@
 						            document.getElementById("input-search-term").blur();
 						            //document.activeElement.blur();
 						        }
+						    }
+						</script>
+					</div>
+				</div>
+
+				<div id="tags-div" class="main-div" style="display: none">
+					<div class="main-page">
+						<div id="dash-breadcrumb">
+						    <a onclick="show('index')">dash</a>/tags
+						</div>
+						
+						<select id="select-tags" class="noselect" onchange="fetch_tag()" style="margin: 0.25em 0 0; width: 300px; max-width: 90%">
+						</select><br>
+						
+						<div class="card border" style="max-width: 90%; margin-bottom: 0.5em;">
+						    <table id="table-tag" style="white-space: nowrap">
+						        <tr>
+						            <th><input type='checkbox' id='tag-checkbox-all' onchange='tag_select_all_event()' style='vertical-align: middle;'></th>
+						            <th></th>
+						            <th onclick='tags_toggle_sort(1)' style="margin-right:100px; cursor: pointer;">path</th>
+						            <th onclick='tags_toggle_sort(2)' style="cursor: pointer;">size</th>
+						            <th onclick='tags_toggle_sort(3)' style="cursor: pointer;">modified</th>
+						        </tr>
+						    </table>
+						</div>
+						
+						<div style="overflow-x: scroll; white-space: nowrap;">
+						    <button class="btn" onclick="show_add_tag_popup()">add</button>
+						    <button class="btn" onclick="edit_file(home + '/.cloudfort/tags.json')">edit</button>
+						    <button class="btn" onclick="refresh_tags()">refresh</button>
+						</div>
+						
+						<div id="tags-add-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
+						    <input style="margin: 0.25em 0"
+						        id="input-new-tag-name"
+						        type="text"
+						        placeholder="tag" 
+						    >
+						    <button class="btn" onclick="document.getElementById('tags-add-popup').style.display = 'none'">cancel</button>
+						    <button class="btn" onclick="add_tag()">add</button>
+						</div>
+						
+						<div id="tag-img-popup">
+						    <div id="tag-img-popup-cross" >
+						        <i id="close-tag-img-popup-icon" class="fa fa-xmark" onclick="document.getElementById('tag-img-popup').style.display = 'none'"></i>
+						    </div>
+						
+						    <div id="div-tag-img" style="position: relative; height: 90%">
+						        <img id="img-tag" class="vcenter" style="min-width: 200px; max-height: 80vh;">
+						    </div>
+						
+						    <div id="div-tag-img-download-btn">
+						        <a id="tag-img-download-btn"><i title="download" class='bs-ico bootstrap-download ico-primary-red'></i></a>
+						    </div>
+						</div>
+						
+						<div id="tag-video-popup">
+						    <div id="tag-video-popup-cross" >
+						        <i id="close-tag-video-popup-icon" class="fa fa-xmark" onclick="document.getElementById('tag-video-popup').style.display = 'none'"></i>
+						    </div>
+						
+						    <video id="video-tag" controls loop playsinline style="width: 100%; height: 93%"><source id="tag-video-source" type="video/mp4"></video><br>
+						
+						    <div id="div-tag-video-download-btn">
+						        <a id="tag-video-download-btn"><i title="download" class='bs-ico bootstrap-download ico-primary-red'></i></a>
+						    </div>
+						</div>
+						
+						<style>
+						    #table-tag {
+						        margin: 0 auto; 
+						        text-align: left;
+						
+						        display: block;
+						        overflow-x: scroll;
+						        max-height: calc(100vh - 10em);
+						        overflow-y: scroll;
+						    }
+						
+						    #select-tags {
+						        background: var(--secondary-dark);
+						        border: 1px solid var(--light-black);
+						        color: var(--white);
+						        font-family: "ubuntu mono";
+						    }
+						
+						    #tag-img-popup-cross, #tag-video-popup-cross {
+						        position: absolute;
+						        top: 1em;
+						        left: 1em;
+						        text-align: center;
+						        z-index: 99;
+						    }
+						
+						    #div-tag-img-download-btn, #div-tag-video-download-btn {
+						        position: absolute;
+						        top: 1em;
+						        right: 1em;
+						        text-align: center;
+						        z-index: 99;
+						    }
+						
+						    #close-tag-img-popup-icon, #close-tag-video-popup-icon {
+						        width: 1.5em;
+						        height: 1.5em;
+						        padding-top: 0em;
+						        filter: var(--filter-primary-red);
+						    }
+						
+						    #close-tag-img-popup-icon:hover, #close-tag-video-popup-icon:hover {
+						        filter: var(--filter-neon-orange);
+						    }
+						
+						    #tag-img-popup, #tag-video-popup {
+						        background: var(--secondary-dark);
+						        display: none;
+						        position: fixed; 
+						        left: 0;
+						        top: 0;
+						        overflow-y: hidden;
+						        padding-top: 4em;
+						        text-align: center;
+						        width: 100%;
+						        height: 100%;
+						        max-height: 100%;
+						
+						        z-index: 10;
+						    }
+						</style>
+						
+						<script>
+						    const tag_table = document.getElementById("table-tag");
+						    var tag_files, tags_json, tags;
+						    var tag_file_no;
+						
+						    var tag_search_sort_indx = 1;
+						    var tag_search_sort_dir = 1;
+						
+						    async function clear_tag_table() {
+						        while(tag_table.rows.length > 1)
+						            tag_table.deleteRow(1);
+						    }
+						
+						    function tags_sort_data()
+						    {
+						        if(tag_search_sort_indx == 1 || tag_search_sort_indx == 3)
+						        {
+						            tag_files.sort(function(obj1, obj2) {
+						                if(obj1[tag_search_sort_indx].toLowerCase() > obj2[tag_search_sort_indx].toLowerCase())
+						                    return tag_search_sort_dir*1;
+						                else if(obj1[tag_search_sort_indx] == obj2[tag_search_sort_indx])
+						                    return 0;
+						                else return tag_search_sort_dir*-1;
+						            });
+						        }
+						        else
+						        {
+						            tag_files.sort(function(obj1, obj2) {
+						                return tag_search_sort_dir*(obj1[tag_search_sort_indx] - obj2[tag_search_sort_indx]);
+						            });
+						        }
+						    }
+						
+						    function tags_toggle_sort(indx)
+						    {
+						        if(tag_search_sort_indx == indx)
+						            tag_search_sort_dir *= -1;
+						        else
+						        {
+						            tag_search_sort_indx = indx;
+						            tag_search_sort_dir = 1;
+						        }
+						
+						        fetch_tag();
+						    }
+						
+						    async function show_add_tag_popup() {
+						        document.getElementById("input-new-tag-name").value = "";
+						        document.getElementById("tags-add-popup").style.display = "block";
+						        document.getElementById("input-new-tag-name").focus();
+						    }
+						
+						    async function refresh_tags() {
+						        var val = document.getElementById("select-tags").value;
+						
+						        for(var i=0; i<tags.length; ++i) {
+						            document.getElementById("select-tags").remove(0);
+						            document.getElementById("select-tag-to-apply").remove(0);
+						        }
+						
+						        await fetch_tags();
+						        document.getElementById("select-tags").value = val;
+						        await fetch_tag();
+						    }
+						
+						    async function add_tag() {
+						        document.getElementById("tags-add-popup").style.display = "none";
+						        tags_json["tags"][document.getElementById("input-new-tag-name").value] = [];
+						
+						        const date = new Date().getTime().toString();
+						        const formData = new FormData();
+						        formData.append("date", date);
+						        formData.append("path", home + "/.cloudfort/tags.json");
+						        formData.append("content", JSON.stringify(tags_json, null, "\t"));
+						
+						        response = await fetch("/api/file/write", {
+						            method: "POST",
+						            headers: {
+						                //"content-type": "application/json"
+						                "signature": signature(date)
+						            },
+						            body: formData
+						        });
+						        result = await response.text();
+						
+						        if(result != "") {
+						            notify(result);
+						        }
+						
+						        refresh_tags();
+						    }
+						
+						    async function fetch_tags() {
+						        const date = new Date().getTime().toString();
+						        const formData = new FormData();
+						        formData.append("date", date);
+						        formData.append("path", home + "/.cloudfort/tags.json");
+						
+						        response = await fetch("/api/file/read", {
+						            method: "POST",
+						            headers: {
+						                //"content-type": "application/json"
+						                "signature": signature(date)
+						            },
+						            body: formData
+						        });
+						        result = await response.json();
+						
+						        tags_json = result;
+						        tags = Object.keys(result["tags"]);
+						
+						        for(var i=0; i<tags.length; ++i) {
+						            var opt = document.createElement('option');
+						            opt.value = opt.innerHTML = tags[i];
+						            document.getElementById("select-tags").appendChild(opt);
+						            opt = document.createElement('option');
+						            opt.value = opt.innerHTML = tags[i];
+						            document.getElementById("select-tag-to-apply").appendChild(opt);
+						        }
+						        document.getElementById("select-tag-to-apply").value = tags[0];
+						    }
+						
+						    async function fetch_tag() {
+						        clear_tag_table();
+						
+						        var tag = document.getElementById("select-tags").value;
+						
+						        const date = new Date().getTime().toString();
+						        const formData = new FormData();
+						        formData.append("date", date);
+						        formData.append("no-paths", tags_json["tags"][tag].length);
+						        for(var i=0; i<tags_json["tags"][tag].length; ++i)
+						            formData.append("path-" + i, tags_json["tags"][tag][i]);
+						        response = await fetch("/api/files/info", {
+						            method: "POST",
+						            headers: {
+						                //"content-type": "application/json"
+						                "signature": signature(date)
+						            },
+						            body: formData
+						        });
+						        result = await response.json();
+						        tag_files = result["files"];
+						
+						        //sorts files
+						        tags_sort_data();
+						
+						        for(var f=result["files"].length-1; f>=0; --f) {
+						            var row = tag_table.insertRow(1);
+						
+						            var ext = result["files"][f][1].substring(result["files"][f][1].lastIndexOf('.'), result["files"][f][1].length).toLowerCase();
+						
+						            row.insertCell(0).innerHTML = "<input type='checkbox' id='checkbox-" + f + "' style='vertical-align: middle;'>"
+						
+						            if(result["files"][f][0])
+						                row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-folder no-hover-ico' style='padding-top: 3px'></i>";
+						            else {
+						                if(is_img_ext(ext))
+						                    row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-file-earmark-image no-hover-ico' style='padding-top: 3px'></i>";
+						                else if(is_video_ext(ext))
+						                    row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-film no-hover-ico' style='padding-top: 3px'></i>";
+						                else if(is_archive_ext(ext))
+						                    row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-file-zip no-hover-ico' style='padding-top: 3px'></i>";
+						                else
+						                    row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-file-earmark no-hover-ico' style='padding-top: 3px'></i>";
+						            }
+						
+						            if(result["files"][f][0]) {
+						                row.insertCell(2).innerHTML = "<a onclick='explore(\"" + result["files"][f][1].substring(0, result["files"][f][1].length-1) +  "\")'>" + result["files"][f][1] + "/</a>";
+						            }
+						            else {
+						                var dir = result["files"][f][1].substring(0, result["files"][f][1].lastIndexOf('/')+1);
+						                var file = result["files"][f][1].substring(result["files"][f][1].lastIndexOf('/')+1, result["files"][f][1].length);
+						
+						                if(is_img_ext(ext))
+						                    row.insertCell(2).innerHTML = "<a onclick='explore(\"" + dir.substring(0, dir.length-1) +  "\")'>" + dir + "</a><a onclick='tag_serve_image(" + f + ")'>" + file + "</a>";
+						                else if(is_video_ext(ext))
+						                    row.insertCell(2).innerHTML = "<a onclick='explore(\"" + dir.substring(0, dir.length-1) +  "\")'>" + dir + "</a><a onclick='tag_serve_video(" + f + ")'>" + file + "</a>";
+						                else if(is_archive_ext(ext))
+						                    row.insertCell(2).innerHTML = "<a onclick='explore(\"" + dir.substring(0, dir.length-1) +  "\")'>" + dir + "</a><a onclick='extract_path(\"" + result["files"][f][1] +  "\")'>" + result["files"][f][1] + "</a>";
+						                else
+						                    row.insertCell(2).innerHTML = "<a onclick='explore(\"" + dir.substring(0, dir.length-1) +  "\")'>" + dir + "</a><a onclick='edit_file(\"" + result["files"][f][1] +  "\")'>" + file + "</a>";
+						                //else
+						                    //row.insertCell(2).innerHTML = result["files"][f][1];
+						            }
+						
+						            if(result["files"][f][2] < 1000)
+						                row.insertCell(3).innerHTML = result["files"][f][2] + "b";
+						            else if(result["files"][f][2] < 1000000)
+						                row.insertCell(3).innerHTML = (result["files"][f][2]/1000).toFixed(2) + "kb";
+						            else
+						                row.insertCell(3).innerHTML = (result["files"][f][2]/1000000).toFixed(2) + "mb";
+						
+						            row.insertCell(4).innerHTML = result["files"][f][3];
+						        }
+						    }
+						
+						    async function tag_serve_image(f) {
+						        const date = new Date().getTime().toString();
+						        const formData = new FormData();
+						        formData.append("date", date);
+						        formData.append("path", tag_files[f][1]);
+						
+						        response = await fetch("/api/download", {
+						            method: "POST",
+						            headers: {
+						                //"content-type": "application/json"
+						                "signature": signature(date)
+						            },
+						            body: formData
+						        });
+						        var blob = await response.blob();
+						
+						        var file = window.URL.createObjectURL(blob);
+						        //window.location.assign(file);
+						
+						        document.getElementById("tag-img-download-btn").href = file;
+						        document.getElementById("tag-img-download-btn").download = tag_files[f][1];
+						        tag_file_no = f;
+						
+						        document.getElementById('img-tag').src = file;
+						        document.getElementById('img-tag').title = tag_files[f][1];
+						        document.getElementById('tag-img-popup').style.display = "block";
+						    }
+						
+						    async function tag_serve_image_increment() {
+						        var f = tag_file_no;
+						        f = (f+1)%tag_files.length;
+						        while(f != tag_file_no) {
+						            var ext = tag_files[f][1].substring(tag_files[f][1].indexOf('.'), tag_files[f][1].length);
+						            if(is_img_ext(ext)) {
+						                tag_serve_image(f);
+						                break;
+						            }
+						            f = (f+1)%tag_files.length;
+						        }
+						    }
+						
+						    async function tag_serve_image_decrement() {
+						        var f = tag_file_no;
+						        f--;
+						        if(f < 0)
+						            f = tag_files.length-1;
+						        while(f != tag_file_no) {
+						            var ext = tag_files[f][1].substring(tag_files[f][1].indexOf('.'), tag_files[f][1].length);
+						            if(is_img_ext(ext)) {
+						                tag_serve_image(f);
+						                break;
+						            }
+						            f--;
+						            if(f < 0)
+						                f = tag_files.length-1;
+						        }
+						    }
+						
+						    async function tag_serve_video(f) {
+						        const date = new Date().getTime().toString();
+						        const formData = new FormData();
+						        formData.append("date", date);
+						        formData.append("path", tag_files[f][1]);
+						
+						        response = await fetch("/api/download", {
+						            method: "POST",
+						            headers: {
+						                //"content-type": "application/json"
+						                "signature": signature(date)
+						            },
+						            body: formData
+						        });
+						        var blob = await response.blob();
+						
+						        var file = window.URL.createObjectURL(blob);
+						        //window.location.assign(file);
+						
+						        document.getElementById('tag-video-popup').style.display = "block";
+						
+						        var ext = tag_files[f][1].substring(tag_files[f][1].indexOf('.'), tag_files[f][1].length);
+						        if(ext == ".mp4")
+						            document.getElementById('tag-video-source').type = "video/mp4";
+						        else if(ext == ".ogg")
+						            document.getElementById('tag-video-source').type = "video/ogg";
+						        else if(ext == ".webm")
+						            document.getElementById('tag-video-source').type = "video/webm";
+						        document.getElementById('video-tag').src = file;
+						        document.getElementById('video-tag').title = tag_files[f][1];
+						        document.getElementById('video-tag').play();
+						
+						        document.getElementById("tag-video-download-btn").href = file;
+						        document.getElementById("tag-video-download-btn").download = tag_files[f][1];
+						        tag_file_no = f;
+						    }
+						
+						    async function tag_serve_video_increment() {
+						        var f = tag_file_no;
+						        f = (f+1)%tag_files.length;
+						        while(f != tag_file_no) {
+						            var ext = tag_files[f][1].substring(tag_files[f][1].indexOf('.'), tag_files[f][1].length);
+						            if(is_video_ext(ext)) {
+						                tag_serve_video(f);
+						                break;
+						            }
+						
+						            f = (f+1)%tag_files.length;
+						        }
+						    }
+						
+						    async function tag_serve_video_decrement() {
+						        var f = tag_file_no;
+						        f--;
+						        if(f < 0)
+						            f = tag_files.length-1;
+						        while(f != tag_file_no) {
+						            var ext = tag_files[f][1].substring(tag_files[f][1].indexOf('.'), tag_files[f][1].length);
+						            if(is_video_ext(ext)) {
+						                tag_serve_video(f);
+						                break;
+						            }
+						
+						            f--;
+						            if(f < 0)
+						                f = tag_files.length-1;
+						        }
+						    }
+						
+						    async function tags_init() {
+						        fetch_tags();
 						    }
 						</script>
 					</div>
@@ -4691,6 +5209,272 @@
 					</div>
 				</div>
 
+				<div id="snapcraft-div" class="main-div" style="display: none">
+					<div class="main-page">
+						<div id="dash-breadcrumb">
+						    <a onclick="show('index')">dash</a>/snapcraft
+						</div>
+						
+						<h1 style="margin: 0.5em 0">Snapcraft</h1>
+						
+						<div style="margin: 1em 0">
+						    <div class="card border-hover" onclick="show('snap-installed')" style="cursor: pointer; width: 10em">
+						        <i class="bs-ico icon-snapcraft width-5em card-hover-filter"></i><br>
+						        <hr>
+						        <h2 class="card-hover-color">installed</h2>
+						    </div>
+						
+						    <div class="card border-hover" onclick="show('snap-search')" style="cursor: pointer; width: 10em">
+						        <i class="bs-ico bootstrap-search width-5em card-hover-filter"></i><br>
+						        <hr>
+						        <h2 class="card-hover-color">search</h2>
+						    </div>
+						</div>
+					</div>
+				</div>
+
+				<div id="snap-installed-div" class="main-div" style="display: none">
+					<div class="main-page">
+						<div id="dash-breadcrumb">
+						    <a onclick="show('index')">dash</a>/<a onclick="show('snapcraft')">snapcraft</a>/installed
+						</div>
+						
+						<div id="textarea-installed" spellcheck="false"></div>
+						
+						<button class="btn" onclick="document.getElementById('remove-installed-popup').style.display = 'block'; document.getElementById('input-remove-installed').focus()">remove</button>
+						
+						<div id="remove-installed-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
+						    <input style="margin: 0.25em 0"
+						        id="input-remove-installed"
+						        type="text"
+						        placeholder="name" 
+						    >
+						    <button class="btn" onclick="document.getElementById('remove-installed-popup').style.display = 'none'">cancel</button>
+						    <button class="btn" onclick="remove_installed()">remove</button>
+						</div>
+						
+						<script>
+						    const installed_ta = document.getElementById("textarea-installed");
+						
+						    async function fetch_installed() {
+						        const date = new Date().getTime().toString();
+						        const formData = new FormData();
+						        formData.append("date", date);
+						        formData.append("command", "snap list")
+						    
+						        let response = await fetch("/api/run", {
+						            method: "POST",
+						            headers: {
+						                //"content-type": "application/json"
+						                "signature": signature(date)
+						            },
+						            body: formData
+						        });
+						        let result = await response.text();
+						
+						        installed_ta.innerHTML = result.replaceAll("**", "<span style='color: var(--sherb-blue)'>✓</span>").replaceAll("*", "<span style='color: var(--neon-orange)'>✪</span>");
+						    }
+						
+						    async function remove_installed() {
+						        document.getElementById("remove-installed-popup").style.display = "none";
+						
+						        waiting_popup("removing " + document.getElementById("input-remove-installed").value);
+						
+						        const date = new Date().getTime().toString();
+						        const formData = new FormData();
+						        formData.append("date", date);
+						        formData.append("command", "sudo snap remove " + document.getElementById("input-remove-installed").value);
+						    
+						        let response = await fetch("/api/run", {
+						            method: "POST",
+						            headers: {
+						                //"content-type": "application/json"
+						                "signature": signature(date)
+						            },
+						            body: formData
+						        });
+						        let result = await response.text();
+						
+						        resolve_waiting_popup();
+						        fetch_installed();
+						        notify(result);
+						    }
+						</script>
+						
+						<style>
+						    #textarea-installed {
+						        background: var(--secondary-dark);
+						        border: 1px solid var(--light-black);
+						        color: var(--white);
+						        height: calc(100vh - 7.5em); 
+						        width: 100%;
+						        font-family: "ubuntu mono";
+						        font-size: 0.9em;
+						        overflow-x: scroll;
+						        padding: 0.25em 0.25em;
+						        margin: 0.25em 0;
+						        resize: none;
+						        text-align: left;
+						        white-space: pre;
+						    }
+						</style>
+					</div>
+				</div>
+
+				<div id="snap-search-div" class="main-div" style="display: none">
+					<div class="main-page">
+						<div id="dash-breadcrumb">
+						    <a onclick="show('index')">dash</a>/<a onclick="show('snapcraft')">snapcraft</a>/search
+						</div>
+						
+						<div class="card border">
+						    <img src="../../assets/images/snapcraft.svg" style="width: 5em"><br>
+						    <input id="input-search-snaps" placeholder="term" autocomplete="off" onkeydown="snapcraft_keypress(event)" style="width: 250px; max-width: 100%; margin: 0.1em 0"><br>
+						    <button class="btn" onclick="search_snaps()">search</button>
+						</div><br>
+						
+						<div class="card border" style="max-width: 90%; margin-bottom: 0.5em;">
+						    <table id="table-snapcraft" style="white-space: nowrap">
+						        <tr>
+						            <th><input type='checkbox' id='snap-checkbox-all' onchange='snap_select_all_event()' style='vertical-align: middle;'></th>
+						            <th onclick='snapcraft_toggle_sort(1)' style="margin-right:100px; cursor: pointer;">name</th>
+						            <th onclick='snapcraft_toggle_sort(2)' style="cursor: pointer;">version</th>
+						            <th onclick='snapcraft_toggle_sort(3)' style="cursor: pointer;">publisher</th>
+						        </tr>
+						    </table>
+						</div><br>
+						
+						<button class="btn" onclick="install_selected()">install</button>
+						
+						<style>
+						    #table-snapcraft {
+						        margin: 0 auto; 
+						        text-align: left;
+						
+						        display: block;
+						        overflow-x: scroll;
+						        max-height: calc(100vh - 19.5em);
+						        overflow-y: scroll;
+						    }
+						</style>
+						
+						<script>
+						    const snap_search_table = document.getElementById("table-snapcraft");
+						    var snaps;
+						    var snap_search_file_no;
+						
+						    var snap_search_sort_indx = 1;
+						    var snap_search_sort_dir = 1;
+						
+						    async function clear_snap_search_table() {
+						        while(snap_search_table.rows.length > 1)
+						            snap_search_table.deleteRow(1);
+						    }
+						
+						    async function snap_select_all_event() {
+						        if(snaps == undefined)
+						            return;
+						        
+						        for(var i=0; i<snaps.length; ++i) {
+						            if(snaps[i] != "") {
+						                document.getElementById('snap-checkbox-' + i).checked = document.getElementById('snap-checkbox-all').checked;
+						            }
+						        }
+						    }
+						
+						    async function install_selected() {
+						        for(var i=0; i<snaps.length; ++i) {
+						            if(snaps[i] != "" && document.getElementById('snap-checkbox-' + i).checked) {
+						                var snap_info = snaps[i].replace(/\s+/g, ' ').split(" ");
+						                waiting_popup("installing " + snap_info[0]);
+						
+						                const date = new Date().getTime().toString();
+						                const formData = new FormData();
+						                formData.append("date", date);
+						                if(snap_info[3] == "classic")
+						                    formData.append("command", "sudo snap install " + snap_info[0] + " --classic");
+						                else
+						                    formData.append("command", "sudo snap install " + snap_info[0]);
+						
+						                response = await fetch("/api/run", {
+						                    method: "POST",
+						                    headers: {
+						                        //"content-type": "application/json"
+						                        "signature": signature(date)
+						                    },
+						                    body: formData
+						                });
+						                result = await response.text();
+						
+						                document.getElementById('snap-checkbox-' + i).checked = false;
+						                resolve_waiting_popup();
+						
+						                if(result.search("installed") == -1) {
+						                    await mono_notify(result);
+						                }
+						            }
+						        }
+						    }
+						
+						    async function search_snaps() {
+						        if(document.getElementById("input-search-snaps").value == "") {
+						            notify("please enter a search term");
+						            return;
+						        }
+						
+						        waiting_popup("searching");
+						        clear_snap_search_table();
+						
+						        const date = new Date().getTime().toString();
+						        const formData = new FormData();
+						        formData.append("date", date);
+						        formData.append("command", "snap find " + document.getElementById("input-search-snaps").value + " | tail -n +2");
+						
+						        response = await fetch("/api/run", {
+						            method: "POST",
+						            headers: {
+						                //"content-type": "application/json"
+						                "signature": signature(date)
+						            },
+						            body: formData
+						        });
+						        result = await response.text();
+						
+						        snaps = result.split("\n");
+						
+						        for(var i=0; i<snaps.length; ++i) {
+						            if(snaps[i] != "") {
+						                var snap_info = snaps[i].replace(/\s+/g, ' ').split(" ");
+						                var row = snap_search_table.insertRow(i+1);
+						
+						                row.insertCell(0).innerHTML = "<input type='checkbox' id='snap-checkbox-" + i + "' style='vertical-align: middle;'>"
+						
+						                row.insertCell(1).innerHTML = "<a href='https://snapcraft.io/" + snap_info[0] + "' target='_blank'>" + snap_info[0] + "</a>";
+						                row.insertCell(2).innerHTML = snap_info[1];
+						                row.insertCell(3).innerHTML = snap_info[2].replaceAll("**", "<span style='color: var(--sherb-blue)'>✓</span>").replaceAll("*", "<span style='color: var(--neon-orange)'>✪</span>");
+						            }
+						        }
+						
+						        
+						
+						
+						        resolve_waiting_popup();
+						    }
+						
+						    async function snapcraft_keypress(e) {
+						        var name = e.key;
+						        var code = e.code;
+						
+						        if(name == 'Enter' || code == 'Enter') {
+						            e.preventDefault();
+						            search_snaps();
+						            document.getElementById("input-search-snaps").blur();
+						        }
+						    }
+						</script>
+					</div>
+				</div>
+
 				<div id="ssh-div" class="main-div" style="display: none">
 					<div class="main-page">
 						<div id="dash-breadcrumb">
@@ -5167,6 +5951,7 @@
 				document.getElementById("terminal-div").style.display = "none";
 				document.getElementById("explorer-div").style.display = "none";
 				document.getElementById("search-div").style.display = "none";
+				document.getElementById("tags-div").style.display = "none";
 				document.getElementById("editor-div").style.display = "none";
 				document.getElementById("tools-div").style.display = "none";
 				document.getElementById("administration-div").style.display = "none";
@@ -5179,6 +5964,9 @@
 				document.getElementById("firewall-div").style.display = "none";
 				document.getElementById("repos-div").style.display = "none";
 				document.getElementById("services-div").style.display = "none";
+				document.getElementById("snapcraft-div").style.display = "none";
+				document.getElementById("snap-installed-div").style.display = "none";
+				document.getElementById("snap-search-div").style.display = "none";
 				document.getElementById("ssh-div").style.display = "none";
 				document.getElementById("users-div").style.display = "none";
 
@@ -5196,12 +5984,16 @@
 					fetch_services();
 				else if(name == "users")
 					fetch_users();
+				else if(name == "snap-installed")
+					fetch_installed();
 				else if(name == "explorer")
 					get_dir(bwd);
 				else if(name == "monitor")
 					fetch_top();
 				else if(name == "search")
 					document.getElementById("input-search-term").focus();
+				else if(name == "tags")
+					fetch_tag();
 				else if(name == "terminal")
 					document.getElementById("input-terminal").focus();
 			}
@@ -5333,6 +6125,7 @@
 				await explorer_init();
 				await monitor_init();
 				await terminal_init();
+				await tags_init();
 				await certs_init();
 				await firewall_init();
 
@@ -5402,6 +6195,14 @@
 						e.preventDefault();
 						serve_video_increment();
 					}
+					else if(document.getElementById("tag-img-popup").style.display == "block") {
+						e.preventDefault();
+						tag_serve_image_increment();
+					}
+					else if(document.getElementById("tag-video-popup").style.display == "block") {
+						e.preventDefault();
+						tag_serve_video_increment();
+					}
 				}
 				else if(e.key == 'ArrowLeft' || e.code == 'ArrowLeft') {
 					if(document.getElementById("search-img-popup").style.display == "block") {
@@ -5419,6 +6220,14 @@
 					else if(document.getElementById("serve-video-popup").style.display == "block") {
 						e.preventDefault();
 						serve_video_decrement();
+					}
+					else if(document.getElementById("tag-img-popup").style.display == "block") {
+						e.preventDefault();
+						tag_serve_image_decrement();
+					}
+					else if(document.getElementById("tag-video-popup").style.display == "block") {
+						e.preventDefault();
+						tag_serve_video_decrement();
 					}
 				}
 			}

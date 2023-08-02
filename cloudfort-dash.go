@@ -29,7 +29,7 @@ var domain string
 var home string
 var port string
 var password []byte
-var version = "v0.1.32"
+var version = "v0.1.33"
 
 var upgrader = websocket.Upgrader{}
 
@@ -495,6 +495,38 @@ func routeLocate(w http.ResponseWriter, req *http.Request) {
                 json += "\"" + file.ModTime().Format("2006-01-02 15:04:05") + "\""
                 json += "]"
             }
+        }
+    }
+    json += "]}\n"
+
+    json = strings.ReplaceAll(json, "\\x2d", "\x2d")
+
+    w.Header().Set("Content-Type", "text/plain")
+    w.Write([]byte(json))
+}
+
+func routeFilesInfo(w http.ResponseWriter, req *http.Request) {
+    if(!hasValidSignature(&w, req)) {
+        return
+    }
+
+    json := "{\"files\": ["
+
+    no_paths, _ := strconv.Atoi(req.PostFormValue("no-paths"))
+    for i:=0; i<no_paths; i++ {
+        file, err := os.Stat(req.PostFormValue("path-" + strconv.Itoa(i)))
+
+        if err == nil {
+            if(i > 0) {
+                json += ", "
+            }
+
+            json += "["
+            json += strconv.FormatBool(file.IsDir()) + ", "
+            json += "\"" + req.PostFormValue("path-" + strconv.Itoa(i)) + "\", "
+            json += "\"" + strconv.Itoa(int(file.Size())) + "\", "
+            json += "\"" + file.ModTime().Format("2006-01-02 15:04:05") + "\""
+            json += "]"
         }
     }
     json += "]}\n"
@@ -985,6 +1017,25 @@ func createReposConfig() {
     }
 }
 
+func createTagsConfig() {
+    if(!fileExists(home + "/.cloudfort/")) {
+        err := os.Mkdir(home + "/.cloudfort/", 0755)
+        if(err != nil) {
+            log.Fatal(err)
+        } 
+    }
+
+    err := os.WriteFile(home + "/.cloudfort/tags.json", []byte(
+`{
+    "tags": {
+    }
+}`), 0644);
+
+    if(err != nil) {
+        log.Fatal(err)
+    }
+}
+
 func main() {
     cmd := os.Args[1]
 
@@ -996,6 +1047,7 @@ func main() {
         mux.HandleFunc("/api/file/create", routeFileCreate)
         mux.HandleFunc("/api/file/read",   routeFileRead)
         mux.HandleFunc("/api/file/write",  routeFileWrite)
+        mux.HandleFunc("/api/files/info",  routeFilesInfo)
         mux.HandleFunc("/api/home",        routeHome)
         mux.HandleFunc("/api/rename",      routeRename)
         mux.HandleFunc("/api/mv",          routeMv)
@@ -1032,6 +1084,10 @@ func main() {
 
         if(!fileExists(home + "/.cloudfort/repositories.json")) {
             createReposConfig()
+        }
+
+        if(!fileExists(home + "/.cloudfort/tags.json")) {
+            createTagsConfig()
         }
 
         config_bytes, _ := os.ReadFile(home + "/.cloudfort/config.json");

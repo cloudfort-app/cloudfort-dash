@@ -1,0 +1,149 @@
+<div id="dash-breadcrumb">
+    <a onclick="show('index')">dash</a>/<a onclick="show('snapcraft')">snapcraft</a>/search
+</div>
+
+<div class="card border">
+    <img src="@pathtofile(public/assets/images/snapcraft.svg)" style="width: 5em"><br>
+    <input id="input-search-snaps" placeholder="term" autocomplete="off" onkeydown="snapcraft_keypress(event)" style="width: 250px; max-width: 100%; margin: 0.1em 0"><br>
+    <button class="btn" onclick="search_snaps()">search</button>
+</div><br>
+
+<div class="card border" style="max-width: 90%; margin-bottom: 0.5em;">
+    <table id="table-snapcraft" style="white-space: nowrap">
+        <tr>
+            <th><input type='checkbox' id='snap-checkbox-all' onchange='snap_select_all_event()' style='vertical-align: middle;'></th>
+            <th onclick='snapcraft_toggle_sort(1)' style="margin-right:100px; cursor: pointer;">name</th>
+            <th onclick='snapcraft_toggle_sort(2)' style="cursor: pointer;">version</th>
+            <th onclick='snapcraft_toggle_sort(3)' style="cursor: pointer;">publisher</th>
+        </tr>
+    </table>
+</div><br>
+
+<button class="btn" onclick="install_selected()">install</button>
+
+<style>
+    #table-snapcraft {
+        margin: 0 auto; 
+        text-align: left;
+
+        display: block;
+        overflow-x: scroll;
+        max-height: calc(100vh - 19.5em);
+        overflow-y: scroll;
+    }
+</style>
+
+<script>
+    const snap_search_table = document.getElementById("table-snapcraft");
+    var snaps;
+    var snap_search_file_no;
+
+    var snap_search_sort_indx = 1;
+    var snap_search_sort_dir = 1;
+
+    async function clear_snap_search_table() {
+        while(snap_search_table.rows.length > 1)
+            snap_search_table.deleteRow(1);
+    }
+
+    async function snap_select_all_event() {
+        if(snaps == undefined)
+            return;
+        
+        for(var i=0; i<snaps.length; ++i) {
+            if(snaps[i] != "") {
+                document.getElementById('snap-checkbox-' + i).checked = document.getElementById('snap-checkbox-all').checked;
+            }
+        }
+    }
+
+    async function install_selected() {
+        for(var i=0; i<snaps.length; ++i) {
+            if(snaps[i] != "" && document.getElementById('snap-checkbox-' + i).checked) {
+                var snap_info = snaps[i].replace(/\s+/g, ' ').split(" ");
+                waiting_popup("installing " + snap_info[0]);
+
+                const date = new Date().getTime().toString();
+                const formData = new FormData();
+                formData.append("date", date);
+                if(snap_info[3] == "classic")
+                    formData.append("command", "sudo snap install " + snap_info[0] + " --classic");
+                else
+                    formData.append("command", "sudo snap install " + snap_info[0]);
+
+                response = await fetch("/api/run", {
+                    method: "POST",
+                    headers: {
+                        //"content-type": "application/json"
+                        "signature": signature(date)
+                    },
+                    body: formData
+                });
+                result = await response.text();
+
+                document.getElementById('snap-checkbox-' + i).checked = false;
+                resolve_waiting_popup();
+
+                if(result.search("installed") == -1) {
+                    await mono_notify(result);
+                }
+            }
+        }
+    }
+
+    async function search_snaps() {
+        if(document.getElementById("input-search-snaps").value == "") {
+            notify("please enter a search term");
+            return;
+        }
+
+        waiting_popup("searching");
+        clear_snap_search_table();
+
+        const date = new Date().getTime().toString();
+        const formData = new FormData();
+        formData.append("date", date);
+        formData.append("command", "snap find " + document.getElementById("input-search-snaps").value + " | tail -n +2");
+
+        response = await fetch("/api/run", {
+            method: "POST",
+            headers: {
+                //"content-type": "application/json"
+                "signature": signature(date)
+            },
+            body: formData
+        });
+        result = await response.text();
+
+        snaps = result.split("\n");
+
+        for(var i=0; i<snaps.length; ++i) {
+            if(snaps[i] != "") {
+                var snap_info = snaps[i].replace(/\s+/g, ' ').split(" ");
+                var row = snap_search_table.insertRow(i+1);
+
+                row.insertCell(0).innerHTML = "<input type='checkbox' id='snap-checkbox-" + i + "' style='vertical-align: middle;'>"
+
+                row.insertCell(1).innerHTML = "<a href='https://snapcraft.io/" + snap_info[0] + "' target='_blank'>" + snap_info[0] + "</a>";
+                row.insertCell(2).innerHTML = snap_info[1];
+                row.insertCell(3).innerHTML = snap_info[2].replaceAll("**", "<span style='color: var(--sherb-blue)'>✓</span>").replaceAll("*", "<span style='color: var(--neon-orange)'>✪</span>");
+            }
+        }
+
+        
+
+
+        resolve_waiting_popup();
+    }
+
+    async function snapcraft_keypress(e) {
+        var name = e.key;
+        var code = e.code;
+
+        if(name == 'Enter' || code == 'Enter') {
+            e.preventDefault();
+            search_snaps();
+            document.getElementById("input-search-snaps").blur();
+        }
+    }
+</script>

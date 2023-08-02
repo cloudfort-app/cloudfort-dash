@@ -1,0 +1,83 @@
+<div id="dash-breadcrumb">
+    <a onclick="show('index')">dash</a>/<a onclick="show('snapcraft')">snapcraft</a>/installed
+</div>
+
+<div id="textarea-installed" spellcheck="false"></div>
+
+<button class="btn" onclick="document.getElementById('remove-installed-popup').style.display = 'block'; document.getElementById('input-remove-installed').focus()">remove</button>
+
+<div id="remove-installed-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
+    <input style="margin: 0.25em 0"
+        id="input-remove-installed"
+        type="text"
+        placeholder="name" 
+    >
+    <button class="btn" onclick="document.getElementById('remove-installed-popup').style.display = 'none'">cancel</button>
+    <button class="btn" onclick="remove_installed()">remove</button>
+</div>
+
+<script>
+    const installed_ta = document.getElementById("textarea-installed");
+
+    async function fetch_installed() {
+        const date = new Date().getTime().toString();
+        const formData = new FormData();
+        formData.append("date", date);
+        formData.append("command", "snap list")
+    
+        let response = await fetch("/api/run", {
+            method: "POST",
+            headers: {
+                //"content-type": "application/json"
+                "signature": signature(date)
+            },
+            body: formData
+        });
+        let result = await response.text();
+
+        installed_ta.innerHTML = result.replaceAll("**", "<span style='color: var(--sherb-blue)'>✓</span>").replaceAll("*", "<span style='color: var(--neon-orange)'>✪</span>");
+    }
+
+    async function remove_installed() {
+        document.getElementById("remove-installed-popup").style.display = "none";
+
+        waiting_popup("removing " + document.getElementById("input-remove-installed").value);
+
+        const date = new Date().getTime().toString();
+        const formData = new FormData();
+        formData.append("date", date);
+        formData.append("command", "sudo snap remove " + document.getElementById("input-remove-installed").value);
+    
+        let response = await fetch("/api/run", {
+            method: "POST",
+            headers: {
+                //"content-type": "application/json"
+                "signature": signature(date)
+            },
+            body: formData
+        });
+        let result = await response.text();
+
+        resolve_waiting_popup();
+        fetch_installed();
+        notify(result);
+    }
+</script>
+
+<style>
+    #textarea-installed {
+        background: var(--secondary-dark);
+        border: 1px solid var(--light-black);
+        color: var(--white);
+        height: calc(100vh - 7.5em); 
+        width: 100%;
+        font-family: "ubuntu mono";
+        font-size: 0.9em;
+        overflow-x: scroll;
+        padding: 0.25em 0.25em;
+        margin: 0.25em 0;
+        resize: none;
+        text-align: left;
+        white-space: pre;
+    }
+</style>

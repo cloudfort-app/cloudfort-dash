@@ -589,6 +589,9 @@ ul li {
 .bootstrap-slash:before {
   content: url("../icons/bootstrap-slash.svg"); 
 }
+.bootstrap-tag:before {
+  content: url("../icons/bootstrap-tag.svg"); 
+}
 .bootstrap-terminal:before {
   content: url("../icons/bootstrap-terminal.svg"); 
 }
@@ -608,6 +611,9 @@ ul li {
   content: url("../icons/bootstrap-x-square.svg"); 
 }
 
+.icon-snapcraft:before {
+  content: url("../icons/snapcraft.svg"); 
+}
 
 #menu-bars, #menu-cross {
   position: absolute;

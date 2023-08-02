@@ -19,6 +19,7 @@
 	<i title="explore" class='bs-ico bootstrap-folder ico-link-color' onclick="show_browse_dir(home)"></i> &nbsp;&nbsp;
 	<i title="new directory" class='bs-ico bootstrap-folder-plus ico-link-color' onclick="show_create_dir()"></i> &nbsp;&nbsp;
 	<i title="new file" class='bs-ico bootstrap-file-earmark-plus ico-link-color' onclick="show_create_file()"></i> &nbsp;&nbsp;
+	<i title="tag" class='bs-ico bootstrap-tag ico-link-color' onclick="show_tag_selected()"></i> &nbsp;&nbsp;
 	<i title="edit" class='bs-ico bootstrap-code-square ico-link-color' onclick="edit_selected_files()"></i> &nbsp;&nbsp;
 	<i title="open in terminal" class='bs-ico bootstrap-terminal ico-link-color' onclick="open_in_terminal()"></i> &nbsp;&nbsp;
 	<i title="run" class='bs-ico bootstrap-alt ico-link-color' onclick="show_run_cmd()"></i> &nbsp;&nbsp;
@@ -78,6 +79,12 @@
 <div id="card-run-cmd" class="card border" style="display: none">
 	<input id="input-explorer-cmd" placeholder="cmd" style="width: 400px; max-width: 90%">
 	<button class="btn" onclick="explorer_run_cmd()">run</button>
+</div>
+
+<div id="card-tag-selected" class="card border" style="display: none">
+	<select id="select-tag-to-apply" class="noselect" style="margin: 0.25em 0 0; width: 300px; max-width: 90%">
+	</select>
+	<button class="btn" onclick="tag_selected()">tag</button>
 </div>
 
 <div id="card-input-name" class="card border" style="display: none">
@@ -331,6 +338,16 @@
 		}
 	}
 
+	async function show_tag_selected() {
+		if(document.getElementById("card-tag-selected").style.display == "none") {
+			hide_input_cards();
+			document.getElementById("card-tag-selected").style.display = "block";
+		}
+		else {
+			hide_input_cards();
+		}
+	}
+
 	async function show_create_dir() {
 		if(document.getElementById("create_dir_button").style.display == "none") {
 			hide_input_cards();
@@ -479,6 +496,44 @@
 		}
 
 		if(!count) {
+			notify("nothing selected")
+		}
+	}
+
+	async function tag_selected() {
+		document.getElementById("card-tag-selected").style.display = "none";
+		var count = 0;
+
+		for(var f=0; f<explorer_files.length; ++f) {
+			if(document.getElementById('checkbox-' + f).checked) {
+				document.getElementById('checkbox-' + f).checked = false;
+				++count;
+				tags_json["tags"][document.getElementById("select-tag-to-apply").value].push(bwd + "/" + explorer_files[f][1]);
+			}
+		}
+
+		if(count) {
+			const date = new Date().getTime().toString();
+	        const formData = new FormData();
+	        formData.append("date", date);
+	        formData.append("path", home + "/.cloudfort/tags.json");
+	        formData.append("content", JSON.stringify(tags_json, null, "\t"));
+
+	        response = await fetch("/api/file/write", {
+	            method: "POST",
+	            headers: {
+	                //"content-type": "application/json"
+	                "signature": signature(date)
+	            },
+	            body: formData
+	        });
+	        result = await response.text();
+
+	        if(result != "") {
+	            notify(result);
+	        }
+		} 
+		else {
 			notify("nothing selected")
 		}
 	}
@@ -1141,7 +1196,8 @@
 		if(dir != bwd) {
 			if(hist_c+1 < bwd_hist.length) {
 				for(var i=hist_c; i<bwd_hist.length; ++i) {
-					explorer_hist_select.remove(i+1);
+					//explorer_hist_select.remove(i+1);
+					explorer_hist_select.remove(hist_c+1);
 					bwd_hist.pop();
 				}
 			}
@@ -1270,7 +1326,7 @@
 			var par = bwd.substring(0, bwd.lastIndexOf("/"));
 			row.insertCell(0).innerHTML = "<input type='checkbox' id='checkbox-parent' disabled style='vertical-align: middle;'>";
 			row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-folder'></i>";
-			row.insertCell(2).innerHTML = "<a href='#' onclick='get_dir(\"" + par + "\")'>../</a>";
+			row.insertCell(2).innerHTML = "<a onclick='get_dir(\"" + par + "\")'>../</a>";
 			row.insertCell(3);
 			row.insertCell(4);
 		}

@@ -1,0 +1,451 @@
+<div id="dash-breadcrumb">
+    <a onclick="show('index')">dash</a>/tags
+</div>
+
+<select id="select-tags" class="noselect" onchange="fetch_tag()" style="margin: 0.25em 0 0; width: 300px; max-width: 90%">
+</select><br>
+
+<div class="card border" style="max-width: 90%; margin-bottom: 0.5em;">
+    <table id="table-tag" style="white-space: nowrap">
+        <tr>
+            <th><input type='checkbox' id='tag-checkbox-all' onchange='tag_select_all_event()' style='vertical-align: middle;'></th>
+            <th></th>
+            <th onclick='tags_toggle_sort(1)' style="margin-right:100px; cursor: pointer;">path</th>
+            <th onclick='tags_toggle_sort(2)' style="cursor: pointer;">size</th>
+            <th onclick='tags_toggle_sort(3)' style="cursor: pointer;">modified</th>
+        </tr>
+    </table>
+</div>
+
+<div style="overflow-x: scroll; white-space: nowrap;">
+    <button class="btn" onclick="show_add_tag_popup()">add</button>
+    <button class="btn" onclick="edit_file(home + '/.cloudfort/tags.json')">edit</button>
+    <button class="btn" onclick="refresh_tags()">refresh</button>
+</div>
+
+<div id="tags-add-popup" class="card card-shadow-no-hover popup popup-dash popup-middle" style="width: 400px">
+    <input style="margin: 0.25em 0"
+        id="input-new-tag-name"
+        type="text"
+        placeholder="tag" 
+    >
+    <button class="btn" onclick="document.getElementById('tags-add-popup').style.display = 'none'">cancel</button>
+    <button class="btn" onclick="add_tag()">add</button>
+</div>
+
+<div id="tag-img-popup">
+    <div id="tag-img-popup-cross" >
+        <i id="close-tag-img-popup-icon" class="fa fa-xmark" onclick="document.getElementById('tag-img-popup').style.display = 'none'"></i>
+    </div>
+
+    <div id="div-tag-img" style="position: relative; height: 90%">
+        <img id="img-tag" class="vcenter" style="min-width: 200px; max-height: 80vh;">
+    </div>
+
+    <div id="div-tag-img-download-btn">
+        <a id="tag-img-download-btn"><i title="download" class='bs-ico bootstrap-download ico-primary-red'></i></a>
+    </div>
+</div>
+
+<div id="tag-video-popup">
+    <div id="tag-video-popup-cross" >
+        <i id="close-tag-video-popup-icon" class="fa fa-xmark" onclick="document.getElementById('tag-video-popup').style.display = 'none'"></i>
+    </div>
+
+    <video id="video-tag" controls loop playsinline style="width: 100%; height: 93%"><source id="tag-video-source" type="video/mp4"></video><br>
+
+    <div id="div-tag-video-download-btn">
+        <a id="tag-video-download-btn"><i title="download" class='bs-ico bootstrap-download ico-primary-red'></i></a>
+    </div>
+</div>
+
+<style>
+    #table-tag {
+        margin: 0 auto; 
+        text-align: left;
+
+        display: block;
+        overflow-x: scroll;
+        max-height: calc(100vh - 10em);
+        overflow-y: scroll;
+    }
+
+    #select-tags {
+        background: var(--secondary-dark);
+        border: 1px solid var(--light-black);
+        color: var(--white);
+        font-family: "ubuntu mono";
+    }
+
+    #tag-img-popup-cross, #tag-video-popup-cross {
+        position: absolute;
+        top: 1em;
+        left: 1em;
+        text-align: center;
+        z-index: 99;
+    }
+
+    #div-tag-img-download-btn, #div-tag-video-download-btn {
+        position: absolute;
+        top: 1em;
+        right: 1em;
+        text-align: center;
+        z-index: 99;
+    }
+
+    #close-tag-img-popup-icon, #close-tag-video-popup-icon {
+        width: 1.5em;
+        height: 1.5em;
+        padding-top: 0em;
+        filter: var(--filter-primary-red);
+    }
+
+    #close-tag-img-popup-icon:hover, #close-tag-video-popup-icon:hover {
+        filter: var(--filter-neon-orange);
+    }
+
+    #tag-img-popup, #tag-video-popup {
+        background: var(--secondary-dark);
+        display: none;
+        position: fixed; 
+        left: 0;
+        top: 0;
+        overflow-y: hidden;
+        padding-top: 4em;
+        text-align: center;
+        width: 100%;
+        height: 100%;
+        max-height: 100%;
+
+        z-index: 10;
+    }
+</style>
+
+<script>
+    const tag_table = document.getElementById("table-tag");
+    var tag_files, tags_json, tags;
+    var tag_file_no;
+
+    var tag_search_sort_indx = 1;
+    var tag_search_sort_dir = 1;
+
+    async function clear_tag_table() {
+        while(tag_table.rows.length > 1)
+            tag_table.deleteRow(1);
+    }
+
+    function tags_sort_data()
+    {
+        if(tag_search_sort_indx == 1 || tag_search_sort_indx == 3)
+        {
+            tag_files.sort(function(obj1, obj2) {
+                if(obj1[tag_search_sort_indx].toLowerCase() > obj2[tag_search_sort_indx].toLowerCase())
+                    return tag_search_sort_dir*1;
+                else if(obj1[tag_search_sort_indx] == obj2[tag_search_sort_indx])
+                    return 0;
+                else return tag_search_sort_dir*-1;
+            });
+        }
+        else
+        {
+            tag_files.sort(function(obj1, obj2) {
+                return tag_search_sort_dir*(obj1[tag_search_sort_indx] - obj2[tag_search_sort_indx]);
+            });
+        }
+    }
+
+    function tags_toggle_sort(indx)
+    {
+        if(tag_search_sort_indx == indx)
+            tag_search_sort_dir *= -1;
+        else
+        {
+            tag_search_sort_indx = indx;
+            tag_search_sort_dir = 1;
+        }
+
+        fetch_tag();
+    }
+
+    async function show_add_tag_popup() {
+        document.getElementById("input-new-tag-name").value = "";
+        document.getElementById("tags-add-popup").style.display = "block";
+        document.getElementById("input-new-tag-name").focus();
+    }
+
+    async function refresh_tags() {
+        var val = document.getElementById("select-tags").value;
+
+        for(var i=0; i<tags.length; ++i) {
+            document.getElementById("select-tags").remove(0);
+            document.getElementById("select-tag-to-apply").remove(0);
+        }
+
+        await fetch_tags();
+        document.getElementById("select-tags").value = val;
+        await fetch_tag();
+    }
+
+    async function add_tag() {
+        document.getElementById("tags-add-popup").style.display = "none";
+        tags_json["tags"][document.getElementById("input-new-tag-name").value] = [];
+
+        const date = new Date().getTime().toString();
+        const formData = new FormData();
+        formData.append("date", date);
+        formData.append("path", home + "/.cloudfort/tags.json");
+        formData.append("content", JSON.stringify(tags_json, null, "\t"));
+
+        response = await fetch("/api/file/write", {
+            method: "POST",
+            headers: {
+                //"content-type": "application/json"
+                "signature": signature(date)
+            },
+            body: formData
+        });
+        result = await response.text();
+
+        if(result != "") {
+            notify(result);
+        }
+
+        refresh_tags();
+    }
+
+    async function fetch_tags() {
+        const date = new Date().getTime().toString();
+        const formData = new FormData();
+        formData.append("date", date);
+        formData.append("path", home + "/.cloudfort/tags.json");
+
+        response = await fetch("/api/file/read", {
+            method: "POST",
+            headers: {
+                //"content-type": "application/json"
+                "signature": signature(date)
+            },
+            body: formData
+        });
+        result = await response.json();
+
+        tags_json = result;
+        tags = Object.keys(result["tags"]);
+
+        for(var i=0; i<tags.length; ++i) {
+            var opt = document.createElement('option');
+            opt.value = opt.innerHTML = tags[i];
+            document.getElementById("select-tags").appendChild(opt);
+            opt = document.createElement('option');
+            opt.value = opt.innerHTML = tags[i];
+            document.getElementById("select-tag-to-apply").appendChild(opt);
+        }
+        document.getElementById("select-tag-to-apply").value = tags[0];
+    }
+
+    async function fetch_tag() {
+        clear_tag_table();
+
+        var tag = document.getElementById("select-tags").value;
+
+        const date = new Date().getTime().toString();
+        const formData = new FormData();
+        formData.append("date", date);
+        formData.append("no-paths", tags_json["tags"][tag].length);
+        for(var i=0; i<tags_json["tags"][tag].length; ++i)
+            formData.append("path-" + i, tags_json["tags"][tag][i]);
+        response = await fetch("/api/files/info", {
+            method: "POST",
+            headers: {
+                //"content-type": "application/json"
+                "signature": signature(date)
+            },
+            body: formData
+        });
+        result = await response.json();
+        tag_files = result["files"];
+
+        //sorts files
+        tags_sort_data();
+
+        for(var f=result["files"].length-1; f>=0; --f) {
+            var row = tag_table.insertRow(1);
+
+            var ext = result["files"][f][1].substring(result["files"][f][1].lastIndexOf('.'), result["files"][f][1].length).toLowerCase();
+
+            row.insertCell(0).innerHTML = "<input type='checkbox' id='checkbox-" + f + "' style='vertical-align: middle;'>"
+
+            if(result["files"][f][0])
+                row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-folder no-hover-ico' style='padding-top: 3px'></i>";
+            else {
+                if(is_img_ext(ext))
+                    row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-file-earmark-image no-hover-ico' style='padding-top: 3px'></i>";
+                else if(is_video_ext(ext))
+                    row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-film no-hover-ico' style='padding-top: 3px'></i>";
+                else if(is_archive_ext(ext))
+                    row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-file-zip no-hover-ico' style='padding-top: 3px'></i>";
+                else
+                    row.insertCell(1).innerHTML = "<i class='bs-ico ico-white width-1em default-cursor bootstrap-file-earmark no-hover-ico' style='padding-top: 3px'></i>";
+            }
+
+            if(result["files"][f][0]) {
+                row.insertCell(2).innerHTML = "<a onclick='explore(\"" + result["files"][f][1].substring(0, result["files"][f][1].length-1) +  "\")'>" + result["files"][f][1] + "/</a>";
+            }
+            else {
+                var dir = result["files"][f][1].substring(0, result["files"][f][1].lastIndexOf('/')+1);
+                var file = result["files"][f][1].substring(result["files"][f][1].lastIndexOf('/')+1, result["files"][f][1].length);
+
+                if(is_img_ext(ext))
+                    row.insertCell(2).innerHTML = "<a onclick='explore(\"" + dir.substring(0, dir.length-1) +  "\")'>" + dir + "</a><a onclick='tag_serve_image(" + f + ")'>" + file + "</a>";
+                else if(is_video_ext(ext))
+                    row.insertCell(2).innerHTML = "<a onclick='explore(\"" + dir.substring(0, dir.length-1) +  "\")'>" + dir + "</a><a onclick='tag_serve_video(" + f + ")'>" + file + "</a>";
+                else if(is_archive_ext(ext))
+                    row.insertCell(2).innerHTML = "<a onclick='explore(\"" + dir.substring(0, dir.length-1) +  "\")'>" + dir + "</a><a onclick='extract_path(\"" + result["files"][f][1] +  "\")'>" + result["files"][f][1] + "</a>";
+                else
+                    row.insertCell(2).innerHTML = "<a onclick='explore(\"" + dir.substring(0, dir.length-1) +  "\")'>" + dir + "</a><a onclick='edit_file(\"" + result["files"][f][1] +  "\")'>" + file + "</a>";
+                //else
+                    //row.insertCell(2).innerHTML = result["files"][f][1];
+            }
+
+            if(result["files"][f][2] < 1000)
+                row.insertCell(3).innerHTML = result["files"][f][2] + "b";
+            else if(result["files"][f][2] < 1000000)
+                row.insertCell(3).innerHTML = (result["files"][f][2]/1000).toFixed(2) + "kb";
+            else
+                row.insertCell(3).innerHTML = (result["files"][f][2]/1000000).toFixed(2) + "mb";
+
+            row.insertCell(4).innerHTML = result["files"][f][3];
+        }
+    }
+
+    async function tag_serve_image(f) {
+        const date = new Date().getTime().toString();
+        const formData = new FormData();
+        formData.append("date", date);
+        formData.append("path", tag_files[f][1]);
+
+        response = await fetch("/api/download", {
+            method: "POST",
+            headers: {
+                //"content-type": "application/json"
+                "signature": signature(date)
+            },
+            body: formData
+        });
+        var blob = await response.blob();
+
+        var file = window.URL.createObjectURL(blob);
+        //window.location.assign(file);
+
+        document.getElementById("tag-img-download-btn").href = file;
+        document.getElementById("tag-img-download-btn").download = tag_files[f][1];
+        tag_file_no = f;
+
+        document.getElementById('img-tag').src = file;
+        document.getElementById('img-tag').title = tag_files[f][1];
+        document.getElementById('tag-img-popup').style.display = "block";
+    }
+
+    async function tag_serve_image_increment() {
+        var f = tag_file_no;
+        f = (f+1)%tag_files.length;
+        while(f != tag_file_no) {
+            var ext = tag_files[f][1].substring(tag_files[f][1].indexOf('.'), tag_files[f][1].length);
+            if(is_img_ext(ext)) {
+                tag_serve_image(f);
+                break;
+            }
+            f = (f+1)%tag_files.length;
+        }
+    }
+
+    async function tag_serve_image_decrement() {
+        var f = tag_file_no;
+        f--;
+        if(f < 0)
+            f = tag_files.length-1;
+        while(f != tag_file_no) {
+            var ext = tag_files[f][1].substring(tag_files[f][1].indexOf('.'), tag_files[f][1].length);
+            if(is_img_ext(ext)) {
+                tag_serve_image(f);
+                break;
+            }
+            f--;
+            if(f < 0)
+                f = tag_files.length-1;
+        }
+    }
+
+    async function tag_serve_video(f) {
+        const date = new Date().getTime().toString();
+        const formData = new FormData();
+        formData.append("date", date);
+        formData.append("path", tag_files[f][1]);
+
+        response = await fetch("/api/download", {
+            method: "POST",
+            headers: {
+                //"content-type": "application/json"
+                "signature": signature(date)
+            },
+            body: formData
+        });
+        var blob = await response.blob();
+
+        var file = window.URL.createObjectURL(blob);
+        //window.location.assign(file);
+
+        document.getElementById('tag-video-popup').style.display = "block";
+
+        var ext = tag_files[f][1].substring(tag_files[f][1].indexOf('.'), tag_files[f][1].length);
+        if(ext == ".mp4")
+            document.getElementById('tag-video-source').type = "video/mp4";
+        else if(ext == ".ogg")
+            document.getElementById('tag-video-source').type = "video/ogg";
+        else if(ext == ".webm")
+            document.getElementById('tag-video-source').type = "video/webm";
+        document.getElementById('video-tag').src = file;
+        document.getElementById('video-tag').title = tag_files[f][1];
+        document.getElementById('video-tag').play();
+
+        document.getElementById("tag-video-download-btn").href = file;
+        document.getElementById("tag-video-download-btn").download = tag_files[f][1];
+        tag_file_no = f;
+    }
+
+    async function tag_serve_video_increment() {
+        var f = tag_file_no;
+        f = (f+1)%tag_files.length;
+        while(f != tag_file_no) {
+            var ext = tag_files[f][1].substring(tag_files[f][1].indexOf('.'), tag_files[f][1].length);
+            if(is_video_ext(ext)) {
+                tag_serve_video(f);
+                break;
+            }
+
+            f = (f+1)%tag_files.length;
+        }
+    }
+
+    async function tag_serve_video_decrement() {
+        var f = tag_file_no;
+        f--;
+        if(f < 0)
+            f = tag_files.length-1;
+        while(f != tag_file_no) {
+            var ext = tag_files[f][1].substring(tag_files[f][1].indexOf('.'), tag_files[f][1].length);
+            if(is_video_ext(ext)) {
+                tag_serve_video(f);
+                break;
+            }
+
+            f--;
+            if(f < 0)
+                f = tag_files.length-1;
+        }
+    }
+
+    async function tags_init() {
+        fetch_tags();
+    }
+</script>

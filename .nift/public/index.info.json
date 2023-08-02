@@ -1,5 +1,5 @@
 {
-	"last-built": "06:05:08 Tuesday August 01 2023",
+	"last-built": "03:00:44 Thursday August 03 2023",
 	"name": "/",
 	"title": "index",
 	"template": "templates/template.html",
@@ -20,7 +20,11 @@
 		"content/repositories.html",
 		"content/search.html",
 		"content/services.html",
+		"content/snap-installed.html",
+		"content/snap-search.html",
+		"content/snapcraft.html",
 		"content/ssh.html",
+		"content/tags.html",
 		"content/terminal.html",
 		"content/tools.html",
 		"content/tos.html",
