@@ -556,6 +556,9 @@ ul li {
 .bootstrap-house:before {
   content: url("../icons/bootstrap-house.svg"); 
 }
+.bootstrap-images:before {
+  content: url("../icons/bootstrap-images.svg"); 
+}
 .bootstrap-input-cursor-text:before {
   content: url("../icons/bootstrap-input-cursor-text.svg"); 
 }

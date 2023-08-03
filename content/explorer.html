@@ -20,6 +20,7 @@
 	<i title="new directory" class='bs-ico bootstrap-folder-plus ico-link-color' onclick="show_create_dir()"></i> &nbsp;&nbsp;
 	<i title="new file" class='bs-ico bootstrap-file-earmark-plus ico-link-color' onclick="show_create_file()"></i> &nbsp;&nbsp;
 	<i title="tag" class='bs-ico bootstrap-tag ico-link-color' onclick="show_tag_selected()"></i> &nbsp;&nbsp;
+	<i title="album" class='bs-ico bootstrap-images ico-link-color' onclick="toggle_album_view()"></i> &nbsp;&nbsp;
 	<i title="edit" class='bs-ico bootstrap-code-square ico-link-color' onclick="edit_selected_files()"></i> &nbsp;&nbsp;
 	<i title="open in terminal" class='bs-ico bootstrap-terminal ico-link-color' onclick="open_in_terminal()"></i> &nbsp;&nbsp;
 	<i title="run" class='bs-ico bootstrap-alt ico-link-color' onclick="show_run_cmd()"></i> &nbsp;&nbsp;
@@ -137,6 +138,9 @@
 	</table>
 </div>
 
+<div class="card border" id="card-browser-album" style="display: none; max-width: 90%; margin-bottom: 1em;">
+</div>
+
 <style>
 	input[type=checkbox] {
 		position: relative;
@@ -214,6 +218,11 @@
 		display: block;
 		overflow-x: scroll;
 		max-height: calc(100vh - 16em);
+		overflow-y: scroll;
+	}
+
+	#card-browser-album {
+		max-height: calc(100vh - 15em);
 		overflow-y: scroll;
 	}
 
@@ -1214,6 +1223,44 @@
 		    explorer_hist_select.appendChild(opt);
 		}
 		await explore_dir(dir);
+	}
+
+	async function toggle_album_view() {
+		if(document.getElementById("card-browser-album").style.display == "none") {
+			document.getElementById("card-browser").style.display = "none";
+			document.getElementById("card-browser-album").style.display = "block";
+
+			for(var f=0; f<explorer_files.length; ++f) {
+				var ext = explorer_files[f][1].substring(explorer_files[f][1].lastIndexOf('.'), explorer_files[f][1].length).toLowerCase();
+
+				if(is_img_ext(ext)) {
+					const date = new Date().getTime().toString();
+					const formData = new FormData();
+					formData.append("date", date);
+					formData.append("path", bwd + "/" + explorer_files[f][1]);
+
+					response = await fetch("/api/download", {
+						method: "POST",
+						headers: {
+							//"content-type": "application/json"
+							"signature": signature(date)
+					    },
+						body: formData
+					});
+					var blob = await response.blob();
+
+					var file = window.URL.createObjectURL(blob);
+
+					document.getElementById("card-browser-album").innerHTML += "<a onclick='serve_image(" + f + ")'><img src='" + file + "' title='" + explorer_files[f][1] + "' loading='lazy' style='height: 250px; margin: 0.25em'></a>";
+				}
+			}
+		}
+		else {
+			document.getElementById("card-browser").style.display = "block";
+			document.getElementById("card-browser-album").style.display = "none";
+			document.getElementById("card-browser-album").innerHTML = "";
+
+		}
 	}
 
 	async function explore_dir(dir) {

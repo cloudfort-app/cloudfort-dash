@@ -197,6 +197,9 @@
 .bootstrap-house:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-house.svg)"); 
 }
+.bootstrap-images:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-images.svg)"); 
+}
 .bootstrap-input-cursor-text:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-input-cursor-text.svg)"); 
 }

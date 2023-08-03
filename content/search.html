@@ -15,6 +15,7 @@
 
 <div class="card border noselect" style="overflow-x: scroll; white-space: nowrap; max-width: 90%;">
     <i title="refresh" class='bs-ico bootstrap-arrow-repeat ico-link-color' onclick="search_server()"></i> &nbsp;&nbsp;
+    <i title="album" class='bs-ico bootstrap-images ico-link-color' onclick="toggle_search_album_view()"></i> &nbsp;&nbsp;
     <i title="edit" class='bs-ico bootstrap-code-square ico-link-color' onclick="edit_selected_search_files()"></i> &nbsp;&nbsp;
     <i title="download" class='bs-ico bootstrap-download ico-link-color' onclick="download_selected_search_files()"></i> &nbsp;&nbsp;
     <i title="copy/move" class='bs-ico bootstrap-box-arrow-right ico-link-color' onclick="search_show_mv_paths()"></i> &nbsp;&nbsp;
@@ -27,7 +28,7 @@
     <button  class="btn" onclick="search_mv_paths()">move</button>
 </div>
 
-<div class="card border" style="max-width: 90%; margin-bottom: 1em;">
+<div class="card border" id="card-search" style="max-width: 90%; margin-bottom: 1em;">
     <table id="table-search" style="white-space: nowrap">
         <tr>
             <th><input type='checkbox' id='search-checkbox-all' onchange='search_select_all_event()' style='vertical-align: middle;'></th>
@@ -37,6 +38,9 @@
             <th onclick='search_toggle_sort(3)' style="cursor: pointer;">modified</th>
         </tr>
     </table>
+</div>
+
+<div class="card border" id="card-search-album" style="display: none; max-width: 90%; margin-bottom: 1em;">
 </div>
 
 <div id="search-img-popup">
@@ -73,6 +77,11 @@
         display: block;
         overflow-x: scroll;
         max-height: calc(100vh - 19.5em);
+        overflow-y: scroll;
+    }
+
+    #card-search-album {
+        max-height: calc(100vh - 18.5em);
         overflow-y: scroll;
     }
 
@@ -163,6 +172,44 @@
         }
         else {
             search_hide_input_cards();
+        }
+    }
+
+    async function toggle_search_album_view() {
+        if(document.getElementById("card-search-album").style.display == "none") {
+            document.getElementById("card-search").style.display = "none";
+            document.getElementById("card-search-album").style.display = "block";
+
+            for(var f=0; f<search_files.length; ++f) {
+                var ext = search_files[f][1].substring(search_files[f][1].lastIndexOf('.'), search_files[f][1].length).toLowerCase();
+
+                if(is_img_ext(ext)) {
+                    const date = new Date().getTime().toString();
+                    const formData = new FormData();
+                    formData.append("date", date);
+                    formData.append("path", search_files[f][1]);
+
+                    response = await fetch("/api/download", {
+                        method: "POST",
+                        headers: {
+                            //"content-type": "application/json"
+                            "signature": signature(date)
+                        },
+                        body: formData
+                    });
+                    var blob = await response.blob();
+
+                    var file = window.URL.createObjectURL(blob);
+
+                    document.getElementById("card-search-album").innerHTML += "<a onclick='serve_search_image(" + f + ")'><img src='" + file + "' title='" + search_files[f][1] + "' loading='lazy' style='height: 250px; margin: 0.25em'></a>";
+                }
+            }
+        }
+        else {
+            document.getElementById("card-search").style.display = "block";
+            document.getElementById("card-search-album").style.display = "none";
+            document.getElementById("card-search-album").innerHTML = "";
+
         }
     }
 
