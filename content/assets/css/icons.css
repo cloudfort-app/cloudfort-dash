@@ -113,6 +113,12 @@
 .bootstrap-bag-check:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-bag-check.svg)"); 
 }
+.bootstrap-bookmark-dash:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-bookmark-dash.svg)"); 
+}
+.bootstrap-bookmark-plus:before {
+  content: url("@pathtofile(public/assets/icons/bootstrap-bookmark-plus.svg)"); 
+}
 .bootstrap-box:before {
   content: url("@pathtofile(public/assets/icons/bootstrap-box.svg)"); 
 }

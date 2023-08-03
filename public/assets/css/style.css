@@ -472,6 +472,12 @@ ul li {
 .bootstrap-bag-check:before {
   content: url("../icons/bootstrap-bag-check.svg"); 
 }
+.bootstrap-bookmark-dash:before {
+  content: url("../icons/bootstrap-bookmark-dash.svg"); 
+}
+.bootstrap-bookmark-plus:before {
+  content: url("../icons/bootstrap-bookmark-plus.svg"); 
+}
 .bootstrap-box:before {
   content: url("../icons/bootstrap-box.svg"); 
 }
